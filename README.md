@@ -1,5 +1,5 @@
 # KnG
-KnG website and site files.
+KnG website, Terraform, and site files.
 
 ## Preview locally
 
