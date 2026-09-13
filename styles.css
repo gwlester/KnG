@@ -66,6 +66,9 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .hero-content {
