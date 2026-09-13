@@ -121,6 +121,12 @@ h3 {
   background: var(--primary-dark);
 }
 
+.button-primary:focus-visible,
+.button-secondary:focus-visible {
+  outline: 3px solid var(--primary-dark);
+  outline-offset: 3px;
+}
+
 .button-secondary {
   border: 1px solid var(--border);
   background: var(--surface);
