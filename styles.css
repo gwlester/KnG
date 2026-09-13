@@ -71,6 +71,14 @@ h3 {
   list-style: none;
 }
 
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  outline: 2px solid currentColor;
+  outline-offset: 0.2em;
+}
+
 .hero-content {
   padding: 1rem 0;
 }
