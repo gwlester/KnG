@@ -125,7 +125,8 @@ h3 {
   color: #ffffff;
 }
 
-.button-primary:hover {
+.button-primary:hover,
+.button-primary:focus-visible {
   background: var(--primary-dark);
 }
 
