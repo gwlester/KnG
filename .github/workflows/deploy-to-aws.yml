@@ -1,0 +1,122 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-production-deploy
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+  S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+  TERRAFORM_WORKING_DIRECTORY: ${{ vars.TERRAFORM_WORKING_DIRECTORY }}
+
+jobs:
+  terraform:
+    name: Apply Terraform
+    if: ${{ hashFiles('**/*.tf') != '' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify Terraform deployment settings
+        shell: bash
+        run: |
+          test -n "${AWS_REGION}"
+          test -n "${AWS_DEPLOY_ROLE_ARN}"
+
+      - name: Resolve Terraform working directory
+        shell: bash
+        run: |
+          if [ -n "${TERRAFORM_WORKING_DIRECTORY}" ]; then
+            tf_dir="${TERRAFORM_WORKING_DIRECTORY}"
+          else
+            tf_file="$(find . -name '*.tf' -print -quit)"
+            if [ -z "${tf_file}" ]; then
+              tf_dir="."
+            else
+              tf_dir="$(dirname "${tf_file}")"
+            fi
+          fi
+
+          test -d "${tf_dir}"
+          printf 'TERRAFORM_WORKING_DIRECTORY=%s\n' "${tf_dir}" >> "${GITHUB_ENV}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Check Terraform formatting
+        shell: bash
+        run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" fmt -check -recursive
+
+      - name: Initialize Terraform
+        shell: bash
+        run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" init
+
+      - name: Validate Terraform
+        shell: bash
+        run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" validate
+
+      - name: Apply Terraform
+        shell: bash
+        run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" apply -auto-approve
+
+  deploy-site:
+    name: Deploy static site
+    needs: terraform
+    if: ${{ always() && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify site deployment settings
+        shell: bash
+        run: |
+          test -n "${AWS_REGION}"
+          test -n "${AWS_DEPLOY_ROLE_ARN}"
+          test -n "${S3_BUCKET_NAME}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync site files to S3
+        shell: bash
+        run: |
+          aws s3 sync . "s3://${S3_BUCKET_NAME}" --delete \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude ".gitignore" \
+            --exclude ".terraform/*" \
+            --exclude "*.tf" \
+            --exclude "*.tfvars" \
+            --exclude "README.md"
+
+      - name: Invalidate CloudFront cache
+        if: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        shell: bash
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
