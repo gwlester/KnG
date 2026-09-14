@@ -98,6 +98,10 @@ h3 {
   color: var(--muted);
 }
 
+.product-note {
+  font-size: 0.95rem;
+}
+
 .hero-copy {
   max-width: 42rem;
   font-size: 1.125rem;
@@ -180,6 +184,15 @@ h3 {
 .card {
   flex: 1 1 280px;
   padding: 1.75rem;
+}
+
+.feature-list {
+  margin: 1rem 0 1.5rem;
+  padding-left: 1.2rem;
+}
+
+.feature-list li + li {
+  margin-top: 0.5rem;
 }
 
 .post-card {
