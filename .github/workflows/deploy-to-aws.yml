@@ -104,14 +104,7 @@ jobs:
       - name: Sync site files to S3
         shell: bash
         run: |
-          aws s3 sync . "s3://${S3_BUCKET_NAME}" --delete \
-            --exclude ".git/*" \
-            --exclude ".github/*" \
-            --exclude ".gitignore" \
-            --exclude ".terraform/*" \
-            --exclude "*.tf" \
-            --exclude "*.tfvars" \
-            --exclude "README.md"
+          aws s3 sync www "s3://${S3_BUCKET_NAME}" --delete
 
       - name: Invalidate CloudFront cache
         if: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID != '' }}

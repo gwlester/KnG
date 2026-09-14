@@ -2,6 +2,10 @@
 
 ## Reorganize Directory Structure
 
+**Status: done (2026-09-14).** `www/`, `src/`, and `terraform/` created;
+`index.html`/`coming-soon.html`/`styles.css` moved into `www/`;
+`deploy-to-aws.yml`'s sync step and `README.md` updated to match.
+
 Split the repo into `terraform/`, `www/`, and `src/` (for any Python Lambdas we
 might need). Meta/workflow files (`README.md`, `CLAUDE.md`, `LICENSE`,
 `CONTRIBUTING.md`, `CHANGELOG.md`, `Version.MD`, `Prompts/`, `ReleseNotes/`,
@@ -20,6 +24,10 @@ Also set the `TERRAFORM_WORKING_DIRECTORY` GitHub repo variable to
 workflow's auto-detect-by-`find` fallback.
 
 ## Suggest AWS Components
+
+**Status: decided (2026-09-14)**, implemented in the Terraform below.
+Domains confirmed: `kng-consulting.com` (primary) plus alias
+`kng-consulting.net`, both with `www` subdomains.
 
 ### Goal
 
@@ -80,6 +88,21 @@ built, since that adds a real Lambda/API Gateway cost line (still small,
 but not zero).
 
 ## Create Terraform for AWS Components
+
+**Status: code written and `terraform validate`-clean (2026-09-14); not yet
+applied.** Written under `terraform/` (`versions.tf`, `providers.tf`,
+`variables.tf`, `oidc.tf`, `s3.tf`, `acm.tf`, `cloudfront.tf`, `outputs.tf`,
+`README.md`). Covers: GitHub OIDC provider + a scoped deploy role,
+private S3 bucket + CloudFront (OAC) + ACM cert for all four domains.
+
+**Not moving this to Done.md yet** — applying real AWS infrastructure
+(and the IAM trust policy it creates) needs your own AWS credentials and a
+deliberate decision, not something to run unattended. The one-time
+bootstrap sequence (create the cert, add its validation CNAMEs at GoDaddy,
+full apply, then add the `www` CNAMEs + apex forwarding at GoDaddy, then
+set the four GitHub repo variables) is written out step by step in
+`terraform/README.md`. Move this to Done.md once you've run it and the
+site is actually live behind CloudFront.
 
 Implement the components above under `terraform/` once the directory
 reorganization lands. Suggested resource breakdown: `s3.tf` (bucket +
