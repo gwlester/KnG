@@ -6,7 +6,12 @@ Replaced the single hardcoded `<article>` in `www/index.html`'s `#blog`
 section with a real pipeline:
 
 - Posts are authored as Markdown with front matter (`title`, `date`,
-  optional `summary`/`author`) under `content/blog/*.md`.
+  optional `summary`/`author`/`slug`) under `content/blog/*.md`. `slug`
+  defaults to the filename (so URLs stay stable across CI runs and across
+  title edits) but can be set explicitly to decouple the URL from the
+  filename -- e.g. so a file can be renamed for tidiness without breaking
+  a bookmarked `/blog/<slug>.html` link. Two posts resolving to the same
+  slug is a build error, not a silent overwrite.
 - `src/build_blog.py` (dependency: `markdown`, in `requirements.txt`)
   renders each post to `www/blog/<slug>.html` and an archive at
   `www/blog/index.html`, both sharing the site's header/nav/footer and

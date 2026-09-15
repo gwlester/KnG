@@ -60,7 +60,7 @@ def parse_post(path: Path) -> Post:
             raise ValueError(f"{path}: front matter missing '{required}'")
 
     return Post(
-        slug=slugify(path.stem),
+        slug=slugify(fields.get("slug", path.stem)),
         title=fields["title"],
         date=date.fromisoformat(fields["date"]),
         summary=fields.get("summary", ""),
@@ -70,7 +70,18 @@ def parse_post(path: Path) -> Post:
 
 
 def load_posts() -> list[Post]:
-    posts = [parse_post(p) for p in sorted(CONTENT_DIR.glob("*.md"))]
+    paths = sorted(CONTENT_DIR.glob("*.md"))
+    posts = [parse_post(p) for p in paths]
+
+    seen: dict[str, Path] = {}
+    for path, post in zip(paths, posts):
+        if post.slug in seen:
+            raise ValueError(
+                f"{path} and {seen[post.slug]} both resolve to slug '{post.slug}' -- "
+                "add an explicit 'slug:' front-matter field to one of them"
+            )
+        seen[post.slug] = path
+
     posts.sort(key=lambda p: p.date, reverse=True)
     return posts
 
