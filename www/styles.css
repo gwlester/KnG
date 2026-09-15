@@ -199,6 +199,14 @@ h3 {
   padding: 2rem;
 }
 
+.post-body {
+  max-width: 42rem;
+}
+
+.post-body p {
+  margin: 1.25rem 0;
+}
+
 .site-footer {
   padding: 2rem 1.5rem 3rem;
   color: var(--muted);

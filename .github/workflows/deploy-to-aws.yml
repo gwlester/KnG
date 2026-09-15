@@ -95,6 +95,19 @@ jobs:
           test -n "${AWS_DEPLOY_ROLE_ARN}"
           test -n "${S3_BUCKET_NAME}"
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: pip install -r requirements.txt
+
+      - name: Build blog
+        shell: bash
+        run: python3 src/build_blog.py
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

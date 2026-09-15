@@ -3,15 +3,24 @@ KnG website, Terraform, and site files.
 
 ## Layout
 
-- `www/` — the static site that gets deployed (HTML, CSS, ...)
+- `www/` — the static site that gets deployed (HTML, CSS, ...); `www/blog/`
+  is generated, see below
+- `content/blog/` — blog posts, as Markdown with front matter
+- `src/` — Python: `build_blog.py` renders `content/blog/` into
+  `www/blog/`; any future Lambdas would also live here
 - `terraform/` — AWS infrastructure (S3, ACM, CloudFront, the GitHub Actions
   deploy role) — see `terraform/README.md` for setup
-- `src/` — Python Lambdas, if/when any are needed (none yet)
 
 ## Preview locally
 
-Open `www/index.html` from the repository root in a browser, or serve the
-`www/` directory with a simple static file server.
+```
+pip install -r requirements.txt
+python3 src/build_blog.py
+```
+
+Then open `www/index.html` from the repository root in a browser, or serve
+the `www/` directory with a simple static file server. Re-run
+`build_blog.py` after adding or editing a post under `content/blog/`.
 
 ## GitHub Actions AWS deployment
 

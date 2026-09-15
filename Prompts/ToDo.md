@@ -1,40 +1,5 @@
 # To Do List
 
-## Build a Blog Pipeline
-
-**Status: design decided (2026-09-15), not yet implemented.**
-
-Today the blog is one hardcoded `<article>` inside `www/index.html`'s
-`#blog` section — no archive, no per-post pages, no way to add a post
-without hand-editing the homepage.
-
-**Decided approach:**
-
-- Posts are authored as Markdown files with front matter (title, date,
-  slug) rather than hand-written HTML.
-- A Python build script (fits the already-reserved `src/` directory) runs
-  as a step in `deploy-to-aws.yml`, before the S3 sync, and renders:
-  - `www/blog/<slug>.html` — one page per post, from a shared template
-    matching the site's existing header/footer/`styles.css`.
-  - `www/blog/index.html` — an archive listing every post, newest first.
-- Each post gets its own URL (`/blog/<slug>.html`), not just an entry on a
-  scrolling page — independently linkable/shareable and indexable by
-  search engines.
-- The homepage's `#blog` section becomes just the 1-2 most recent posts
-  (rendered by the same script) with a "View all posts" link to
-  `/blog/index.html`; the top-nav "Blog" link points there once it exists,
-  replacing the `#blog` anchor.
-
-**Open implementation questions, not yet decided:**
-
-- Markdown library choice for the Python script (stdlib has none; would
-  add a dependency such as `markdown` or `mistune` — first real Python
-  dependency in this repo).
-- Where post source files live (e.g. a top-level `content/blog/` next to
-  `www/`, `src/`, `terraform/`).
-- Whether the build step needs a "preview locally" command too (so a post
-  can be checked before pushing), not just the CI-time render.
-
 ## Reorganize Directory Structure
 
 **Status: done (2026-09-14).** `www/`, `src/`, and `terraform/` created;
