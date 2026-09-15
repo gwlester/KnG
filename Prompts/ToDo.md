@@ -101,8 +101,8 @@ deliberate decision, not something to run unattended. The one-time
 bootstrap sequence (create the cert, add its validation CNAMEs at GoDaddy,
 full apply, then add the `www` CNAMEs + apex forwarding at GoDaddy, then
 set the four GitHub repo variables) is written out step by step in
-`terraform/README.md`. Move this to Done.md once you've run it and the
-site is actually live behind CloudFront.
+`Prompts/AWS_Deployment.md`. Move this to Done.md once you've run it and
+the site is actually live behind CloudFront.
 
 Implement the components above under `terraform/` once the directory
 reorganization lands. Suggested resource breakdown: `s3.tf` (bucket +
