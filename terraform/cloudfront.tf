@@ -9,7 +9,7 @@ resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   default_root_object = "index.html"
   price_class         = var.cloudfront_price_class
-  aliases             = var.domain_names
+  aliases             = var.live_domain_names
 
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name

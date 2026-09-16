@@ -29,28 +29,48 @@ open questions left on this item.
   `gwlester`) -- `switch-live` runs under `production-switch`, so it
   pauses for manual approval before anything user-facing changes.
 
-**Smoke test, as actually implemented:** there's no live pre-switch URL
-for a specific release -- the S3 bucket is private/OAC-only, so an
-uploaded-but-not-yet-live `releases/<sha>/` prefix isn't reachable over
-HTTPS before the switch. The `production-switch` approval step *is* the
-smoke-test checkpoint: the reviewer's job before clicking approve is to
-check the release looks right some other way (e.g. checking out that
-commit and running `python3 src/build_blog.py` + a local static server,
-same as this project's own working practice so far). A real pre-switch
-preview URL is possible later (e.g. a second CloudFront cache behavior)
-but is meaningfully more infrastructure -- not built now.
+**Smoke test, as actually implemented (upgraded 2026-09-16):** a real
+pre-switch preview URL now exists -- see "Preview environment" below.
+`build-and-upload` points `preview.kng-consulting.com` at every uploaded
+release automatically (no approval needed, it's not user-facing), so the
+`production-switch` approval step's smoke test is now: open
+`https://preview.kng-consulting.com`, check it, then approve.
+
+**Preview environment (added 2026-09-16):** a second CloudFront
+distribution (`terraform/cloudfront_preview.tf`), aliased to
+`preview.kng-consulting.com` (a SAN on the same ACM cert, via the new
+`preview_domain_name` variable), sharing the same OAC and S3 bucket
+(bucket policy in `s3.tf` now allows both distributions' ARNs). Uses the
+AWS managed "CachingDisabled" policy instead of "CachingOptimized" --
+every request goes straight to S3, so the reviewer always sees the exact
+release just uploaded with no invalidation step needed. `rollback.yml`
+also points preview at whatever it rolls back to, so it never shows a
+stale release. `variables.tf`'s old `domain_names` was renamed
+`live_domain_names` to make room for this (only entries in
+`live_domain_names` are live-distribution aliases; `preview_domain_name`
+is only ever aliased on the preview distribution -- CloudFront requires
+each alias belong to exactly one distribution). New GitHub repo variable
+needed at bootstrap: `PREVIEW_CLOUDFRONT_DISTRIBUTION_ID` (optional --
+the preview-flip steps no-op without it), plus one more GoDaddy CNAME --
+both added to `Prompts/AWS_Deployment.md`.
+
+The three places that flip a distribution's `origin_path` (preview flip,
+switch-live, rollback) now share one script,
+`.github/scripts/set_cloudfront_origin_path.sh`, instead of three copies
+of near-identical `jq`/`aws cloudfront` calls.
 
 **Found while wiring this up, unrelated to blue-green itself:** every
-push-triggered run of `deploy-to-aws.yml` so far (20 runs, going back to
-before this session) has failed instantly with zero jobs and GitHub's
+push-triggered run of `deploy-to-aws.yml` so far (20+ runs, going back to
+before this session) had failed instantly with zero jobs and GitHub's
 generic "workflow file issue" message -- including runs from commits
-that never touched the workflow file. The `production`/`production-switch`
-environments referenced in every job didn't exist at all until created
-above, which shouldn't by itself cause a zero-job failure, so the cause
-is still unclear -- worth checking Settings -> Actions and Settings ->
-Billing on the `gwlester` account directly (this needs access this
-session's `gh` token doesn't have). Not something to guess further at
-without being able to run the workflow to test hypotheses.
+that never touched the workflow file. Root cause found and fixed
+2026-09-16: the workflow's `on.push.branches` said `main`, but this
+repo's actual (and only) branch is `master` -- so no push should have
+triggered it via that filter at all, yet every push somehow still
+produced a run; changed the trigger to `master`, but since manually
+dispatching the workflow to verify is blocked by this session's auto
+mode classifier (protected-scope IaC apply), the fix is unverified --
+watch the next real push's run in the Actions tab.
 
 **Previous state, now replaced by the above:** `deploy-to-aws.yml` used
 to run `aws s3 sync www s3://$S3_BUCKET_NAME --delete` directly against

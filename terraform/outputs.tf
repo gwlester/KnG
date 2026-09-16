@@ -9,8 +9,18 @@ output "cloudfront_distribution_id" {
 }
 
 output "cloudfront_domain_name" {
-  description = "The distribution's own *.cloudfront.net domain -- the CNAME target for every alias at GoDaddy."
+  description = "The live distribution's own *.cloudfront.net domain -- the CNAME target for its aliases at GoDaddy."
   value       = aws_cloudfront_distribution.site.domain_name
+}
+
+output "preview_cloudfront_distribution_id" {
+  description = "Set this as the PREVIEW_CLOUDFRONT_DISTRIBUTION_ID GitHub repo variable."
+  value       = aws_cloudfront_distribution.preview.id
+}
+
+output "preview_cloudfront_domain_name" {
+  description = "The preview distribution's own *.cloudfront.net domain -- the CNAME target for preview_domain_name at GoDaddy."
+  value       = aws_cloudfront_distribution.preview.domain_name
 }
 
 output "github_actions_deploy_role_arn" {
@@ -30,12 +40,20 @@ output "dns_records_to_add_at_godaddy" {
       }
     ],
     [
-      for d in slice(var.domain_names, 1, length(var.domain_names)) : {
-        purpose = "CNAME to CloudFront"
+      for d in slice(var.live_domain_names, 1, length(var.live_domain_names)) : {
+        purpose = "CNAME to CloudFront (live)"
         type    = "CNAME"
         name    = d
         value   = aws_cloudfront_distribution.site.domain_name
       } if startswith(d, "www.")
+    ],
+    [
+      {
+        purpose = "CNAME to CloudFront (preview)"
+        type    = "CNAME"
+        name    = var.preview_domain_name
+        value   = aws_cloudfront_distribution.preview.domain_name
+      }
     ]
   )
 }

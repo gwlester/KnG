@@ -24,6 +24,7 @@ env:
   AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
   S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
   CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+  PREVIEW_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.PREVIEW_CLOUDFRONT_DISTRIBUTION_ID }}
 
 jobs:
   rollback:
@@ -35,6 +36,9 @@ jobs:
     # would just slow down what's meant to be a fast rollback.
     environment: production
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Verify rollback settings
         shell: bash
         run: |
@@ -59,15 +63,8 @@ jobs:
       - name: Flip CloudFront origin path back
         shell: bash
         run: |
-          aws cloudfront get-distribution-config --id "${CLOUDFRONT_DISTRIBUTION_ID}" > dist.json
-          etag="$(jq -r '.ETag' dist.json)"
-          jq --arg path "/releases/${{ inputs.release_sha }}" \
-            '.DistributionConfig.Origins.Items[0].OriginPath = $path' dist.json \
-            | jq '.DistributionConfig' > new-config.json
-          aws cloudfront update-distribution \
-            --id "${CLOUDFRONT_DISTRIBUTION_ID}" \
-            --if-match "${etag}" \
-            --distribution-config file://new-config.json
+          .github/scripts/set_cloudfront_origin_path.sh \
+            "${CLOUDFRONT_DISTRIBUTION_ID}" "/releases/${{ inputs.release_sha }}" > /dev/null
 
       - name: Invalidate CloudFront cache
         shell: bash
@@ -75,3 +72,12 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
             --paths "/*"
+
+      # Keep preview in sync with the rollback target too, so it doesn't
+      # show a stale release after this.
+      - name: Point preview at the rolled-back release
+        if: ${{ env.PREVIEW_CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        shell: bash
+        run: |
+          .github/scripts/set_cloudfront_origin_path.sh \
+            "${PREVIEW_CLOUDFRONT_DISTRIBUTION_ID}" "/releases/${{ inputs.release_sha }}" > /dev/null

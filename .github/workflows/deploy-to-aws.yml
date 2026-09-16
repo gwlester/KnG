@@ -3,7 +3,7 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -19,6 +19,7 @@ env:
   AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
   S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
   CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+  PREVIEW_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.PREVIEW_CLOUDFRONT_DISTRIBUTION_ID }}
   TERRAFORM_WORKING_DIRECTORY: ${{ vars.TERRAFORM_WORKING_DIRECTORY }}
 
 jobs:
@@ -124,6 +125,17 @@ jobs:
         run: |
           aws s3 sync www "s3://${S3_BUCKET_NAME}/releases/${GITHUB_SHA}" --delete
 
+      # Preview: point the always-unapproved preview distribution at this
+      # release so it can be smoke-tested over real HTTPS before switch-live
+      # promotes it. Optional -- no-ops until PREVIEW_CLOUDFRONT_DISTRIBUTION_ID
+      # is set (see Prompts/AWS_Deployment.md).
+      - name: Point preview at this release
+        if: ${{ env.PREVIEW_CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        shell: bash
+        run: |
+          .github/scripts/set_cloudfront_origin_path.sh \
+            "${PREVIEW_CLOUDFRONT_DISTRIBUTION_ID}" "/releases/${GITHUB_SHA}" > /dev/null
+
   switch-live:
     name: Switch live release
     needs: build-and-upload
@@ -136,6 +148,9 @@ jobs:
     # Decided in Prompts/ToDo.md's "Blue-Green Deployments" item.
     environment: production-switch
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Verify switch settings
         shell: bash
         run: |
@@ -153,17 +168,9 @@ jobs:
       - name: Flip CloudFront origin path to the new release
         shell: bash
         run: |
-          aws cloudfront get-distribution-config --id "${CLOUDFRONT_DISTRIBUTION_ID}" > dist.json
-          etag="$(jq -r '.ETag' dist.json)"
-          old_origin_path="$(jq -r '.DistributionConfig.Origins.Items[0].OriginPath' dist.json)"
+          old_origin_path="$(.github/scripts/set_cloudfront_origin_path.sh \
+            "${CLOUDFRONT_DISTRIBUTION_ID}" "/releases/${GITHUB_SHA}")"
           echo "OLD_ORIGIN_PATH=${old_origin_path}" >> "${GITHUB_ENV}"
-          jq --arg path "/releases/${GITHUB_SHA}" \
-            '.DistributionConfig.Origins.Items[0].OriginPath = $path' dist.json \
-            | jq '.DistributionConfig' > new-config.json
-          aws cloudfront update-distribution \
-            --id "${CLOUDFRONT_DISTRIBUTION_ID}" \
-            --if-match "${etag}" \
-            --distribution-config file://new-config.json
 
       - name: Invalidate CloudFront cache
         shell: bash

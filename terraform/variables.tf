@@ -10,8 +10,8 @@ variable "bucket_name" {
   default     = "kng-consulting-site"
 }
 
-variable "domain_names" {
-  description = "All domains/subdomains the site should answer to. The first entry is used as the primary CloudFront alias."
+variable "live_domain_names" {
+  description = "All domains/subdomains the live site should answer to. The first entry is used as the ACM certificate's primary domain_name; all entries are aliases on the live CloudFront distribution."
   type        = list(string)
   default = [
     "kng-consulting.com",
@@ -19,6 +19,18 @@ variable "domain_names" {
     "kng-consulting.net",
     "www.kng-consulting.net",
   ]
+}
+
+variable "preview_domain_name" {
+  description = <<-EOT
+    Subdomain for the preview CloudFront distribution -- always shows
+    whatever build-and-upload most recently uploaded, ahead of switch-live
+    promoting it, for smoke-testing the real deployed output. A SAN on the
+    same ACM certificate as live_domain_names, but only aliased on the
+    preview distribution, never the live one.
+  EOT
+  type        = string
+  default     = "preview.kng-consulting.com"
 }
 
 variable "cloudfront_price_class" {

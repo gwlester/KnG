@@ -86,7 +86,9 @@ terraform output
 | `github_actions_deploy_role_arn` | GitHub repo variable `AWS_DEPLOY_ROLE_ARN` |
 | `s3_bucket_name` | GitHub repo variable `S3_BUCKET_NAME` |
 | `cloudfront_distribution_id` | GitHub repo variable `CLOUDFRONT_DISTRIBUTION_ID` |
+| `preview_cloudfront_distribution_id` | GitHub repo variable `PREVIEW_CLOUDFRONT_DISTRIBUTION_ID` |
 | `cloudfront_domain_name` | GoDaddy CNAME target, step 4 below (not a GitHub variable) |
+| `preview_cloudfront_domain_name` | GoDaddy CNAME target, step 4 below (not a GitHub variable) |
 
 Also set GitHub repo variable `AWS_REGION` = `us-east-1` (the Terraform
 default; only different if `var.aws_region` was changed) and
@@ -100,6 +102,7 @@ gh variable set AWS_REGION --body "us-east-1"
 gh variable set AWS_DEPLOY_ROLE_ARN --body "<value>"
 gh variable set S3_BUCKET_NAME --body "<value>"
 gh variable set CLOUDFRONT_DISTRIBUTION_ID --body "<value>"
+gh variable set PREVIEW_CLOUDFRONT_DISTRIBUTION_ID --body "<value>"
 gh variable set TERRAFORM_WORKING_DIRECTORY --body "terraform"
 ```
 
@@ -109,11 +112,13 @@ Get:
 ```
 terraform output -json dns_records_to_add_at_godaddy
 ```
-Now also lists `www.kng-consulting.com` and `www.kng-consulting.net` as
-CNAMEs.
+Now also lists `www.kng-consulting.com`, `www.kng-consulting.net`, and
+`preview.kng-consulting.com` as CNAMEs.
 
-Put them: same Add Record steps as step 2, Value = `cloudfront_domain_name`
-from the table above.
+Put them: same Add Record steps as step 2, Value = each record's own
+`value` field (the preview entry points at `preview_cloudfront_domain_name`,
+not the same CloudFront domain as the other two -- it's a separate
+distribution, see `terraform/cloudfront_preview.tf`).
 
 For the two apex domains (`kng-consulting.com`, `kng-consulting.net` --
 GoDaddy can't CNAME the zone root): that domain -> Forwarding -> Domain ->
@@ -121,7 +126,11 @@ forward to `https://www.<same domain>`.
 
 ## Done
 
-From here on, pushes to `main` run `terraform apply` in CI (using the role
-created above) before syncing `www/` to S3 and invalidating CloudFront --
-no more manual `terraform apply` needed unless GoDaddy-side DNS records
-need to change.
+From here on, pushes to `master` run `terraform apply` in CI (using the
+role created above), upload `www/` to a new `releases/<sha>/` prefix, and
+point the preview distribution at it automatically -- then wait at the
+`production-switch` environment's approval gate. Approving promotes that
+release to the live distribution and invalidates it; see
+`Prompts/ToDo.md`'s "Blue-Green Deployments" item for the full mechanics,
+and `.github/workflows/rollback.yml` for rolling back. No more manual
+`terraform apply` needed unless GoDaddy-side DNS records need to change.

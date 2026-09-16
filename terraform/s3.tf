@@ -24,6 +24,7 @@ resource "aws_s3_bucket_ownership_controls" "site" {
 }
 
 # Readable only via CloudFront (Origin Access Control), never directly.
+# Both the live and preview distributions read from this same bucket.
 data "aws_iam_policy_document" "site_bucket_policy" {
   statement {
     sid       = "AllowCloudFrontOAC"
@@ -39,7 +40,10 @@ data "aws_iam_policy_document" "site_bucket_policy" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.site.arn]
+      values = [
+        aws_cloudfront_distribution.site.arn,
+        aws_cloudfront_distribution.preview.arn,
+      ]
     }
   }
 }

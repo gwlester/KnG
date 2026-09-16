@@ -6,8 +6,8 @@
 resource "aws_acm_certificate" "site" {
   provider = aws.us_east_1
 
-  domain_name               = var.domain_names[0]
-  subject_alternative_names = slice(var.domain_names, 1, length(var.domain_names))
+  domain_name               = var.live_domain_names[0]
+  subject_alternative_names = concat(slice(var.live_domain_names, 1, length(var.live_domain_names)), [var.preview_domain_name])
   validation_method         = "DNS"
 
   lifecycle {
