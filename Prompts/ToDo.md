@@ -59,18 +59,33 @@ switch-live, rollback) now share one script,
 `.github/scripts/set_cloudfront_origin_path.sh`, instead of three copies
 of near-identical `jq`/`aws cloudfront` calls.
 
-**Found while wiring this up, unrelated to blue-green itself:** every
-push-triggered run of `deploy-to-aws.yml` so far (20+ runs, going back to
-before this session) had failed instantly with zero jobs and GitHub's
-generic "workflow file issue" message -- including runs from commits
-that never touched the workflow file. Root cause found and fixed
-2026-09-16: the workflow's `on.push.branches` said `main`, but this
-repo's actual (and only) branch is `master` -- so no push should have
-triggered it via that filter at all, yet every push somehow still
-produced a run; changed the trigger to `master`, but since manually
-dispatching the workflow to verify is blocked by this session's auto
-mode classifier (protected-scope IaC apply), the fix is unverified --
-watch the next real push's run in the Actions tab.
+**Found while wiring this up, still unresolved, unrelated to blue-green
+itself:** every push-triggered run of `deploy-to-aws.yml` so far (21+
+runs, going back to before this session) has failed instantly with zero
+jobs and GitHub's generic "workflow file issue" message -- including
+runs from commits that never touched the workflow file.
+
+- **Ruled out 2026-09-16:** the workflow's `on.push.branches` said `main`
+  while this repo's actual (and only) branch is `master` -- fixed the
+  trigger to say `master`, but the very next push still failed the exact
+  same way (zero jobs, same message), so that wasn't the cause, or at
+  least wasn't the only one.
+- **Ruled out:** the `production`/`production-switch` GitHub Environments
+  referenced in every job didn't exist until created via the API this
+  session -- creating them didn't change the failure either.
+- `gh api repos/gwlester/KnG/commits/<sha>/check-runs` returns zero
+  check runs for these commits -- confirms nothing is even being
+  scheduled, not a job failing after starting.
+- This session's `gh` token can't see billing or account-settings
+  endpoints (403/404 on everything tried), and manually dispatching the
+  workflow to test hypotheses live is blocked by the auto mode
+  classifier (protected-scope IaC apply) -- both dead ends from here.
+- **Next step is on Gerald:** check the repository's Actions tab
+  directly (`https://github.com/gwlester/KnG/actions`) for whatever
+  human-readable banner GitHub shows there (it's often clearer than the
+  API), and Settings -> Actions / Settings -> Billing on the `gwlester`
+  account for a spending limit, payment/verification hold, or similar
+  account-level block.
 
 **Previous state, now replaced by the above:** `deploy-to-aws.yml` used
 to run `aws s3 sync www s3://$S3_BUCKET_NAME --delete` directly against
