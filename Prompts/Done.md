@@ -1,5 +1,25 @@
 # Completed Work Items
 
+## Reorganize Directory Structure
+
+Split the repo into `terraform/`, `www/`, and `src/` (for any Python
+Lambdas). Meta/workflow files (`README.md`, `CLAUDE.md`, `LICENSE`,
+`CONTRIBUTING.md`, `CHANGELOG.md`, `Version.MD`, `Prompts/`,
+`ReleseNotes/`, `.github/`) stayed at the repo root — they aren't deployed
+site content.
+
+- Moved `index.html`, `coming-soon.html`, `styles.css` into `www/`.
+- Updated `deploy-to-aws.yml`'s "Sync site files to S3" step from
+  `aws s3 sync . s3://$BUCKET --delete` (with a long exclude list) to
+  `aws s3 sync www s3://$S3_BUCKET_NAME --delete`, landed in the same
+  change as the move so `main` was never left with a workflow pointed at
+  the wrong path.
+- `README.md` updated to match the new layout.
+
+(Completed 2026-09-14. Note: the `TERRAFORM_WORKING_DIRECTORY` GitHub repo
+variable still needs to be set to `terraform` as part of the still-open
+AWS bootstrap in `Prompts/AWS_Deployment.md` -- not part of this item.)
+
 ## Build a Blog Pipeline
 
 Replaced the single hardcoded `<article>` in `www/index.html`'s `#blog`

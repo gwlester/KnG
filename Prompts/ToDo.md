@@ -1,28 +1,5 @@
 # To Do List
 
-## Reorganize Directory Structure
-
-**Status: done (2026-09-14).** `www/`, `src/`, and `terraform/` created;
-`index.html`/`coming-soon.html`/`styles.css` moved into `www/`;
-`deploy-to-aws.yml`'s sync step and `README.md` updated to match.
-
-Split the repo into `terraform/`, `www/`, and `src/` (for any Python Lambdas we
-might need). Meta/workflow files (`README.md`, `CLAUDE.md`, `LICENSE`,
-`CONTRIBUTING.md`, `CHANGELOG.md`, `Version.MD`, `Prompts/`, `ReleseNotes/`,
-`.github/`) stay at the repo root — they aren't deployed site content.
-
-**Depends on this workflow change, not optional:** `deploy-to-aws.yml`'s
-"Sync site files to S3" step currently runs `aws s3 sync . s3://$BUCKET
---delete` against the repo root with a long exclude list. Once site files
-move to `www/`, that step must become `aws s3 sync www
-s3://$S3_BUCKET_NAME --delete` (the exclude list goes away entirely). Land
-the directory move and this workflow edit in the same commit/branch so
-`main` is never left with a workflow pointed at the wrong path.
-
-Also set the `TERRAFORM_WORKING_DIRECTORY` GitHub repo variable to
-`terraform` once that directory exists, rather than relying on the
-workflow's auto-detect-by-`find` fallback.
-
 ## Suggest AWS Components
 
 **Status: decided (2026-09-14)**, implemented in the Terraform below.
