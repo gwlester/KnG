@@ -2,9 +2,9 @@
 
 ## Blue-Green Deployments
 
-**Status: decided (2026-09-16), not yet implemented.** See also the
-pre-existing-infrastructure note at the end -- still being clarified,
-may change some of this.
+**Status: decided (2026-09-16), not yet implemented.** Including the
+pre-existing-infrastructure note at the end -- fully resolved now, no
+open questions left on this item.
 
 **Current state:** `deploy-to-aws.yml` runs `aws s3 sync www
 s3://$S3_BUCKET_NAME --delete` directly against the one bucket CloudFront
@@ -58,33 +58,42 @@ invalidate) — there's no fast switch-back.
    no rebuild -- limited to the 1 retained previous release per the
    retention decision above.
 
-**Pre-existing infrastructure to account for (raised 2026-09-16).** There
-is AWS infrastructure already in place, serving the KnG domains today,
-that this Terraform-managed stack is replacing. Confirmed so far:
+**Pre-existing infrastructure (resolved 2026-09-16).** Manually created
+(not IaC-managed), in the same AWS account, region us-east-2 (Ohio) --
+this Terraform's default `aws_region` is us-east-1, which is fine, the
+two don't need to match. `kng-consulting.com`/`.net` are currently live
+there via GoDaddy DNS, so the DNS flip to the new CloudFront
+distribution's domain remains the actual go-green cutover moment, not
+the Terraform apply itself.
 
-- `kng-consulting.com`/`.net` **are currently live there** via GoDaddy
-  DNS right now -- so the eventual DNS flip to the new CloudFront
-  distribution's domain is the actual go-green cutover moment, not the
-  Terraform apply itself.
-- It's in the **same AWS account** this Terraform bootstraps into --
-  real risk of resource-name collisions, not just a theoretical one.
-- **Still unknown, Gerald to find out and update this item:** what the
-  pre-existing setup actually is (S3+CloudFront by hand, something else
-  entirely).
+Existing S3 buckets in the account, all confirmed safe to delete once
+the new stack is live (kept here for the eventual manual teardown):
 
-**Given same-account is confirmed, check before running
-`terraform apply` for the first time** (also called out in
-`Prompts/AWS_Deployment.md` step 0 now):
+| Bucket | Created |
+| --- | --- |
+| `kng-consulting.com` | 2020-02-13 |
+| `www.kng-consulting.com` | 2020-02-13 |
+| `kng-consulting.net` | 2020-02-13 |
+| `www.kng-consulting.net` | 2020-02-13 |
+| `private.kng-consulting.net` | 2020-02-16 |
+| `kngconsulting` | 2020-01-17 |
+| `kngconsultingwebsite` | 2020-01-18 |
+| `gwlester` | 2021-07-27 |
+| `gerald.lester` | 2021-07-27 |
 
-- Does the old setup use an S3 bucket named `kng-consulting-site` (this
-  Terraform's default, in `terraform/variables.tf`'s `bucket_name`)? Two
-  buckets can't share a name while both exist -- override `bucket_name`
-  if so.
-- Does an IAM role named `kng-github-actions-deploy` already exist (this
-  Terraform's `terraform/oidc.tf`)? Would collide the same way -- rename
-  via `aws_iam_role.github_actions_deploy`'s `name` if so.
-- Everything else (ACM cert, CloudFront distribution) can coexist safely
-  under different resource IDs regardless -- no collision risk there.
+(All region us-east-2.) The domain-named buckets match the classic S3
+static-website-hosting naming convention (bucket name = domain, so a
+plain CNAME/website-endpoint setup works without CloudFront) -- likely
+no CloudFront/ACM in the old setup at all. Unconfirmed, but consistent
+with everything else here, and not something this project needs to rely
+on either way.
+
+**Name-collision check: clear, confirmed 2026-09-16.** No bucket above
+is named `kng-consulting-site` (this Terraform's `bucket_name` default),
+and no `kng-github-actions-deploy` IAM role exists either. `terraform
+apply` can proceed with `terraform/variables.tf`/`oidc.tf`'s defaults
+as-is -- no rename needed, and `Prompts/AWS_Deployment.md` step 0's
+collision check is already satisfied, no need to re-run it.
 
 Gerald tears down the old infrastructure manually once the new stack is
 confirmed live, whenever he's satisfied it's safe to -- not scripted, not
