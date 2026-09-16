@@ -2,7 +2,9 @@
 
 ## Blue-Green Deployments
 
-**Status: scoped (2026-09-16), not designed/implemented.**
+**Status: decided (2026-09-16), not yet implemented.** See also the
+pre-existing-infrastructure note at the end -- still being clarified,
+may change some of this.
 
 **Current state:** `deploy-to-aws.yml` runs `aws s3 sync www
 s3://$S3_BUCKET_NAME --delete` directly against the one bucket CloudFront
@@ -27,34 +29,59 @@ invalidate) — there's no fast switch-back.
    buckets, or two CloudFront distributions behind weighted DNS — the
    latter would need Route53, and DNS stays at GoDaddy per the existing
    AWS Components decision.)
-3. **Terraform vs. CLI for the switch.** Flipping `origin_path` on every
-   deploy via `terraform apply` fights with Terraform's own state if
-   anyone/anything else ever touches it directly — decide whether the
-   switch step is Terraform-managed (a variable + apply) or a plain `aws
-   cloudfront update-distribution` CLI call in the workflow, decoupled
-   from the Terraform-managed baseline config.
-4. **Split "upload" from "switch" in the workflow** — two distinct steps
-   (or jobs) so a bad build can be caught (smoke-tested against its
-   release-prefix URL) before it's switched live, instead of today's
-   single sync-and-you're-live step.
-5. **Retention/cleanup.** Old release prefixes need an S3 lifecycle rule
-   (expire after N days, or keep last N releases) so storage doesn't grow
-   unbounded — still cheap either way, but not free forever.
-6. **Rollback trigger.** A `workflow_dispatch` input ("roll back to
+3. **Terraform vs. CLI for the switch -- decided: CLI.** The switch step
+   runs a plain `aws cloudfront update-distribution` call in the workflow,
+   not a `terraform apply` of an `origin_path` variable -- keeps the
+   switch decoupled from the Terraform-managed baseline config, so nothing
+   fights Terraform's state if the origin path is ever touched directly.
+4. **Split "upload" from "switch" in the workflow.** Two distinct steps
+   (or jobs): upload a new release prefix, then a separate, later step
+   does the switch. A few minutes of CloudFront propagation delay on the
+   switch itself is acceptable for this site.
+5. **Smoke test -- decided: manual, always.** Before the switch step
+   runs, a manual smoke test against the new release prefix's URL is
+   required, in addition to whatever automated smoke test the workflow
+   also runs. Not "flip and watch."
+6. **Switch approval -- decided: manual, at this time.** The switch does
+   not run automatically on a successful build/smoke test -- it needs an
+   explicit go-ahead (e.g. a GitHub Environment protection rule requiring
+   approval, or a separate manually-triggered `workflow_dispatch` step),
+   the same shape as the release-tag approval gate elsewhere in this
+   project. Revisit later if that becomes unnecessary friction.
+7. **Retention -- decided: keep 1 previous release.** Only the live
+   release prefix plus the one immediately before it are kept; anything
+   older is cleaned up (S3 lifecycle rule capped at 2 release prefixes, or
+   an explicit delete step when a new release goes live) rather than
+   growing indefinitely.
+8. **Rollback trigger.** A `workflow_dispatch` input ("roll back to
    release `<sha>`") that just re-points `origin_path` + invalidates, with
-   no rebuild.
+   no rebuild -- limited to the 1 retained previous release per the
+   retention decision above.
 
-**Open questions:**
+**Pre-existing infrastructure to account for (raised 2026-09-16, not yet
+resolved):** there is AWS infrastructure already in place, serving the
+KnG domains today, that this Terraform-managed stack is replacing.
+Gerald will manually tear that old infrastructure down himself once the
+new stack is confirmed live ("green") -- **not** something to script or
+run unattended. Still need from Gerald before finishing this design (and
+before running the `Prompts/AWS_Deployment.md` bootstrap, which doesn't
+yet account for this):
 
-- How many past releases to retain (storage cost vs. rollback depth)?
-- CloudFront distribution updates typically take a few minutes to
-  propagate globally — is "flip and wait a few minutes" an acceptable
-  definition of "switch" here, or is that a dealbreaker for this site?
-- Does going live need a smoke-test gate before the origin-path flip, or
-  is "flip and watch" fine given how small/low-traffic this site is?
-- Should the switch require manual approval (like the release-tag gate
-  elsewhere in this project) or run automatically on every successful
-  build?
+- What the pre-existing setup actually is (S3+CloudFront, something else
+  entirely, which AWS account).
+- Whether `kng-consulting.com`/`.net` currently resolve to it via GoDaddy
+  DNS right now.
+- Whether it uses an S3 bucket name that would collide with this
+  Terraform's default (`kng-consulting-site`), since two buckets can't
+  share a name while both exist.
+
+The likely shape of "going green" once that's answered: bootstrap the new
+Terraform stack fully (it can coexist with the old infrastructure the
+whole time, as long as bucket names don't collide), verify it works via
+its own CloudFront domain, *then* flip the GoDaddy DNS records over to
+the new CloudFront distribution -- that DNS flip is the actual go-green
+moment. Gerald tears down the old infrastructure manually after that,
+whenever he's satisfied it's safe to.
 
 ## Create Terraform for AWS Components
 
