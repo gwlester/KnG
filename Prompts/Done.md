@@ -20,6 +20,68 @@ site content.
 variable still needs to be set to `terraform` as part of the still-open
 AWS bootstrap in `Prompts/AWS_Deployment.md` -- not part of this item.)
 
+## Suggest AWS Components
+
+Decided 2026-09-14. Domains confirmed: `kng-consulting.com` (primary) plus
+alias `kng-consulting.net`, both with `www` subdomains. Implemented in
+`terraform/` -- see the "Create Terraform for AWS Components" item in
+`Prompts/ToDo.md` for that item's own status.
+
+### Goal
+
+1. Minimize AWS cost
+2. Minimize GitHub cost (already effectively free — this repo is public, so
+   standard GitHub Actions runners are unlimited/free; treated as "don't
+   run deploy jobs for no reason," not an actual dollar concern)
+
+### Context
+
+- Domain is registered at **GoDaddy**; DNS stays at GoDaddy (no Route53
+  hosted zone) to skip the ~$0.50/mo zone cost. GoDaddy remains the source
+  of truth for DNS records.
+- No dynamic/backend behavior exists yet — the site is fully static. The
+  `src/` (Lambda) directory is for future use, not an immediate need,
+  **except** the coming-soon page already has a Contact section with no
+  working submit action yet — a contact-form handler is the most likely
+  first real use of `src/`, if/when that's built.
+
+### Components chosen
+
+- **S3 bucket** (private — no public bucket policy/static-website-hosting
+  endpoint) holding `www/`'s contents, read only via CloudFront using
+  Origin Access Control (OAC). Storage + request cost for a small site is
+  pennies/month.
+- **ACM certificate** in `us-east-1` (required region for CloudFront),
+  DNS-validated. Since DNS lives at GoDaddy, Terraform can't create the
+  validation record automatically — `terraform apply`, read the
+  validation CNAME from the Terraform output, and add it in GoDaddy by
+  hand (one-time, rarely changes). Free.
+- **CloudFront distribution** in front of the bucket, `PriceClass_100`
+  (North America + Europe edge locations only) unless there's a reason to
+  expect a wider audience — cuts cost vs. `PriceClass_All` with no
+  practical latency difference for a US-based audience. Custom domain
+  alias(es) for the apex and/or `www` subdomain, backed by the ACM cert
+  above.
+- **DNS at GoDaddy:** point `www.<domain>` at the CloudFront distribution's
+  domain name via CNAME. For the apex domain, GoDaddy doesn't support a
+  Route53-style ALIAS record at the zone root — use GoDaddy's domain
+  forwarding (apex → `www`) unless GoDaddy's DNS product supports CNAME
+  flattening, which is worth a quick check when this is actually built.
+- **No Lambda/Lambda@Edge/API Gateway yet.** If/when the contact form needs
+  real handling, prefer a plain Lambda behind a small API Gateway (or a
+  Function URL) over Lambda@Edge — simpler and this isn't a
+  request-manipulation-at-the-edge use case. If a future need is just
+  redirects/header rewrites, CloudFront Functions is cheaper than
+  Lambda@Edge ($0.10 vs $0.60 per million invocations) and should be
+  preferred for that narrower case.
+- **CloudFront invalidations:** first 1,000 paths/month are free, trivial
+  for a site this size — not a cost concern, just invalidate `/*` on
+  deploy as the existing workflow already plans to.
+
+Revisit if the contact form (or anything else dynamic) actually gets
+built, since that adds a real Lambda/API Gateway cost line (still small,
+but not zero).
+
 ## Build a Blog Pipeline
 
 Replaced the single hardcoded `<article>` in `www/index.html`'s `#blog`
