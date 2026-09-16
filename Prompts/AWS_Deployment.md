@@ -16,6 +16,22 @@ One-time setup checklist for standing up the AWS infrastructure in
   right one before continuing.
 - **GoDaddy account access.** No value to record -- just be logged in
   when you reach the DNS steps below.
+- **Name collisions with the pre-existing infrastructure.** The domains
+  are currently live on other AWS infrastructure in this **same** AWS
+  account, being replaced by this Terraform (see "Pre-existing
+  infrastructure" in `Prompts/ToDo.md`'s "Blue-Green Deployments" item).
+  Before running `terraform apply` for the first time, check:
+  - Get: `aws s3api head-bucket --bucket kng-consulting-site` (errors if
+    it doesn't exist -- that's the good outcome). Put it: if it *does*
+    exist already, override `bucket_name` in `terraform/terraform.tfvars`
+    to something else.
+  - Get: `aws iam get-role --role-name kng-github-actions-deploy` (errors
+    if it doesn't exist -- good). Put it: if it exists, rename
+    `aws_iam_role.github_actions_deploy`'s `name` in `terraform/oidc.tf`
+    before applying.
+  - ACM certificate and CloudFront distribution don't need this check --
+    both can coexist safely alongside the old infrastructure under their
+    own resource IDs.
 
 ## 1. Check for an existing GitHub OIDC provider
 

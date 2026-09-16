@@ -58,30 +58,37 @@ invalidate) — there's no fast switch-back.
    no rebuild -- limited to the 1 retained previous release per the
    retention decision above.
 
-**Pre-existing infrastructure to account for (raised 2026-09-16, not yet
-resolved):** there is AWS infrastructure already in place, serving the
-KnG domains today, that this Terraform-managed stack is replacing.
-Gerald will manually tear that old infrastructure down himself once the
-new stack is confirmed live ("green") -- **not** something to script or
-run unattended. Still need from Gerald before finishing this design (and
-before running the `Prompts/AWS_Deployment.md` bootstrap, which doesn't
-yet account for this):
+**Pre-existing infrastructure to account for (raised 2026-09-16).** There
+is AWS infrastructure already in place, serving the KnG domains today,
+that this Terraform-managed stack is replacing. Confirmed so far:
 
-- What the pre-existing setup actually is (S3+CloudFront, something else
-  entirely, which AWS account).
-- Whether `kng-consulting.com`/`.net` currently resolve to it via GoDaddy
-  DNS right now.
-- Whether it uses an S3 bucket name that would collide with this
-  Terraform's default (`kng-consulting-site`), since two buckets can't
-  share a name while both exist.
+- `kng-consulting.com`/`.net` **are currently live there** via GoDaddy
+  DNS right now -- so the eventual DNS flip to the new CloudFront
+  distribution's domain is the actual go-green cutover moment, not the
+  Terraform apply itself.
+- It's in the **same AWS account** this Terraform bootstraps into --
+  real risk of resource-name collisions, not just a theoretical one.
+- **Still unknown, Gerald to find out and update this item:** what the
+  pre-existing setup actually is (S3+CloudFront by hand, something else
+  entirely).
 
-The likely shape of "going green" once that's answered: bootstrap the new
-Terraform stack fully (it can coexist with the old infrastructure the
-whole time, as long as bucket names don't collide), verify it works via
-its own CloudFront domain, *then* flip the GoDaddy DNS records over to
-the new CloudFront distribution -- that DNS flip is the actual go-green
-moment. Gerald tears down the old infrastructure manually after that,
-whenever he's satisfied it's safe to.
+**Given same-account is confirmed, check before running
+`terraform apply` for the first time** (also called out in
+`Prompts/AWS_Deployment.md` step 0 now):
+
+- Does the old setup use an S3 bucket named `kng-consulting-site` (this
+  Terraform's default, in `terraform/variables.tf`'s `bucket_name`)? Two
+  buckets can't share a name while both exist -- override `bucket_name`
+  if so.
+- Does an IAM role named `kng-github-actions-deploy` already exist (this
+  Terraform's `terraform/oidc.tf`)? Would collide the same way -- rename
+  via `aws_iam_role.github_actions_deploy`'s `name` if so.
+- Everything else (ACM cert, CloudFront distribution) can coexist safely
+  under different resource IDs regardless -- no collision risk there.
+
+Gerald tears down the old infrastructure manually once the new stack is
+confirmed live, whenever he's satisfied it's safe to -- not scripted, not
+run unattended.
 
 ## Create Terraform for AWS Components
 
