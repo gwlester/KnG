@@ -18,6 +18,7 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
   S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
   TERRAFORM_WORKING_DIRECTORY: ${{ vars.TERRAFORM_WORKING_DIRECTORY }}
 
 jobs:
@@ -78,8 +79,8 @@ jobs:
         shell: bash
         run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" apply -auto-approve
 
-  deploy-site:
-    name: Deploy static site
+  build-and-upload:
+    name: Build and upload release
     needs: terraform
     if: ${{ always() && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
     runs-on: ubuntu-latest
@@ -88,7 +89,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Verify site deployment settings
+      - name: Verify upload settings
         shell: bash
         run: |
           test -n "${AWS_REGION}"
@@ -114,15 +115,80 @@ jobs:
           role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Sync site files to S3
+      # Blue-green upload: this release lands in its own releases/<sha>/
+      # prefix, never touching whatever prefix is currently live -- nothing
+      # user-facing changes until switch-live (below) flips CloudFront's
+      # origin path to it. See Prompts/ToDo.md's "Blue-Green Deployments".
+      - name: Upload release to S3
         shell: bash
         run: |
-          aws s3 sync www "s3://${S3_BUCKET_NAME}" --delete
+          aws s3 sync www "s3://${S3_BUCKET_NAME}/releases/${GITHUB_SHA}" --delete
+
+  switch-live:
+    name: Switch live release
+    needs: build-and-upload
+    if: ${{ always() && needs.build-and-upload.result == 'success' }}
+    runs-on: ubuntu-latest
+    # Separate, protected environment: this is the one step that actually
+    # changes what visitors see, so it requires manual approval (a required
+    # reviewer configured on the "production-switch" GitHub Environment) --
+    # the reviewer's job before approving is to smoke-test the new release.
+    # Decided in Prompts/ToDo.md's "Blue-Green Deployments" item.
+    environment: production-switch
+    steps:
+      - name: Verify switch settings
+        shell: bash
+        run: |
+          test -n "${AWS_REGION}"
+          test -n "${AWS_DEPLOY_ROLE_ARN}"
+          test -n "${S3_BUCKET_NAME}"
+          test -n "${CLOUDFRONT_DISTRIBUTION_ID}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Flip CloudFront origin path to the new release
+        shell: bash
+        run: |
+          aws cloudfront get-distribution-config --id "${CLOUDFRONT_DISTRIBUTION_ID}" > dist.json
+          etag="$(jq -r '.ETag' dist.json)"
+          old_origin_path="$(jq -r '.DistributionConfig.Origins.Items[0].OriginPath' dist.json)"
+          echo "OLD_ORIGIN_PATH=${old_origin_path}" >> "${GITHUB_ENV}"
+          jq --arg path "/releases/${GITHUB_SHA}" \
+            '.DistributionConfig.Origins.Items[0].OriginPath = $path' dist.json \
+            | jq '.DistributionConfig' > new-config.json
+          aws cloudfront update-distribution \
+            --id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --if-match "${etag}" \
+            --distribution-config file://new-config.json
 
       - name: Invalidate CloudFront cache
-        if: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID != '' }}
         shell: bash
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
             --paths "/*"
+
+      # Retention: keep exactly the live release and the one it replaced
+      # (the immediately-previous release, for a fast workflow_dispatch
+      # rollback in rollback.yml) -- delete every other releases/<sha>/
+      # prefix. "Previous" is read from the distribution itself above, not
+      # tracked separately, so this stays correct across rollbacks too.
+      - name: Clean up old releases (keep live + previous only)
+        shell: bash
+        run: |
+          keep_new="${GITHUB_SHA}"
+          keep_old="${OLD_ORIGIN_PATH#/releases/}"
+          for prefix in $(aws s3api list-objects-v2 \
+              --bucket "${S3_BUCKET_NAME}" --prefix "releases/" --delimiter "/" \
+              --query 'CommonPrefixes[].Prefix' --output text); do
+            sha="${prefix#releases/}"
+            sha="${sha%/}"
+            if [ -n "${sha}" ] && [ "${sha}" != "${keep_new}" ] && [ "${sha}" != "${keep_old}" ]; then
+              echo "Deleting stale release: ${sha}"
+              aws s3 rm "s3://${S3_BUCKET_NAME}/releases/${sha}/" --recursive
+            fi
+          done

@@ -2,18 +2,63 @@
 
 ## Blue-Green Deployments
 
-**Status: decided (2026-09-16), not yet implemented.** Including the
-pre-existing-infrastructure note at the end -- fully resolved now, no
+**Status: Terraform + workflow implemented (2026-09-16); not yet
+exercised against real AWS** -- same blocker as "Create Terraform for
+AWS Components" below (needs the AWS bootstrap run first). Including
+the pre-existing-infrastructure note further down -- fully resolved, no
 open questions left on this item.
 
-**Current state:** `deploy-to-aws.yml` runs `aws s3 sync www
-s3://$S3_BUCKET_NAME --delete` directly against the one bucket CloudFront
-serves from, then invalidates `/*`. A bad deploy is live the moment the
-sync finishes, and "rollback" today means finding the last good commit and
-re-running the whole pipeline (Terraform apply, blog build, sync,
-invalidate) — there's no fast switch-back.
+**What's actually built, per the numbered list below:**
 
-**What it will take:**
+- `terraform/cloudfront.tf`: the origin's `origin_path` plus a
+  `lifecycle { ignore_changes = [origin] }` on the distribution, so
+  Terraform sets it once on creation and never fights the CLI switch
+  again. Tradeoff, deliberate: this also means Terraform won't notice a
+  future change to the bucket/OAC either -- remove `ignore_changes`
+  temporarily for that one apply if the bucket or OAC is ever replaced.
+- `.github/workflows/deploy-to-aws.yml`: split into `build-and-upload`
+  (syncs to `releases/$GITHUB_SHA/`, nothing user-facing changes) and
+  `switch-live` (flips `origin_path` via `aws cloudfront
+  update-distribution` + `jq`, invalidates, then deletes every
+  `releases/*` prefix except the new live one and the one it replaced).
+- `.github/workflows/rollback.yml` (new): `workflow_dispatch` with a
+  `release_sha` input, flips `origin_path` back + invalidates. No
+  approval gate on this one -- see the file's own comment for why.
+- **GitHub Environments created via the API (2026-09-16):** `production`
+  (no restrictions) and `production-switch` (required reviewer:
+  `gwlester`) -- `switch-live` runs under `production-switch`, so it
+  pauses for manual approval before anything user-facing changes.
+
+**Smoke test, as actually implemented:** there's no live pre-switch URL
+for a specific release -- the S3 bucket is private/OAC-only, so an
+uploaded-but-not-yet-live `releases/<sha>/` prefix isn't reachable over
+HTTPS before the switch. The `production-switch` approval step *is* the
+smoke-test checkpoint: the reviewer's job before clicking approve is to
+check the release looks right some other way (e.g. checking out that
+commit and running `python3 src/build_blog.py` + a local static server,
+same as this project's own working practice so far). A real pre-switch
+preview URL is possible later (e.g. a second CloudFront cache behavior)
+but is meaningfully more infrastructure -- not built now.
+
+**Found while wiring this up, unrelated to blue-green itself:** every
+push-triggered run of `deploy-to-aws.yml` so far (20 runs, going back to
+before this session) has failed instantly with zero jobs and GitHub's
+generic "workflow file issue" message -- including runs from commits
+that never touched the workflow file. The `production`/`production-switch`
+environments referenced in every job didn't exist at all until created
+above, which shouldn't by itself cause a zero-job failure, so the cause
+is still unclear -- worth checking Settings -> Actions and Settings ->
+Billing on the `gwlester` account directly (this needs access this
+session's `gh` token doesn't have). Not something to guess further at
+without being able to run the workflow to test hypotheses.
+
+**Previous state, now replaced by the above:** `deploy-to-aws.yml` used
+to run `aws s3 sync www s3://$S3_BUCKET_NAME --delete` directly against
+the one bucket CloudFront serves from, then invalidate `/*` every push --
+a bad deploy was live the moment the sync finished, with no fast
+switch-back.
+
+**Design notes below, for reference (all decided and implemented above):**
 
 1. **Release-prefixed S3 layout.** Sync each deploy to
    `s3://$S3_BUCKET_NAME/releases/<git-sha>/` instead of the bucket root
@@ -49,10 +94,11 @@ invalidate) — there's no fast switch-back.
    the same shape as the release-tag approval gate elsewhere in this
    project. Revisit later if that becomes unnecessary friction.
 7. **Retention -- decided: keep 1 previous release.** Only the live
-   release prefix plus the one immediately before it are kept; anything
-   older is cleaned up (S3 lifecycle rule capped at 2 release prefixes, or
-   an explicit delete step when a new release goes live) rather than
-   growing indefinitely.
+   release prefix plus the one immediately before it are kept.
+   Implemented as an explicit delete step in `switch-live` (not an S3
+   lifecycle rule -- lifecycle rules work on object age, not "keep the
+   last N," so an explicit step reading the distribution's own prior
+   `origin_path` was the more precise fit).
 8. **Rollback trigger.** A `workflow_dispatch` input ("roll back to
    release `<sha>`") that just re-points `origin_path` + invalidates, with
    no rebuild -- limited to the 1 retained previous release per the

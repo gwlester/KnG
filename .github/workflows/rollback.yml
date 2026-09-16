@@ -1,0 +1,77 @@
+name: Roll Back Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: >-
+          Git SHA of the release to roll back to. Only the release
+          immediately before the current live one is retained (see
+          deploy-to-aws.yml's "Clean up old releases" step) -- check
+          releases/ in the S3 bucket if unsure which SHA that is.
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: aws-production-deploy
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+  S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+
+jobs:
+  rollback:
+    name: Roll back live release
+    runs-on: ubuntu-latest
+    # No approval gate here (unlike deploy-to-aws.yml's switch-live): typing
+    # in a SHA and running this workflow by hand already is the deliberate
+    # human action -- a second required-reviewer approval on top of that
+    # would just slow down what's meant to be a fast rollback.
+    environment: production
+    steps:
+      - name: Verify rollback settings
+        shell: bash
+        run: |
+          test -n "${AWS_REGION}"
+          test -n "${AWS_DEPLOY_ROLE_ARN}"
+          test -n "${S3_BUCKET_NAME}"
+          test -n "${CLOUDFRONT_DISTRIBUTION_ID}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify the target release exists
+        shell: bash
+        run: |
+          aws s3api head-object \
+            --bucket "${S3_BUCKET_NAME}" \
+            --key "releases/${{ inputs.release_sha }}/index.html"
+
+      - name: Flip CloudFront origin path back
+        shell: bash
+        run: |
+          aws cloudfront get-distribution-config --id "${CLOUDFRONT_DISTRIBUTION_ID}" > dist.json
+          etag="$(jq -r '.ETag' dist.json)"
+          jq --arg path "/releases/${{ inputs.release_sha }}" \
+            '.DistributionConfig.Origins.Items[0].OriginPath = $path' dist.json \
+            | jq '.DistributionConfig' > new-config.json
+          aws cloudfront update-distribution \
+            --id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --if-match "${etag}" \
+            --distribution-config file://new-config.json
+
+      - name: Invalidate CloudFront cache
+        shell: bash
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --paths "/*"

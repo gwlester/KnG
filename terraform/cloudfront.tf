@@ -15,6 +15,22 @@ resource "aws_cloudfront_distribution" "site" {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
     origin_id                = "s3-site"
     origin_access_control_id = aws_cloudfront_origin_access_control.site.id
+
+    # Blue-green: origin_path selects which releases/<sha>/ prefix is
+    # "live" and is flipped by deploy-to-aws.yml's switch-live job via
+    # `aws cloudfront update-distribution`, not by Terraform -- deliberately
+    # decided in Prompts/ToDo.md's "Blue-Green Deployments" item so CLI
+    # switches/rollbacks never fight a `terraform apply` trying to reset it.
+    # The value below only matters for the very first `terraform apply`
+    # (before any release has ever been uploaded); ignore_changes below
+    # means Terraform never touches this origin block again afterward --
+    # including origin_access_control_id/domain_name, so a bucket or OAC
+    # replacement needs the ignore_changes line removed for that one apply.
+    origin_path = ""
+  }
+
+  lifecycle {
+    ignore_changes = [origin]
   }
 
   default_cache_behavior {
