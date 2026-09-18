@@ -393,6 +393,80 @@ a:focus-visible,
   color: var(--ink);
 }
 
+/* Contact form ---------------------------------------------------- */
+
+.split-top {
+  align-items: start;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.contact-form {
+  padding: 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.field {
+  margin-bottom: 1.25rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #c9c2b3;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+  outline: 3px solid rgba(200, 129, 26, 0.35);
+  outline-offset: 0;
+}
+
+.field-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contact-form .button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.form-status {
+  min-height: 1.5rem;
+  margin: 1rem 0 0;
+  font-weight: 600;
+}
+
+.form-status.is-ok {
+  color: #1d6b3a;
+}
+
+.form-status.is-error {
+  color: #a3261d;
+}
+
 /* Download table -------------------------------------------------- */
 
 .table-wrap {

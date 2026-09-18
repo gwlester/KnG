@@ -7,7 +7,8 @@ KnG website, Terraform, and site files.
   is generated, see below
 - `content/blog/` — blog posts, as Markdown with front matter
 - `src/` — Python: `build_blog.py` renders `content/blog/` into
-  `www/blog/`; any future Lambdas would also live here
+  `www/blog/`; `contact_handler/` is the contact-form Lambda
+- `tests/` — `python3 -m unittest discover -s tests`
 - `terraform/` — AWS infrastructure (S3, ACM, CloudFront, the GitHub Actions
   deploy role) — see `terraform/README.md` for setup
 

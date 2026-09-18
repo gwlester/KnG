@@ -54,6 +54,19 @@ output "dns_records_to_add_at_godaddy" {
         name    = var.preview_domain_name
         value   = aws_cloudfront_distribution.preview.domain_name
       }
+    ],
+    [
+      for t in aws_sesv2_email_identity.contact_domain.dkim_signing_attributes[0].tokens : {
+        purpose = "SES DKIM (contact form email)"
+        type    = "CNAME"
+        name    = "${t}._domainkey.${local.contact_domain}"
+        value   = "${t}.dkim.amazonses.com"
+      }
     ]
   )
+}
+
+output "contact_function_url" {
+  description = "The contact form's endpoint -- paste into the form's data-endpoint attribute in www/contact.html."
+  value       = aws_lambda_function_url.contact.function_url
 }

@@ -146,6 +146,38 @@ For the two apex domains (`kng-consulting.com`, `kng-consulting.net` --
 GoDaddy can't CNAME the zone root): that domain -> Forwarding -> Domain ->
 forward to `https://www.<same domain>`.
 
+## 5. Contact form (SES + Lambda)
+
+Handler: `src/contact_handler/handler.py`. Infra: `terraform/contact.tf`.
+The form posts `{FormatVersion: 1, name, email, message, website}` (the
+`website` field is a spam honeypot) to a Lambda Function URL, which emails
+`inquiries@kng-consulting.com` through SES.
+
+Order matters -- the CI deploy role must be allowed to manage the new
+resources before CI ever applies them (see the `ContactFormLambdaAndSes` and
+`ContactFormRole` statements in `terraform/oidc.tf`).
+
+Do:
+```
+terraform apply
+terraform output -json dns_records_to_add_at_godaddy
+terraform output contact_function_url
+```
+
+Then:
+
+- GoDaddy: add the three `SES DKIM` CNAMEs (same Add Record steps as step 2).
+  SES marks the domain verified once they resolve.
+- Mailbox: SES emails a confirmation link to `inquiries@kng-consulting.com`;
+  click it. While the SES account is in the sandbox, only verified
+  recipients receive mail, so this is required. Sandbox limits (200
+  messages/day) are plenty for a contact form.
+- Endpoint: paste `contact_function_url` into `data-endpoint` in
+  `www/contact.html`, commit, and push.
+
+Smoke test: submit the form on the preview site and confirm the email
+arrives with Reply-To set to the submitter.
+
 ## Done
 
 From here on, pushes to `master` run `terraform apply` in CI (using the

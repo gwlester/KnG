@@ -30,17 +30,100 @@
 
     <main>
       <section class="section">
-        <div class="container">
-          <div class="callout">
-            <p><strong>Contact details are coming soon.</strong></p>
-            <p style="margin-bottom: 0">
-              Contact details and inquiry options are being prepared. Please
-              check back soon.
+        <div class="container split split-top">
+          <div>
+            <h2>Send us a message</h2>
+            <p class="lead">
+              Questions about Virtual Church Musician or KnG Consulting? Send
+              us a note and we will reply by email.
             </p>
           </div>
+          <form
+            class="contact-form"
+            id="contact-form"
+            data-endpoint=""
+            novalidate
+          >
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" autocomplete="name" maxlength="100" required />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required />
+            </div>
+            <div class="field">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="6" maxlength="5000" required></textarea>
+            </div>
+            <div class="field-trap" aria-hidden="true">
+              <label for="website">Leave this field empty</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+            <button class="button button-primary" type="submit">Send message</button>
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+          </form>
         </div>
       </section>
     </main>
+
+    <script>
+      (function () {
+        var form = document.getElementById("contact-form");
+        var status = document.getElementById("form-status");
+        var button = form.querySelector("button[type=submit]");
+
+        function show(message, isError) {
+          status.textContent = message;
+          status.className = "form-status " + (isError ? "is-error" : "is-ok");
+        }
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          var endpoint = form.getAttribute("data-endpoint");
+          if (!endpoint) {
+            show("The contact form is not available yet. Please check back soon.", true);
+            return;
+          }
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          button.disabled = true;
+          show("Sending...", false);
+          fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              FormatVersion: 1,
+              name: form.name.value,
+              email: form.email.value,
+              message: form.message.value,
+              website: form.website.value
+            })
+          })
+            .then(function (response) {
+              return response.json().then(function (body) {
+                return { ok: response.ok && body.ok, body: body };
+              });
+            })
+            .then(function (result) {
+              if (result.ok) {
+                form.reset();
+                show("Thank you! Your message was sent.", false);
+              } else {
+                show(result.body.error || "Something went wrong. Please try again.", true);
+              }
+            })
+            .catch(function () {
+              show("Could not send your message. Please try again later.", true);
+            })
+            .then(function () {
+              button.disabled = false;
+            });
+        });
+      })();
+    </script>
 
     <footer class="site-footer">
       <div class="footer-inner">

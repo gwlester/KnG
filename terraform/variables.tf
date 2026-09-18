@@ -73,3 +73,15 @@ variable "github_oidc_provider_arn" {
   type        = string
   default     = ""
 }
+
+variable "contact_sender" {
+  description = "From address for contact-form emails. Its domain becomes the SES identity, so it must be a domain you control DNS for."
+  type        = string
+  default     = "no-reply@kng-consulting.com"
+}
+
+variable "contact_recipient" {
+  description = "Mailbox that receives contact-form inquiries."
+  type        = string
+  default     = "inquiries@kng-consulting.com"
+}
