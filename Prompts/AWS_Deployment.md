@@ -6,14 +6,20 @@ One-time setup checklist for standing up the AWS infrastructure in
 
 ## 0. Before you start
 
-- **AWS credentials.** Get: an access key (AWS Console -> IAM -> your user
-  -> Security credentials -> Create access key) or an SSO login, with
-  roughly administrator access (IAM roles/OIDC, S3, ACM, CloudFront) --
-  this is a one-time requirement, CI doesn't need it. Put it: locally, via
-  `aws configure` (or `aws sso login`) so Terraform's AWS provider can find
-  it. If more than one AWS account is available (e.g. a different account
-  than VirtualChurchMusician's), confirm the credentials point at the
-  right one before continuing.
+- **AWS credentials.** Get: browser-based temporary credentials via
+  `aws login` (AWS CLI v2.36+) -- opens a browser, you approve against
+  your AWS Console session, and the CLI caches temporary credentials good
+  for 12h (renewable up to 90 days without re-authenticating). Preferred
+  over a static IAM access key: nothing long-lived ever lands in a config
+  file. Needs roughly administrator access (IAM roles/OIDC, S3, ACM,
+  CloudFront) on the account you log into -- this is a one-time
+  requirement, CI doesn't need it (it uses the OIDC role Terraform
+  creates). Put it: just run `aws login`; Terraform's AWS provider picks
+  up the cached credentials automatically. If more than one AWS account is
+  available (e.g. a different account than VirtualChurchMusician's),
+  confirm with `aws sts get-caller-identity` that you logged into the
+  right one before continuing. (An IAM access key + `aws configure` still
+  works if `aws login` isn't available in your CLI version.)
 - **GoDaddy account access.** No value to record -- just be logged in
   when you reach the DNS steps below.
 - **Name collisions with the pre-existing infrastructure -- already
