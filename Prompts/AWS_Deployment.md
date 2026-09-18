@@ -31,6 +31,22 @@ One-time setup checklist for standing up the AWS infrastructure in
   `kng-github-actions-deploy` -- `terraform/variables.tf`/`oidc.tf`'s
   defaults are safe to apply as-is, nothing to override.
 
+## 0b. Create the Terraform state bucket (once, before `terraform init`)
+
+State lives in S3 so CI's `terraform apply` shares it with local runs.
+Terraform can't manage the bucket that holds its own state, so create it
+by hand:
+```
+B=kng-consulting-tfstate-<account-id>
+aws s3api create-bucket --bucket $B --region us-east-1
+aws s3api put-public-access-block --bucket $B --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+aws s3api put-bucket-versioning --bucket $B --versioning-configuration Status=Enabled
+aws s3api put-bucket-encryption --bucket $B --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+```
+The name must match `backend "s3"` in `terraform/versions.tf`. Locking uses
+S3's native lockfile (Terraform >= 1.10), no DynamoDB table. If you already
+have a local `terraform.tfstate`, move it with `terraform init -migrate-state`.
+
 ## 1. Check for an existing GitHub OIDC provider
 
 Get:

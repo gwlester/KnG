@@ -81,6 +81,20 @@ data "aws_iam_policy_document" "github_actions_deploy" {
   }
 
   statement {
+    sid       = "TerraformStateBucket"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::kng-consulting-tfstate-734677164811"]
+  }
+
+  statement {
+    sid       = "TerraformStateObject"
+    effect    = "Allow"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["arn:aws:s3:::kng-consulting-tfstate-734677164811/kng-site/*"]
+  }
+
+  statement {
     sid       = "Acm"
     effect    = "Allow"
     actions   = ["acm:*"]
