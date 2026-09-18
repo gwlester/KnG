@@ -97,19 +97,28 @@ def page_shell(*, title: str, description: str, prefix: str, body: str) -> str:
     <link rel="stylesheet" href="{prefix}styles.css" />
   </head>
   <body>
-    <header class="hero">
+    <header class="site-header">
       <nav class="top-nav" aria-label="Primary">
-        <a class="brand" href="{prefix}index.html">KnG Consulting</a>
+        <a class="brand" href="{prefix}index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
         <ul class="nav-links">
-          <li><a href="{prefix}index.html#products">Products</a></li>
+          <li><a href="{prefix}virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="{prefix}download.html">Download</a></li>
           <li><a href="{prefix}blog/index.html">Blog</a></li>
-          <li><a href="{prefix}coming-soon.html#contact">Contact</a></li>
+          <li><a href="{prefix}contact.html">Contact</a></li>
         </ul>
       </nav>
     </header>
 {body}
     <footer class="site-footer">
-      <p>© {date.today().year} KnG Consulting</p>
+      <div class="footer-inner">
+        <p>© {date.today().year} KnG Consulting</p>
+        <ul class="footer-links">
+          <li><a href="{prefix}virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="{prefix}download.html">Download</a></li>
+          <li><a href="{prefix}blog/index.html">Blog</a></li>
+          <li><a href="{prefix}contact.html">Contact</a></li>
+        </ul>
+      </div>
     </footer>
   </body>
 </html>
@@ -119,11 +128,13 @@ def page_shell(*, title: str, description: str, prefix: str, body: str) -> str:
 def render_post_page(post: Post) -> str:
     body = f"""
     <main>
-      <article class="section post-body">
-        <p class="post-meta">By {post.author} · {post.date_display}</p>
-        <h1>{post.title}</h1>
-        {post.body_html}
-        <p><a class="button button-secondary" href="index.html">← Back to all posts</a></p>
+      <article class="section">
+        <div class="container post-body">
+          <p class="post-meta">By {post.author} · {post.date_display}</p>
+          <h1>{post.title}</h1>
+          {post.body_html}
+          <p><a class="button button-secondary" href="index.html">← Back to all posts</a></p>
+        </div>
       </article>
     </main>"""
     return page_shell(
@@ -147,12 +158,14 @@ def render_archive_page(posts: list[Post]) -> str:
     body = f"""
     <main>
       <section class="section">
-        <div class="section-heading">
-          <p class="eyebrow">Blog</p>
-          <h1>Notes from Gerald Lester</h1>
-        </div>
-        <div class="card-grid">
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Blog</p>
+            <h1>Notes from Gerald Lester</h1>
+          </div>
+          <div class="card-grid">
 {cards}
+          </div>
         </div>
       </section>
     </main>"""

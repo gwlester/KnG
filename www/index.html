@@ -6,84 +6,117 @@
     <title>KnG Consulting</title>
     <meta
       name="description"
-      content="KnG Consulting builds practical desktop and Android products for modern teams."
+      content="KnG Consulting builds Virtual Church Musician, a suite of desktop and mobile tools for preparing and running church music services."
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="hero">
+    <header class="site-header">
       <nav class="top-nav" aria-label="Primary">
-        <a class="brand" href="index.html">KnG Consulting</a>
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
         <ul class="nav-links">
-          <li><a href="#products">Products</a></li>
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="download.html">Download</a></li>
           <li><a href="blog/index.html">Blog</a></li>
-          <li><a href="coming-soon.html#contact">Contact</a></li>
+          <li><a href="contact.html">Contact</a></li>
         </ul>
       </nav>
-      <section class="hero-content" id="home">
-        <p class="eyebrow">Modern software solutions</p>
-        <h1>Practical products for desktop and mobile teams.</h1>
-        <p class="hero-copy">
-          KnG Consulting delivers approachable software experiences with a
-          modern look, clear value, and room to grow.
-        </p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#products">Explore Products</a>
-          <a class="button button-secondary" href="blog/index.html">Read the Blog</a>
-        </div>
-      </section>
     </header>
+
+    <section class="hero" id="home">
+      <div class="container">
+        <div>
+          <p class="eyebrow">KnG Consulting</p>
+          <h1>Church music, prepared and ready.</h1>
+          <p class="hero-copy">
+            Virtual Church Musician is a suite of desktop and mobile tools for
+            preparing, practicing, and running music in worship services.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="download.html">Download</a>
+            <a class="button button-secondary" href="virtual-church-musician.html">Learn more</a>
+          </div>
+        </div>
+        <svg class="hero-art" viewBox="0 0 400 260" role="img" aria-label="Musical staff with notes">
+          <g stroke="#f0b565" stroke-width="2" stroke-linecap="round" opacity="0.85">
+            <line x1="20" y1="70" x2="380" y2="70" />
+            <line x1="20" y1="100" x2="380" y2="100" />
+            <line x1="20" y1="130" x2="380" y2="130" />
+            <line x1="20" y1="160" x2="380" y2="160" />
+            <line x1="20" y1="190" x2="380" y2="190" />
+          </g>
+          <g fill="#ffffff">
+            <ellipse cx="90" cy="145" rx="15" ry="11" transform="rotate(-20 90 145)" />
+            <ellipse cx="170" cy="115" rx="15" ry="11" transform="rotate(-20 170 115)" />
+            <ellipse cx="250" cy="175" rx="15" ry="11" transform="rotate(-20 250 175)" />
+            <ellipse cx="330" cy="85" rx="15" ry="11" transform="rotate(-20 330 85)" />
+          </g>
+          <g stroke="#ffffff" stroke-width="3" stroke-linecap="round">
+            <line x1="104" y1="141" x2="104" y2="80" />
+            <line x1="184" y1="111" x2="184" y2="50" />
+            <line x1="264" y1="171" x2="264" y2="110" />
+            <line x1="344" y1="81" x2="344" y2="20" />
+            <line x1="104" y1="80" x2="184" y2="50" stroke-width="6" />
+            <line x1="264" y1="110" x2="344" y2="20" stroke-width="6" />
+          </g>
+        </svg>
+      </div>
+    </section>
 
     <main>
       <section class="section" id="products">
-        <div class="section-heading">
-          <p class="eyebrow">Products</p>
-          <h2>Built for focused music ministry workflows.</h2>
-          <p>
-            KnG Consulting currently features Virtual Church Musician, a desktop
-            product centered on the needs of church musicians. The product link
-            currently points to a coming soon page while the sales platform
-            listing is finalized.
-          </p>
-        </div>
-        <div class="card-grid">
-          <article class="card">
-            <span class="pill">Desktop application</span>
-            <h3>Virtual Church Musician</h3>
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Virtual Church Musician</p>
+            <h2>Everything a service needs, in one suite.</h2>
             <p>
-              A desktop application for church music use cases, with an emphasis
-              on dependable day-to-day support for preparation, practice, and
-              live ministry settings.
+              A set of connected apps for church musicians: build the order of
+              service, run it live, and keep everything organized.
             </p>
-            <ul class="feature-list">
-              <li>Focused on real-world church musician workflows</li>
-              <li>Designed for practical use in preparation and performance</li>
-              <li>Built as a dedicated desktop product from KnG Consulting</li>
-            </ul>
-            <p class="product-note">
-              Sales and product details are being prepared for the initial
-              public release.
-            </p>
-            <a
-              class="button button-primary"
-              href="coming-soon.html#desktop-product"
-            >
-              Sales Platform Preview</a
-            >
-          </article>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <span class="card-icon" aria-hidden="true">1</span>
+              <h3>Prepare</h3>
+              <p>
+                Build services and templates ahead of time with the Service
+                Builder and Template Editor.
+              </p>
+            </article>
+            <article class="card">
+              <span class="card-icon" aria-hidden="true">2</span>
+              <h3>Run</h3>
+              <p>
+                Play the service live with the Service Runner and MIDI Player
+                for dependable day-of support.
+              </p>
+            </article>
+            <article class="card">
+              <span class="card-icon" aria-hidden="true">3</span>
+              <h3>Manage</h3>
+              <p>
+                Keep it all connected with a central server and an
+                administration console.
+              </p>
+            </article>
+          </div>
+          <p style="margin-top: 2rem">
+            <a class="button button-secondary" href="virtual-church-musician.html">See all the apps</a>
+          </p>
         </div>
       </section>
 
       <section class="section section-alt" id="blog">
-        <div class="section-heading">
-          <p class="eyebrow">Blog</p>
-          <h2>Notes from Gerald Lester</h2>
-          <p>
-            A new blog space for sharing product direction, practical lessons,
-            and what comes next for KnG Consulting.
-          </p>
-        </div>
-        <!-- BLOG_LATEST_START -->
+        <div class="container">
+          <div class="section-heading">
+            <p class="eyebrow">Blog</p>
+            <h2>Notes from Gerald Lester</h2>
+            <p>
+              Product direction, practical lessons, and what comes next for KnG
+              Consulting.
+            </p>
+          </div>
+          <!-- BLOG_LATEST_START -->
         <div class="card-grid">
         <article class="post-card">
           <p class="post-meta">By Gerald Lester · September 1, 2026</p>
@@ -93,11 +126,20 @@
         </div>
         <p><a class="button button-secondary" href="blog/index.html">View all posts</a></p>
         <!-- BLOG_LATEST_END -->
+        </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <p>© 2026 KnG Consulting</p>
+      <div class="footer-inner">
+        <p>© 2026 KnG Consulting</p>
+        <ul class="footer-links">
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
     </footer>
   </body>
 </html>
