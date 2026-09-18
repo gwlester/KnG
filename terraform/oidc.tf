@@ -96,6 +96,24 @@ data "aws_iam_policy_document" "github_actions_deploy" {
   }
 
   statement {
+    sid       = "ContactFormLambdaAndSes"
+    effect    = "Allow"
+    actions   = ["lambda:*", "ses:*", "logs:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ContactFormRole"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:GetRolePolicy",
+      "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
+    ]
+    resources = [aws_iam_role.contact.arn]
+  }
+
+  statement {
     sid       = "Acm"
     effect    = "Allow"
     actions   = ["acm:*"]
