@@ -35,7 +35,10 @@ pre-switch preview URL now exists -- see "Preview environment" below.
 `build-and-upload` points `preview.kng-consulting.com` at every uploaded
 release automatically (no approval needed, it's not user-facing), so the
 `production-switch` approval step's smoke test is now: open
-`https://preview.kng-consulting.com`, check it, then approve.
+`https://preview.kng-consulting.com`, check it, then approve. **Changed
+2026-09-18:** `switch-live` now runs only on a manual `workflow_dispatch`
+(pushes just upload and update preview), because a push run waiting for
+approval held the deploy concurrency lock and blocked every later push.
 
 **Preview environment (added 2026-09-16):** a second CloudFront
 distribution (`terraform/cloudfront_preview.tf`), aliased to

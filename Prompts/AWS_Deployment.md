@@ -182,9 +182,10 @@ arrives with Reply-To set to the submitter.
 
 From here on, pushes to `master` run `terraform apply` in CI (using the
 role created above), upload `www/` to a new `releases/<sha>/` prefix, and
-point the preview distribution at it automatically -- then wait at the
-`production-switch` environment's approval gate. Approving promotes that
-release to the live distribution and invalidates it; see
+point the preview distribution at it automatically, then finish. Nothing
+goes live from a push. To promote to live: Actions -> Deploy to AWS -> Run
+workflow (on `master`) -> approve at the `production-switch` gate; that
+release goes live and the cache is invalidated. See
 `Prompts/ToDo.md`'s "Blue-Green Deployments" item for the full mechanics,
 and `.github/workflows/rollback.yml` for rolling back. No more manual
 `terraform apply` needed unless GoDaddy-side DNS records need to change.

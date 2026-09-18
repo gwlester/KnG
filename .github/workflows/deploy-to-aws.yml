@@ -138,7 +138,10 @@ jobs:
   switch-live:
     name: Switch live release
     needs: build-and-upload
-    if: ${{ always() && needs.build-and-upload.result == 'success' }}
+    # Pushes only upload and update preview; promoting to live is a
+    # deliberate manual run (Actions -> Deploy to AWS -> Run workflow), so an
+    # unapproved switch never sits holding the deploy concurrency lock.
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && needs.build-and-upload.result == 'success' }}
     runs-on: ubuntu-latest
     # Separate, protected environment: this is the one step that actually
     # changes what visitors see, so it requires manual approval (a required
