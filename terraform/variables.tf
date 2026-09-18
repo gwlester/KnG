@@ -45,6 +45,17 @@ variable "github_repository" {
   default     = "gwlester/KnG"
 }
 
+variable "github_oidc_immutable_subject_prefix" {
+  description = <<-EOT
+    The repository's immutable OIDC subject prefix ("repo:<owner>@<id>/<repo>@<id>").
+    This repo has use_immutable_subject enabled, so tokens carry this prefix
+    instead of "repo:<owner>/<repo>". Find it with:
+    gh api repos/<owner>/<repo>/actions/oidc/customization/sub
+  EOT
+  type        = string
+  default     = "repo:gwlester@1377560/KnG@1369022652"
+}
+
 variable "create_github_oidc_provider" {
   description = <<-EOT
     Whether to create the GitHub Actions OIDC provider in this AWS account.
