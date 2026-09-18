@@ -2,9 +2,10 @@
 
 ## Blue-Green Deployments
 
-**Status: Terraform + workflow implemented (2026-09-16); not yet
-exercised against real AWS** -- same blocker as "Create Terraform for
-AWS Components" below (needs the AWS bootstrap run first). Including
+**Status: Terraform + workflow implemented (2026-09-16); AWS bootstrap
+run 2026-09-18 (stack applied, GitHub repo variables set, `preview` CNAME
+added); first CI deploy and the live DNS cutover still pending** -- see
+"Create Terraform for AWS Components" below. Including
 the pre-existing-infrastructure note further down -- fully resolved, no
 open questions left on this item.
 
