@@ -61,7 +61,8 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     sid    = "SiteBucket"
     effect = "Allow"
     actions = [
-      "s3:ListBucket",
+      "s3:Get*",
+      "s3:List*",
       "s3:GetBucketPolicy",
       "s3:PutBucketPolicy",
       "s3:GetBucketOwnershipControls",
@@ -112,6 +113,8 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     sid    = "SelfManageOidcAndRole"
     effect = "Allow"
     actions = [
+      "iam:Get*",
+      "iam:List*",
       "iam:GetRole",
       "iam:GetRolePolicy",
       "iam:PutRolePolicy",
