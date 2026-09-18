@@ -104,3 +104,22 @@ resource "aws_lambda_function_url" "contact" {
     max_age       = 3600
   }
 }
+
+# A Function URL with authorization NONE is still denied (403) unless the
+# function's resource policy explicitly allows public invocation. Lambda
+# requires both statements.
+resource "aws_lambda_permission" "contact_url" {
+  statement_id           = "AllowPublicFunctionUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.contact.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "contact_invoke" {
+  statement_id             = "AllowPublicInvokeViaFunctionUrl"
+  action                   = "lambda:InvokeFunction"
+  function_name            = aws_lambda_function.contact.function_name
+  principal                = "*"
+  invoked_via_function_url = true
+}
