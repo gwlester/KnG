@@ -85,3 +85,9 @@ variable "contact_recipient" {
   type        = string
   default     = "inquiries@kng-consulting.com"
 }
+
+variable "downloads_bucket_name" {
+  description = "Private S3 bucket holding release installers and guides for the download Lambda. Must be globally unique."
+  type        = string
+  default     = "kng-consulting-downloads"
+}

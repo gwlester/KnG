@@ -70,3 +70,13 @@ output "contact_function_url" {
   description = "The contact form's endpoint -- paste into the form's data-endpoint attribute in www/contact.html."
   value       = aws_lambda_function_url.contact.function_url
 }
+
+output "downloads_bucket_name" {
+  description = "Set this as the DOWNLOADS_BUCKET_NAME GitHub repo variable."
+  value       = aws_s3_bucket.downloads.bucket
+}
+
+output "downloads_function_url" {
+  description = "The download service's URL -- set as \"endpoint\" in content/downloads/options.json."
+  value       = aws_lambda_function_url.downloads.function_url
+}
