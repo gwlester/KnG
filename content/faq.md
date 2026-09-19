@@ -7,7 +7,7 @@ Answers to common questions about Virtual Church Musician. The [User Manual and 
 
 ## Which apps are free, and which are paid?
 
-The Template Editor, Service Builder, Service Runner, and Admin and Security apps are free. The Server and the MIDI Player are paid.
+The Template Editor, Service Builder, Service Runner, and Admin and Security apps are free to download. They connect to your church's Server, which, like the MIDI Player, is a paid product.
 
 ## Do the free apps need the Server?
 
@@ -51,7 +51,7 @@ This means the app has not been notarized by Apple yet; nothing is actually wron
 
 ## Can you customize Virtual Church Musician for our church?
 
-Yes. KnG Consulting creates custom versions of Virtual Church Musician. Customers cannot change the software themselves under the license, but we can. See [Services](services.html) and ask for a quote.
+Yes. KnG Consulting creates custom versions of Virtual Church Musician, and can brand and tailor editions for publishers. Customers cannot change the software themselves under the license, but we can. See [Services](services.html) and ask for a quote.
 
 ## Can you set up the Server or MIDI Player hardware?
 

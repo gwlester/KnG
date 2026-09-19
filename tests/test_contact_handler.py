@@ -72,6 +72,12 @@ class ContactHandlerTests(unittest.TestCase):
         self.assertIn("Organization: First Church", text)
         self.assertIn("Topic: Hardware buildout", text)
 
+    def test_publisher_topic_is_accepted(self):
+        status, _ = self.call(event(valid(topic="publisher")))
+        self.assertEqual(status, 200)
+        subject = self.ses.send_email.call_args.kwargs["Message"]["Subject"]["Data"]
+        self.assertTrue(subject.startswith("[Publisher inquiry]"))
+
     def test_topic_and_organization_are_optional(self):
         status, _ = self.call(event(valid()))
         self.assertEqual(status, 200)

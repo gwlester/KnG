@@ -70,7 +70,7 @@ class SitePagesTests(unittest.TestCase):
     def test_services_page_links_each_service_to_a_valid_topic(self):
         html = self.read("services.html")
         contact = self.read("contact.html")
-        for topic in ("customization", "hymnal", "hardware"):
+        for topic in ("customization", "hymnal", "hardware", "publisher"):
             with self.subTest(topic=topic):
                 self.assertIn(f"contact.html?topic={topic}", html)
                 self.assertIn(f'<option value="{topic}">', contact)

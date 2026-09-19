@@ -24,6 +24,7 @@ TOPICS = {
     "hymnal": "Hymnal metadata consultation",
     "hardware": "Hardware buildout",
     "purchase": "Purchase question",
+    "publisher": "Publisher inquiry",
 }
 EMAIL_RE = re.compile(r"^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$")
 

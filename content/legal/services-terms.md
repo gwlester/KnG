@@ -5,7 +5,7 @@ description: Terms for KnG Consulting services: customization, hymnal metadata c
 ---
 **Effective:** September 18, 2026
 
-These terms apply to services provided by {{legal_entity}} ("KnG"): custom versions of Virtual Church Musician, hymnal metadata consultation, and hardware buildouts. They are separate from the Virtual Church Musician [License Agreement](license.html), which governs the software itself.
+These terms apply to services provided by {{legal_entity}} ("KnG"): custom versions of Virtual Church Musician, hymnal metadata consultation, and hardware buildouts. They are separate from the Virtual Church Musician [License Agreement](license.html), which governs the software itself. Branded or tailored editions for publishers are covered by a separate written agreement.
 
 ## 1. Quotes and scope
 
