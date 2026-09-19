@@ -12,6 +12,11 @@ KnG website, Terraform, and site files.
   (between the `SITE_HEADER`/`SITE_FOOTER` markers) on every hand-written page
 - `src/` — Python: `build_blog.py` renders `content/blog/` into
   `www/blog/`; `contact_handler/` is the contact-form Lambda
+- `content/downloads/` — `options.json` (public picker options for the Download
+  page) and `artifact_map.json` (which Virtual Church Musician release assets are
+  published where); `src/download_handler/` is the download Lambda and
+  `src/publish_release.py` plans a release publication, run by the manual
+  `publish-downloads.yml` workflow
 - `tests/` — `python3 -m unittest discover -s tests`
 - `terraform/` — AWS infrastructure (S3, ACM, CloudFront, the GitHub Actions
   deploy role) — see `terraform/README.md` for setup
