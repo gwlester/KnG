@@ -22,10 +22,15 @@ match. Questions and suggestions:
   longer sit in runs. Options: (a) drop the pills, (b) relabel MIDI Player
   "Play", or (c) keep the pills and accept the interleaving. **Recommend
   (a) or (b).**
+
+  - Answer: b
+
 - The Download page's app order (Runner, Builder, Editor, ...) differs from
   this page's (Editor, Builder, Runner, ...). Intentional? If so, fine
   (product page = workflow order, download = most-wanted first); otherwise
   **recommend using one order everywhere** so the site feels consistent.
+
+  - Answer: I was thinking put the most likely frequent pick at top.  But we can keep the order consistent.
 
 **Icons (item 2)** -- **Recommend yes.** Real app icons are the cheapest way
 to make this page feel like a product page and to help visitors recognise
@@ -40,9 +45,32 @@ the apps after install. Notes:
   dedicated Security artwork) is not a problem here.
 - Questions: is the artwork yours to publish (no third-party assets)? OK to
   copy the files into this repo under `www/img/` (they become public)?
+
+  - Answer: yes ok to copy and resize.
+
 - Decorative use: `alt=""` since the app name sits next to it. On the
   Download page, icons inside a native `<select>` are not possible; see the
   picker note below.
+
+  - Answer: no need for icons inside the select.
+
+### Round 2 (Claude, 2026-09-18) -- reacting to your answers
+
+- **Pills:** with your free/paid answer (below), the four clients
+  (Template Editor, Service Builder, Service Runner, Admin and Security)
+  are free and Server + MIDI Player are paid -- which is exactly the split
+  the new card order produces. **Recommend replacing the Prepare/Run/Manage
+  pills with "Free" / "Paid"** instead of relabelling MIDI Player "Play":
+  it is more useful to a buyer and removes the interleaving problem. Your
+  call -- (b) still works if you prefer it.
+- **One order everywhere:** your Download-page order (Runner first, for
+  frequency) and this page's order (Editor first, for workflow) both put the
+  four free apps before the two paid ones. Which one is canonical? **Recommend
+  the product-page order on both**, and pre-selecting nothing in the picker
+  (placeholder "Choose an app...") so the button rule in the spec holds.
+- **Copy:** the page should say how the pieces fit -- are the free clients
+  useful without the paid Server, or do they need it? That one sentence
+  decides how the free/paid split should be presented.
 
 ## Downloads Page
 
@@ -93,6 +121,10 @@ Either way, the agreement says downloading means accepting it, so the page
 should link the agreement near the button ("By downloading you agree to
 the license agreement") -- worth doing in every case.
 
+- Answer: add the license agreement.
+
+- Answer: the desktop and mobile are free.  The server and midi player are paid using one of the sales platform.
+
 **Lambda vs. static -- recommend static unless you need gating or counts.**
 
 - A Lambda is only necessary if we want to (a) gate downloads, (b) count
@@ -115,6 +147,8 @@ the license agreement") -- worth doing in every case.
   picker and the redirects can never disagree. Give it a `FormatVersion`
   (per CLAUDE.md's contract rule).
 
+  - Answer: I don't want someone examining the HTMl/Javascript in their browser and see the full matrix.  We could keep the matrix in AppConfig -- and push it there from the repo.
+
 **Where do the files live?** The VCM repo is *private*, so its GitHub
 release URLs will 404 for the public. Options: (a) copy release assets to a
 public location we control (S3 + CloudFront path such as `/dl/`, or a second
@@ -125,6 +159,12 @@ already generated from deterministic tag-based URLs, so a small script
 (`update_downloads.py <tag>`) could produce the matrix; the VCM release
 workflow could call it, but writing into this repo needs a token -- start
 manual (run the script, commit) and automate later if releases get frequent.
+
+- Answer:
+   1. The mobile apps will be on the Play Store.
+   2. The desktop, I would think in an S3 bucket that the lambda gives a signed url with a 1 week duration.
+   3. The server and midi will depend on the sales platform -- not sure yet.
+   4. Yes, we can add a version, default to current.  That way we can keep a previous release and have the option to offer access to betas.
 
 **Picker design / behaviour:**
 
@@ -165,10 +205,135 @@ are the Windows/macOS installers signed/notarized? Unsigned ones trigger
 SmartScreen/Gatekeeper warnings, and Android APKs need "install unknown
 apps" -- worth a short help section either way.
 
+- Answer: yes.
+
 **Suggested implementation order (when you say go):** decide gating (above)
 -> decide hosting -> matrix format + script -> picker page + tests ->
 hosting/redirect wiring. The card-order/icon change in the section above is
 independent and can go first.
+
+### Round 2 (Claude, 2026-09-18) -- reacting to your answers
+
+**Decisions I am taking as settled (tell me if wrong):** free clients
+(desktop + mobile), paid Server + MIDI Player via a sales platform (platform
+TBD); Android via Google Play; desktop installers in S3 behind a Lambda that
+hands out signed URLs; a Version control (default: current) that also allows
+older and beta releases; Windows/macOS installers are signed/notarized; the
+license agreement gets linked. Icons are not used inside the select.
+
+**1. The matrix cannot live in this repo.** `gwlester/KnG` is a *public*
+repo, so a matrix committed here is public no matter where it is deployed --
+"push it to AppConfig from the repo" would leak it. Also, releases happen in
+the private VCM repo (`release.yml`), which is the thing that knows the tag,
+file names and checksums. **Recommend: VCM's release workflow owns the
+matrix.** It uploads installers to the downloads bucket and writes the
+matrix there (same AWS account, via an OIDC role trusted for the VCM repo);
+this repo only owns the picker UI and the Lambda. Releasing becomes one
+step, with no cross-repo commit or token.
+
+**2. What exactly must stay private? Please clarify**, because it decides the
+design:
+
+- (a) The *targets* (S3 keys, store/purchase URLs) and unlisted *beta
+  versions* -- these are easy: only the Lambda ever sees them, the browser
+  gets a redirect. This is what signed URLs give you.
+- (b) The *availability matrix itself* (which app exists on which
+  platform). That is already public marketing information (the table on the
+  page), and the picker must show choices, so hiding it entirely means the
+  picker fetches options from the Lambda step by step. Doable, but I would not
+  bother unless you have a reason.
+  **Recommend: options public/embedded, targets and betas private.**
+
+**3. AppConfig vs. the alternatives.** AppConfig works (validation, staged
+rollout, rollback) but adds a service, a Lambda layer, several Terraform
+resources and IAM, for a JSON file that changes once per release. **Recommend
+a `matrix.json` object in the private downloads bucket instead**: bucket
+versioning gives rollback, the release workflow uploads it together with the
+installers, and the Lambda caches it for ~60 s. Is there a reason you want
+AppConfig (gradual rollout, feature flags)? If not, skip it.
+
+**4. The one-week signed URL will not work as described.** A URL presigned
+by a Lambda (temporary role credentials) stops working when those credentials
+expire -- hours, not a week; a true 7-day presign needs a long-lived IAM
+user key, which I would not create. It is also unnecessary if the Download
+button generates the URL at click time: **5-15 minutes is plenty** (the
+signature only has to be valid when the download *starts*). Why a week --
+emailing links after purchase, or resumable downloads? If long-lived links
+are needed, use **CloudFront signed URLs/cookies** in front of the bucket
+(any expiry, cheaper egress, custom domain such as `downloads.` later).
+**Recommend CloudFront in front of the private bucket (OAC) for all desktop
+files.**
+
+**5. Free files do not need signing.** For public releases, plain CloudFront
+URLs are simpler, cacheable and resumable. Signing is only needed for betas
+and paid files. Do you want signed URLs on the free releases too (e.g., to
+count downloads or block hot-linking)? Counting works without signing --
+the Lambda's redirect log is the count.
+
+**6. Beta access: how is it granted?** Options: a private link
+(`?channel=beta&code=...`), a code typed into the page, or invite-only. And
+what is "current" today? Every VCM release so far is a `-b.N` prerelease.
+**Recommend an explicit `channel` (stable | beta) per release in the matrix**:
+default Version = latest *stable*; betas listed only with a code; until the
+first stable exists, decide whether the public gets the latest beta (labelled
+"Beta") or nothing. Also decide retention (how many old releases stay in the
+bucket) -- a lifecycle rule can enforce it.
+
+**7. Android = Google Play, so no APK matrix.** The Android choice becomes
+"Get it on Google Play" (an external link, not a download); the sideload help
+I suggested is no longer needed. Questions: are all four mobile apps going on
+Play? Heads-up: Play requires a publicly hosted **privacy policy** URL and a
+developer contact -- **recommend adding Privacy Policy (and Terms) pages
+to this site**; and new personal developer accounts must run a closed test
+(12 testers, 14 days) before production -- verify the current rule, as it
+affects the schedule.
+
+**8. Server and MIDI Player (paid).** Until the sales platform is chosen,
+model them as `type: purchase, available: false` ("Coming soon"). Each
+matrix entry then has a `type`: `download` (signed/CloudFront link), `store`
+(Play), `purchase` (sales-platform page) or `coming-soon`, and the button
+label follows ("Download", "Get it on Google Play", "Buy"). When choosing a
+platform, **recommend a Merchant of Record** (Paddle, Lemon Squeezy,
+FastSpring, Gumroad): they collect and remit sales tax/VAT worldwide,
+which is a large burden for a solo seller; plain Stripe Payment Links do not.
+Key question: how does the app validate a purchase -- the VCM repo has
+`license_config.json`; will the platform's license-key service be used, or
+your own? That affects which platforms fit.
+
+**9. License agreement -- three flags before it goes on the web.**
+- The agreement (`licenses/agreement.md` in VCM) names you personally
+  and includes a **home street address**, and `license_config.json` lists a
+  personal Gmail as support contact. Publishing it exposes both. Use a
+  business address/PO box and `inquiries@kng-consulting.com`? Is KnG
+  Consulting a legal entity that should be the licensor?
+- It is written as an *Online Purchase* license. Do the **free** clients need
+  their own (simpler) EULA, or does this cover them?
+- **Recommend a required "I have read and agree" checkbox** beside the
+  button (enabled only with app + platform + checkbox), not just a link:
+  it is much easier to defend than link-only. (Not legal advice -- worth a
+  lawyer's look before launch.) Where should the source of truth live so
+  the site never shows a stale copy: rendered from the VCM file at build
+  time, or copied in when the agreement changes (it is dated 2026-08-29)?
+
+**10. API contract and rollout notes.**
+- **Endpoint shape:** `GET /download?app=&platform=&version=&v=1` returning
+  302, so it works as a plain link with no CORS. `v` (or an `X-API-Version`)
+  and the matrix `FormatVersion` satisfy CLAUDE.md's compatibility rule --
+  and because the live page and the preview page both call one shared Lambda,
+  **the Lambda must stay backward-compatible** with the page currently live.
+- **Validation:** only ever redirect to URLs from the matrix; reject unknown
+  app/platform/version.
+- **New AWS pieces** (S3 downloads bucket, CloudFront distribution + OAC,
+  Lambda + Function URL, IAM for the VCM release role) will need CI-role
+  widening again -- you will be running those applies, same as before.
+- **Cost guard:** public downloads can get expensive if abused. **Recommend
+  an AWS Budgets alert** (e.g. $10/month) before launch.
+
+**Revised order of work (still nothing implemented):** (1) card order,
+pills, icons (independent, do first) -> (2) your answers to #2, #4, #6, #9
+-> (3) matrix format + VCM release-workflow step -> (4) downloads bucket +
+CloudFront + Lambda in Terraform -> (5) picker page + agreement page + tests
+-> (6) Play Store and sales-platform links as they become available.
 
 ## Blue-Green Deployments
 
