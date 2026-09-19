@@ -110,7 +110,14 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
       "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
     ]
-    resources = [aws_iam_role.contact.arn]
+    resources = [aws_iam_role.contact.arn, aws_iam_role.downloads.arn]
+  }
+
+  statement {
+    sid       = "DownloadsBucket"
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.downloads.arn, "${aws_s3_bucket.downloads.arn}/*"]
   }
 
   statement {
