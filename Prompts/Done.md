@@ -115,3 +115,29 @@ Resolved the three open implementation questions from the design pass:
 Markdown library is `markdown` (stdlib has none); post sources live at
 `content/blog/`; no separate preview script needed -- running
 `build_blog.py` locally *is* the preview (documented in `README.md`).
+
+## Create Terraform for AWS Components
+
+Completed 2026-09-18. `terraform/` (`versions.tf`, `providers.tf`,
+`variables.tf`, `oidc.tf`, `s3.tf`, `acm.tf`, `cloudfront.tf`,
+`cloudfront_preview.tf`, `contact.tf`, `outputs.tf`, `README.md`) is applied
+to AWS account 734677164811: GitHub OIDC provider and scoped deploy role,
+private S3 bucket + live and preview CloudFront distributions (OAC), and an
+ACM certificate for all five names. State lives in the S3 bucket
+`kng-consulting-tfstate-734677164811` (native lockfile), so CI's
+`terraform apply` shares it with local runs. The one-time bootstrap is
+recorded step by step in `Prompts/AWS_Deployment.md`. The DNS cutover of the
+live `www` CNAMEs/apex forwarding is tracked under "Blue-Green Deployments"
+in ToDo.md, not here.
+
+## Redesign Site and Add Contact Form
+
+Completed 2026-09-18. Multi-page site (Home, Virtual Church Musician,
+Download, Blog, Contact) with a shared navy/amber theme; `build_blog.py`
+emits the same header/footer. The contact form posts JSON
+(`FormatVersion: 1`, honeypot field) to a Lambda Function URL
+(`src/contact_handler/handler.py`, `terraform/contact.tf`) that emails
+`inquiries@kng-consulting.com` through SES; unit tests in `tests/`. The
+Download page lists the real app/platform matrix but its links are disabled
+until installers have a public host (the Virtual Church Musician repo is
+private).

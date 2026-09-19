@@ -2,10 +2,13 @@
 
 ## Blue-Green Deployments
 
-**Status: Terraform + workflow implemented (2026-09-16); AWS bootstrap
-run 2026-09-18 (stack applied, GitHub repo variables set, `preview` CNAME
-added); first CI deploy and the live DNS cutover still pending** -- see
-"Create Terraform for AWS Components" below. Including
+**Status: implemented and exercised against real AWS (2026-09-18).**
+Pushes to `master` apply Terraform, upload `releases/<sha>/`, and point
+`preview.kng-consulting.com` at it. **Remaining:** promote a release to live
+(manual "Run workflow" + `production-switch` approval), then cut DNS over at
+GoDaddy (swap the `www` CNAMEs to the live CloudFront domain, forward the
+apex domains to `https://www.<domain>`), then tear down the old buckets
+listed below. Not scheduled -- expected to be days out. Including
 the pre-existing-infrastructure note further down -- fully resolved, no
 open questions left on this item.
 
@@ -63,33 +66,15 @@ switch-live, rollback) now share one script,
 `.github/scripts/set_cloudfront_origin_path.sh`, instead of three copies
 of near-identical `jq`/`aws cloudfront` calls.
 
-**Found while wiring this up, still unresolved, unrelated to blue-green
-itself:** every push-triggered run of `deploy-to-aws.yml` so far (21+
-runs, going back to before this session) has failed instantly with zero
-jobs and GitHub's generic "workflow file issue" message -- including
-runs from commits that never touched the workflow file.
-
-- **Ruled out 2026-09-16:** the workflow's `on.push.branches` said `main`
-  while this repo's actual (and only) branch is `master` -- fixed the
-  trigger to say `master`, but the very next push still failed the exact
-  same way (zero jobs, same message), so that wasn't the cause, or at
-  least wasn't the only one.
-- **Ruled out:** the `production`/`production-switch` GitHub Environments
-  referenced in every job didn't exist until created via the API this
-  session -- creating them didn't change the failure either.
-- `gh api repos/gwlester/KnG/commits/<sha>/check-runs` returns zero
-  check runs for these commits -- confirms nothing is even being
-  scheduled, not a job failing after starting.
-- This session's `gh` token can't see billing or account-settings
-  endpoints (403/404 on everything tried), and manually dispatching the
-  workflow to test hypotheses live is blocked by the auto mode
-  classifier (protected-scope IaC apply) -- both dead ends from here.
-- **Next step is on Gerald:** check the repository's Actions tab
-  directly (`https://github.com/gwlester/KnG/actions`) for whatever
-  human-readable banner GitHub shows there (it's often clearer than the
-  API), and Settings -> Actions / Settings -> Billing on the `gwlester`
-  account for a spending limit, payment/verification hold, or similar
-  account-level block.
+**CI "workflow file issue" -- resolved 2026-09-18.** Every push run of
+`deploy-to-aws.yml` used to fail instantly with zero jobs. Root cause: a
+job-level `if: hashFiles(...)`, which GitHub only allows in step-level
+expressions. Removing it fixed it (the earlier `main`->`master` and missing
+Environments theories were red herrings). Follow-on fixes the same day:
+the deploy role's OIDC trust now also accepts the repo's immutable subject
+claim (`use_immutable_subject` is on), Terraform state moved to S3, the
+role got read access for refresh, and `switch-live` now runs only on manual
+dispatch so an unapproved push can't hold the concurrency lock.
 
 **Previous state, now replaced by the above:** `deploy-to-aws.yml` used
 to run `aws s3 sync www s3://$S3_BUCKET_NAME --delete` directly against
@@ -183,22 +168,3 @@ collision check is already satisfied, no need to re-run it.
 Gerald tears down the old infrastructure manually once the new stack is
 confirmed live, whenever he's satisfied it's safe to -- not scripted, not
 run unattended.
-
-## Create Terraform for AWS Components
-
-**Status: code written and `terraform validate`-clean (2026-09-14); not yet
-applied.** Written under `terraform/` (`versions.tf`, `providers.tf`,
-`variables.tf`, `oidc.tf`, `s3.tf`, `acm.tf`, `cloudfront.tf`, `outputs.tf`,
-`README.md`). Covers: GitHub OIDC provider + a scoped deploy role,
-private S3 bucket + CloudFront (OAC) + ACM cert for all four domains. The
-component choices and domain/DNS decisions it implements are recorded in
-`Prompts/Done.md`'s "Suggest AWS Components" entry.
-
-**Not moving this to Done.md yet** — applying real AWS infrastructure
-(and the IAM trust policy it creates) needs your own AWS credentials and a
-deliberate decision, not something to run unattended. The one-time
-bootstrap sequence (create the cert, add its validation CNAMEs at GoDaddy,
-full apply, then add the `www` CNAMEs + apex forwarding at GoDaddy, then
-set the four GitHub repo variables) is written out step by step in
-`Prompts/AWS_Deployment.md`. Move this to Done.md once you've run it and
-the site is actually live behind CloudFront.
