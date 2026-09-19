@@ -36,8 +36,10 @@ def _s3():
     global _s3_client
     if _s3_client is None:
         import boto3  # bundled in the Lambda runtime; imported lazily so tests need no boto3
+        from botocore.config import Config
 
-        _s3_client = boto3.client("s3")
+        # Signature Version 4: the default for presigned URLs here was the legacy SigV2.
+        _s3_client = boto3.client("s3", config=Config(signature_version="s3v4"))
     return _s3_client
 
 
