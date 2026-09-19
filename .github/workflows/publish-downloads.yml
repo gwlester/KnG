@@ -49,6 +49,16 @@ jobs:
           test -n "${AWS_DEPLOY_ROLE_ARN}"
           test -n "${DOWNLOADS_BUCKET_NAME}"
           test -n "${GH_TOKEN}"
+          # The token's real expiry, as reported by GitHub for fine-grained tokens.
+          expiry="$(curl -sI -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/${VCM_REPO}" \
+            | tr -d '\r' | grep -i '^github-authentication-token-expiration:' | cut -d' ' -f2)"
+          echo "VCM_RELEASES_TOKEN expires: ${expiry:-unknown}"
+          if [ -n "${expiry}" ]; then
+            days=$(( ( $(date -u -d "${expiry}" +%s) - $(date -u +%s) ) / 86400 ))
+            if [ "${days}" -le 30 ]; then
+              echo "::warning::VCM_RELEASES_TOKEN expires in ${days} days (${expiry}). Renew it soon."
+            fi
+          fi
 
       - name: Resolve release tag
         shell: bash
