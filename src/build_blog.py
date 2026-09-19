@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Render content/blog/*.md into www/blog/ and refresh the homepage's
-latest-posts section. Run locally to preview, or via deploy-to-aws.yml
-before the S3 sync. No arguments."""
+"""Render content/blog/*.md into www/blog/, content/legal/*.md into
+www/<slug>.html, and refresh the homepage's latest-posts section. Run
+locally to preview, or via deploy-to-aws.yml before the S3 sync. No
+arguments."""
 
 import re
 import sys
@@ -13,6 +14,7 @@ import markdown
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTENT_DIR = REPO_ROOT / "content" / "blog"
+LEGAL_DIR = REPO_ROOT / "content" / "legal"
 WWW_DIR = REPO_ROOT / "www"
 BLOG_OUT_DIR = WWW_DIR / "blog"
 INDEX_HTML = WWW_DIR / "index.html"
@@ -117,6 +119,8 @@ def page_shell(*, title: str, description: str, prefix: str, body: str) -> str:
           <li><a href="{prefix}download.html">Download</a></li>
           <li><a href="{prefix}blog/index.html">Blog</a></li>
           <li><a href="{prefix}contact.html">Contact</a></li>
+          <li><a href="{prefix}privacy.html">Privacy</a></li>
+          <li><a href="{prefix}license.html">License</a></li>
         </ul>
       </div>
     </footer>
@@ -207,6 +211,46 @@ def update_homepage(posts: list[Post]) -> None:
     INDEX_HTML.write_text(html, encoding="utf-8")
 
 
+def render_legal_pages() -> list[Path]:
+    """Render content/legal/*.md (front matter: title, slug, description)
+    into www/<slug>.html. Returns the written paths."""
+    written = []
+    for path in sorted(LEGAL_DIR.glob("*.md")):
+        match = FRONT_MATTER_RE.match(path.read_text(encoding="utf-8"))
+        if not match:
+            raise ValueError(f"{path}: missing '---' front matter block")
+        fields = {}
+        for line in match.group(1).splitlines():
+            key, _, value = line.partition(":")
+            if key.strip():
+                fields[key.strip()] = value.strip()
+        for required in ("title", "slug"):
+            if required not in fields:
+                raise ValueError(f"{path}: front matter missing '{required}'")
+        body_html = markdown.markdown(match.group(2).strip(), extensions=["extra"])
+        body = f"""
+    <main>
+      <article class="section">
+        <div class="container post-body">
+          <h1>{fields["title"]}</h1>
+          {body_html}
+        </div>
+      </article>
+    </main>"""
+        out = WWW_DIR / f"{slugify(fields['slug'])}.html"
+        out.write_text(
+            page_shell(
+                title=f"{fields['title']} | KnG Consulting",
+                description=fields.get("description", ""),
+                prefix="",
+                body=body,
+            ),
+            encoding="utf-8",
+        )
+        written.append(out)
+    return written
+
+
 def main() -> None:
     posts = load_posts()
     if not posts:
@@ -226,7 +270,9 @@ def main() -> None:
         render_archive_page(posts), encoding="utf-8"
     )
     update_homepage(posts)
+    legal = render_legal_pages()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
+    print(f"Rendered {len(legal)} legal page(s) to {WWW_DIR}")
 
 
 if __name__ == "__main__":

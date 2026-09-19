@@ -1,77 +1,5 @@
 # To Do List
 
-## Virtual Church Musician HTML Page Changes
-
-1. Card order should be
-   1. Template Editor
-   2. Service Builder
-   3. Service Runner
-   4. Admin and Security
-   5. Server
-   6. MIDI Player
-2. How do you feel about adding the icons to the above cards?
-
-### Review notes (Claude, 2026-09-18) -- nothing implemented
-
-**Card order (item 1)** -- straightforward; the home page's "Prepare"
-card text ("Service Builder and Template Editor") should be reordered to
-match. Questions and suggestions:
-
-- The cards currently carry workflow pills (Prepare / Run / Manage). The new
-  order puts MIDI Player last, but its pill says "Run", so the pills no
-  longer sit in runs. Options: (a) drop the pills, (b) relabel MIDI Player
-  "Play", or (c) keep the pills and accept the interleaving. **Recommend
-  (a) or (b).**
-
-  - Answer: b
-
-- The Download page's app order (Runner, Builder, Editor, ...) differs from
-  this page's (Editor, Builder, Runner, ...). Intentional? If so, fine
-  (product page = workflow order, download = most-wanted first); otherwise
-  **recommend using one order everywhere** so the site feels consistent.
-
-  - Answer: I was thinking put the most likely frequent pick at top.  But we can keep the order consistent.
-
-**Icons (item 2)** -- **Recommend yes.** Real app icons are the cheapest way
-to make this page feel like a product page and to help visitors recognise
-the apps after install. Notes:
-
-- The icons exist in the VCM repo (`builds/icons/<app>/`), but `preview.png`
-  is only 64x64 -- soft on retina screens at card size. Use the larger PNGs
-  under each app's `linux/hicolor/` directory, or export from the `.icns`,
-  or supply SVGs if source artwork exists. Target roughly 96 px displayed,
-  192 px source.
-- Admin and Security is one card, so the shared Admin icon (README notes no
-  dedicated Security artwork) is not a problem here.
-- Questions: is the artwork yours to publish (no third-party assets)? OK to
-  copy the files into this repo under `www/img/` (they become public)?
-
-  - Answer: yes ok to copy and resize.
-
-- Decorative use: `alt=""` since the app name sits next to it. On the
-  Download page, icons inside a native `<select>` are not possible; see the
-  picker note below.
-
-  - Answer: no need for icons inside the select.
-
-### Round 2 (Claude, 2026-09-18) -- reacting to your answers
-
-- **Pills:** with your free/paid answer (below), the four clients
-  (Template Editor, Service Builder, Service Runner, Admin and Security)
-  are free and Server + MIDI Player are paid -- which is exactly the split
-  the new card order produces. **Recommend replacing the Prepare/Run/Manage
-  pills with "Free" / "Paid"** instead of relabelling MIDI Player "Play":
-  it is more useful to a buyer and removes the interleaving problem. Your
-  call -- (b) still works if you prefer it.
-- **One order everywhere:** your Download-page order (Runner first, for
-  frequency) and this page's order (Editor first, for workflow) both put the
-  four free apps before the two paid ones. Which one is canonical? **Recommend
-  the product-page order on both**, and pre-selecting nothing in the picker
-  (placeholder "Choose an app...") so the button rule in the spec holds.
-- **Copy:** the page should say how the pieces fit -- are the free clients
-  useful without the paid Server, or do they need it? That one sentence
-  decides how the free/paid split should be presented.
-
 ## Downloads Page
 
 Order from top to botton:
@@ -334,6 +262,44 @@ pills, icons (independent, do first) -> (2) your answers to #2, #4, #6, #9
 -> (3) matrix format + VCM release-workflow step -> (4) downloads bucket +
 CloudFront + Lambda in Terraform -> (5) picker page + agreement page + tests
 -> (6) Play Store and sales-platform links as they become available.
+
+### Decisions and status (2026-09-18)
+
+**Decided:** the matrix does not live in this (public) repo; signed URLs
+last 5 minutes and are generated at click time; no AppConfig; Free/Paid
+labels; privacy policy added; personal details removed from the published
+license; the license agreement gets linked from the Download page.
+
+**Done:** icons, card order, Free/Paid labels, Privacy Policy and License
+pages (see Done.md). The Download page itself is still the static
+availability table with a disabled button.
+
+**Still open (blocks building the picker):**
+
+1. Privacy scope (#2 above): confirm options stay public and only targets
+   and betas are private (my recommendation).
+2. Beta access (#6): private link, typed code, or invite; and what "current"
+   means while every release is a `-b.N` prerelease.
+3. Required "I agree" checkbox beside the button (recommended) -- yes/no?
+4. Licensor identity: the license still names you personally. Should KnG
+   Consulting (if it is an entity or DBA) be the licensor instead?
+5. **Consistency problem to resolve before launch:** the license agreement
+   (sections on customer data and "technical, diagnostic, and usage
+   information ... for support, security, analytics, and product
+   improvement") reserves rights to collect data, while the privacy policy
+   says the apps send nothing. Both are public now. Recommend removing or
+   narrowing those license clauses to match reality (lawyer review advised).
+6. **Source-of-truth drift:** the site's license is a *copy*. Virtual Church
+   Musician's own `agreement.md` still has the street address on its line 6,
+   and `license_config.json` still lists the personal Gmail as
+   `support_contact` -- those values get bundled into the apps at build time.
+   Want the same change made in the Virtual Church Musician repo (separate
+   repo, so I have not touched it)?
+7. Does the Server phone home for license validation? The policy says no
+   app sends information to us; if the paid apps validate keys online, the
+   policy must say so.
+8. Retention wording: the policy says contact-form messages stay in the
+   mailbox "until no longer needed" -- fine, or do you want a fixed period?
 
 ## Blue-Green Deployments
 

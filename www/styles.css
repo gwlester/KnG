@@ -350,6 +350,29 @@ a:focus-visible,
   color: var(--accent-dark);
 }
 
+.app-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.app-head h3 {
+  margin: 0;
+}
+
+.app-icon {
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.9rem;
+}
+
+.pill-paid {
+  background: #e4e9f5;
+  color: var(--navy-2);
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

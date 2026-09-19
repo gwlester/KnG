@@ -141,3 +141,24 @@ emits the same header/footer. The contact form posts JSON
 Download page lists the real app/platform matrix but its links are disabled
 until installers have a public host (the Virtual Church Musician repo is
 private).
+
+## Virtual Church Musician HTML Page Changes
+
+Completed 2026-09-18. Cards now run Template Editor, Service Builder,
+Service Runner, Admin and Security, Server, MIDI Player; the workflow pills
+were replaced with Free / Paid labels (the four clients are free, Server and
+MIDI Player are paid); each card has its app icon (192 px PNGs under
+`www/img/apps/`, resized from the Virtual Church Musician artwork). The home
+page text and the Download page's availability table use the same order.
+
+## Privacy Policy and License Pages
+
+Completed 2026-09-18. `content/legal/*.md` is rendered by
+`src/build_blog.py` into `www/privacy.html` and `www/license.html`, both
+linked from every footer. The privacy policy states that the apps send no
+information to KnG and that the website has no accounts, cookies, or
+analytics. The license is a copy of Virtual Church Musician's
+`licenses/agreement.md` (dated 2026-08-29) with its blanks filled from
+`license_config.json`, the personal street address removed, and the support
+contact set to `inquiries@kng-consulting.com`. `tests/test_legal_pages.py`
+guards against the personal details reappearing.
