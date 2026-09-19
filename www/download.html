@@ -52,19 +52,57 @@
             </p>
           </div>
 
+          <!-- PICKER_START -->
+          <div class="section-heading" id="picker-heading">
+            <p class="eyebrow">Choose your download</p>
+            <h2>Pick an app and a platform</h2>
+          </div>
+          <form class="picker" id="download-picker" data-endpoint="" onsubmit="return false">
+            <div class="field">
+              <label for="pick-app">Application</label>
+              <select id="pick-app">
+                <option value="">Choose an app...</option>
+                <option value="template-editor">Template Editor</option>
+                <option value="service-builder">Service Builder</option>
+                <option value="service-runner">Service Runner</option>
+                <option value="admin-security">Admin and Security</option>
+                <option value="server">Server</option>
+                <option value="midi-player">MIDI Player</option>
+              </select>
+            </div>
+            <fieldset class="field platform-field">
+              <legend>Platform</legend>
+              <div id="pick-platforms" class="radio-row"></div>
+            </fieldset>
+            <div class="field">
+              <label for="pick-version">Version</label>
+              <select id="pick-version">
+                <option value="current">Current release (Beta)</option>
+                <option value="previous">Previous release</option>
+              </select>
+            </div>
+            <p class="picker-note" id="pick-note" role="status" aria-live="polite">Choose an app and a platform.</p>
+            <div class="picker-actions">
+              <button class="button button-primary" type="button" id="pick-go" disabled>Download</button>
+              <a id="pick-alt" href="#" hidden></a>
+            </div>
+            <p class="license-note">By downloading you agree to the <a href="license.html">License Agreement</a>.</p>
+            <noscript><p class="picker-note">The picker needs JavaScript. The table below shows what is planned.</p></noscript>
+          </form>
+          <script type="application/json" id="picker-options">{"FormatVersion": 1, "endpoint": "", "channel_label": "Beta", "platforms": {"android": {"label": "Android (APK)", "note": "Android installs from an APK file. Your device will ask you to allow installs from this source; the steps are under Installing on Android below."}, "windows": {"label": "Windows"}, "mac": {"label": "macOS"}, "linux": {"label": "Linux (.deb)"}}, "matrix_apps": {"template-editor": {"name": "Template Editor", "blurb": "Reusable service templates"}, "service-builder": {"name": "Service Builder", "blurb": "Prepare the order of service"}, "service-runner": {"name": "Service Runner", "blurb": "Run the service live"}, "admin": {"name": "Admin", "blurb": "Administration console"}, "security": {"name": "Security", "blurb": "Mobile companion for the Admin console"}, "server": {"name": "Server", "blurb": "Central service for the other apps"}, "midi-player": {"name": "MIDI Player", "blurb": "Sends MIDI files to your instrument"}}, "apps": [{"id": "template-editor", "name": "Template Editor", "tier": "free", "platforms": [{"id": "android", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-builder", "name": "Service Builder", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-runner", "name": "Service Runner", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "admin-security", "name": "Admin and Security", "tier": "free", "platforms": [{"id": "android", "matrix_app": "security", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "admin", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "admin", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "admin", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "server", "name": "Server", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}, {"id": "midi-player", "name": "MIDI Player", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}], "documents": [{"kind": "user-manual", "title": "User Manual", "description": "For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.", "formats": ["html", "pdf"], "available": false}, {"kind": "system-admin-guide", "title": "System Administrator Guide", "description": "For the person who installs and maintains the Server and MIDI Player.", "formats": ["html", "pdf"], "available": false}], "extras": [{"kind": "sha256sums", "label": "Checksums (SHA256SUMS)", "format": "txt", "available": false}, {"kind": "release-notes", "label": "Release notes", "format": "md", "available": false}]}</script>
+<!-- PICKER_END -->
+
           <div class="section-heading">
             <p class="eyebrow">Availability</p>
             <h2>Apps and platforms</h2>
           </div>
+          <!-- AVAILABILITY_START -->
           <div class="table-wrap">
             <table class="platform-table">
               <thead>
                 <tr>
                   <th scope="col">App</th>
-                  <th scope="col">macOS</th>
-                  <th scope="col">Windows</th>
-                  <th scope="col">Linux</th>
-                  <th scope="col">Android</th>
+                  <th scope="col">macOS</th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">Android</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,15 +131,13 @@
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">-</td>
                 </tr>
                 <tr>
-                  <th scope="row">MIDI Player<span>Reliable MIDI playback</span></th>
+                  <th scope="row">MIDI Player<span>Sends MIDI files to your instrument</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">-</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p style="margin-top: 1.5rem">
-            <a class="button" href="download.html" aria-disabled="true" role="link">Downloads coming soon</a>
-          </p>
+<!-- AVAILABILITY_END -->
         </div>
       </section>
 
@@ -111,40 +147,63 @@
             <p class="eyebrow">Documentation</p>
             <h2>Guides</h2>
             <p>
-              Both guides come in a version that matches each release. They
-              will be available with the first public release, in a form you
-              can read online or download for offline use.
+              Both guides match each release and follow the version chosen
+              above. Read them online, or download the PDF for offline use.
             </p>
           </div>
+          <!-- DOCS_START -->
           <div class="grid">
             <article class="card">
               <h3>User Manual</h3>
-              <p>
-                For the people who use the apps day to day: the Template
-                Editor, Service Builder, Service Runner, and Administration
-                Console.
-              </p>
-              <p style="margin-bottom: 0">
-                <a class="button" href="download.html#documentation" aria-disabled="true" role="link">Read online (coming soon)</a>
-              </p>
+              <p>For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.</p>
+              <p class="card-actions"><a class="button" aria-disabled="true" role="link" data-doc-kind="user-manual" data-doc-format="html" data-label="Read online">Read online (coming soon)</a> <a class="button" aria-disabled="true" role="link" data-doc-kind="user-manual" data-doc-format="pdf" data-label="Download PDF">Download PDF (coming soon)</a></p>
             </article>
             <article class="card">
               <h3>System Administrator Guide</h3>
-              <p>
-                For the person who installs and maintains the Server and MIDI
-                Player.
-              </p>
-              <p style="margin-bottom: 0">
-                <a class="button" href="download.html#documentation" aria-disabled="true" role="link">Read online (coming soon)</a>
-              </p>
+              <p>For the person who installs and maintains the Server and MIDI Player.</p>
+              <p class="card-actions"><a class="button" aria-disabled="true" role="link" data-doc-kind="system-admin-guide" data-doc-format="html" data-label="Read online">Read online (coming soon)</a> <a class="button" aria-disabled="true" role="link" data-doc-kind="system-admin-guide" data-doc-format="pdf" data-label="Download PDF">Download PDF (coming soon)</a></p>
             </article>
           </div>
+          <p class="extras"><a class="text-link" aria-disabled="true" role="link" data-doc-kind="sha256sums" data-doc-format="txt" data-label="Checksums (SHA256SUMS)">Checksums (SHA256SUMS) (coming soon)</a> &middot; <a class="text-link" aria-disabled="true" role="link" data-doc-kind="release-notes" data-doc-format="md" data-label="Release notes">Release notes (coming soon)</a></p>
+<!-- DOCS_END -->
           <p style="margin-top: 1.5rem">
             Questions? See <a href="faq.html"><strong>Support and FAQ</strong></a>.
           </p>
         </div>
       </section>
+
+      <section class="section" id="installing">
+        <div class="container post-body">
+          <div class="section-heading">
+            <p class="eyebrow">Installing</p>
+            <h2>First-time install notes</h2>
+            <p>The installers are not yet signed by Apple or Microsoft, so your system may ask for an extra confirmation.</p>
+          </div>
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>Installing on Android</summary>
+              <div class="faq-answer">
+                <p>Android apps are provided as APK files. Open the downloaded file. If Android asks, allow your browser or Files app to install unknown apps (the setting is usually under Settings, Apps, Special access, Install unknown apps, and the wording varies by device). Android may also show a Play Protect notice for apps that do not come from Google Play; choose to install anyway if you downloaded the file from this site. Google Play listings are planned.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Installing on macOS</summary>
+              <div class="faq-answer">
+                <p>Open the downloaded .dmg and drag the app into Applications. The first time you open it, macOS may say the app is damaged or cannot be opened. That only means the app has not been notarized by Apple yet. Double-click the fix_app_permissions.command file included in the same .dmg once, then open the app normally from Applications.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Installing on Windows and Linux</summary>
+              <div class="faq-answer">
+                <p>On Windows, run the downloaded .exe, or double-click the .msi. On Linux, install the .deb, for example with <code>sudo apt install ./file.deb</code>. If your system shows a security prompt for an unsigned installer, that is expected for now.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <script src="picker.js" defer></script>
 
     <!-- SITE_FOOTER_START -->
     <footer class="site-footer">

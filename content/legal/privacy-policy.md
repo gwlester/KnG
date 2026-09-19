@@ -33,7 +33,7 @@ If you ask us for a quote or engage us for a service, we collect what is needed 
 
 ## Downloads and purchases
 
-Free downloads come from our hosting, and delivering a file involves the same technical request details described above. Paid products may be sold through a third-party sales platform. That platform collects and processes your payment and order information under its own privacy policy, and we may receive limited order details (such as your name, email address, and license information) from it so that we can provide your license and support. We will update this policy when these services go live.
+Free downloads come from our hosting, and delivering a file involves the same technical request details described above. A small service on AWS hands out each download link and records which file was requested (the app, platform, and version) so we can see what is used. That record does not include your IP address or any personal information. Paid products may be sold through a third-party sales platform. That platform collects and processes your payment and order information under its own privacy policy, and we may receive limited order details (such as your name, email address, and license information) from it so that we can provide your license and support. We will update this policy when these services go live.
 
 ## Children
 

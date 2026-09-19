@@ -5,9 +5,17 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src" / "contact_handler"))
+import importlib.util
 
-import handler  # noqa: E402
+
+def _load(name, relative):
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).resolve().parent.parent / relative)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+handler = _load("contact_handler_module", "src/contact_handler/handler.py")
 
 ORIGIN = "https://www.kng-consulting.com"
 

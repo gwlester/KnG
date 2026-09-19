@@ -499,6 +499,123 @@ a:focus-visible,
   color: #a3261d;
 }
 
+/* Download picker ------------------------------------------------ */
+
+.picker {
+  max-width: 46rem;
+  margin-bottom: 3.5rem;
+  padding: 1.75rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.platform-field {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+}
+
+.platform-field legend {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-weight: 700;
+}
+
+.radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+}
+
+.field .radio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid #c9c2b3;
+  border-radius: 0.6rem;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field .radio-pill:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.field .radio-pill:has(input:focus-visible) {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.radio-pill input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent-dark);
+}
+
+.picker-note {
+  min-height: 1.5rem;
+  margin: 0 0 1rem;
+  color: var(--muted);
+}
+
+.picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.picker button.button {
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.picker button.button:disabled {
+  border-color: var(--line);
+  background: #f0ece3;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+#pick-alt {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.license-note {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.license-note a,
+.extras a {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.extras {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+}
+
 /* FAQ ------------------------------------------------------------- */
 
 .faq-list {

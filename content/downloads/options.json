@@ -1,0 +1,374 @@
+{
+  "FormatVersion": 1,
+  "endpoint": "",
+  "channel_label": "Beta",
+  "platforms": {
+    "android": {
+      "label": "Android (APK)",
+      "note": "Android installs from an APK file. Your device will ask you to allow installs from this source; the steps are under Installing on Android below."
+    },
+    "windows": {
+      "label": "Windows"
+    },
+    "mac": {
+      "label": "macOS"
+    },
+    "linux": {
+      "label": "Linux (.deb)"
+    }
+  },
+  "matrix_apps": {
+    "template-editor": {
+      "name": "Template Editor",
+      "blurb": "Reusable service templates"
+    },
+    "service-builder": {
+      "name": "Service Builder",
+      "blurb": "Prepare the order of service"
+    },
+    "service-runner": {
+      "name": "Service Runner",
+      "blurb": "Run the service live"
+    },
+    "admin": {
+      "name": "Admin",
+      "blurb": "Administration console"
+    },
+    "security": {
+      "name": "Security",
+      "blurb": "Mobile companion for the Admin console"
+    },
+    "server": {
+      "name": "Server",
+      "blurb": "Central service for the other apps"
+    },
+    "midi-player": {
+      "name": "MIDI Player",
+      "blurb": "Sends MIDI files to your instrument"
+    }
+  },
+  "apps": [
+    {
+      "id": "template-editor",
+      "name": "Template Editor",
+      "tier": "free",
+      "platforms": [
+        {
+          "id": "android",
+          "matrix_app": "template-editor",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "apk"
+          ],
+          "default_format": "apk"
+        },
+        {
+          "id": "windows",
+          "matrix_app": "template-editor",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "exe",
+            "msi"
+          ],
+          "default_format": "exe"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "template-editor",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        },
+        {
+          "id": "linux",
+          "matrix_app": "template-editor",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service-builder",
+      "name": "Service Builder",
+      "tier": "free",
+      "platforms": [
+        {
+          "id": "android",
+          "matrix_app": "service-builder",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "apk"
+          ],
+          "default_format": "apk"
+        },
+        {
+          "id": "windows",
+          "matrix_app": "service-builder",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "exe",
+            "msi"
+          ],
+          "default_format": "exe"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "service-builder",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        },
+        {
+          "id": "linux",
+          "matrix_app": "service-builder",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service-runner",
+      "name": "Service Runner",
+      "tier": "free",
+      "platforms": [
+        {
+          "id": "android",
+          "matrix_app": "service-runner",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "apk"
+          ],
+          "default_format": "apk"
+        },
+        {
+          "id": "windows",
+          "matrix_app": "service-runner",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "exe",
+            "msi"
+          ],
+          "default_format": "exe"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "service-runner",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        },
+        {
+          "id": "linux",
+          "matrix_app": "service-runner",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "admin-security",
+      "name": "Admin and Security",
+      "tier": "free",
+      "platforms": [
+        {
+          "id": "android",
+          "matrix_app": "security",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "apk"
+          ],
+          "default_format": "apk"
+        },
+        {
+          "id": "windows",
+          "matrix_app": "admin",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "exe",
+            "msi"
+          ],
+          "default_format": "exe"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "admin",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        },
+        {
+          "id": "linux",
+          "matrix_app": "admin",
+          "type": "download",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "server",
+      "name": "Server",
+      "tier": "paid",
+      "platforms": [
+        {
+          "id": "linux",
+          "matrix_app": "server",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        },
+        {
+          "id": "windows",
+          "matrix_app": "server",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "msi",
+            "exe"
+          ],
+          "default_format": "msi"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "server",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        }
+      ]
+    },
+    {
+      "id": "midi-player",
+      "name": "MIDI Player",
+      "tier": "paid",
+      "platforms": [
+        {
+          "id": "linux",
+          "matrix_app": "midi-player",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "amd64"
+          ]
+        },
+        {
+          "id": "windows",
+          "matrix_app": "midi-player",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "msi",
+            "exe"
+          ],
+          "default_format": "msi"
+        },
+        {
+          "id": "mac",
+          "matrix_app": "midi-player",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "dmg"
+          ],
+          "default_format": "dmg"
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "kind": "user-manual",
+      "title": "User Manual",
+      "description": "For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.",
+      "formats": [
+        "html",
+        "pdf"
+      ],
+      "available": false
+    },
+    {
+      "kind": "system-admin-guide",
+      "title": "System Administrator Guide",
+      "description": "For the person who installs and maintains the Server and MIDI Player.",
+      "formats": [
+        "html",
+        "pdf"
+      ],
+      "available": false
+    }
+  ],
+  "extras": [
+    {
+      "kind": "sha256sums",
+      "label": "Checksums (SHA256SUMS)",
+      "format": "txt",
+      "available": false
+    },
+    {
+      "kind": "release-notes",
+      "label": "Release notes",
+      "format": "md",
+      "available": false
+    }
+  ]
+}

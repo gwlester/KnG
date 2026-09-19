@@ -1,0 +1,122 @@
+name: Publish Downloads
+
+# Pulls one Virtual Church Musician release from GitHub and publishes its free
+# installers and guides to the private downloads bucket, then replaces
+# matrix.json. Manual on purpose: publishing a release is a decision, and the
+# environment below requires an approval. See Prompts/ToDo.md (Downloads Page).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Virtual Church Musician release tag, e.g. v1.0.1-b.7 (blank = newest release)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-downloads
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+  DOWNLOADS_BUCKET_NAME: ${{ vars.DOWNLOADS_BUCKET_NAME }}
+  VCM_REPO: gwlester/VirtualChurchMusician
+
+jobs:
+  publish:
+    name: Publish release to downloads bucket
+    runs-on: ubuntu-latest
+    environment: downloads-publish
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify settings
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.VCM_RELEASES_TOKEN }}
+        run: |
+          test -n "${AWS_REGION}"
+          test -n "${AWS_DEPLOY_ROLE_ARN}"
+          test -n "${DOWNLOADS_BUCKET_NAME}"
+          test -n "${GH_TOKEN}"
+
+      - name: Resolve release tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.VCM_RELEASES_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          tag="${INPUT_TAG}"
+          if [ -z "${tag}" ]; then
+            tag="$(gh release list -R "${VCM_REPO}" --limit 1 --json tagName -q '.[0].tagName')"
+          fi
+          test -n "${tag}"
+          echo "RELEASE_TAG=${tag}" >> "${GITHUB_ENV}"
+
+      - name: Download the release assets we publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.VCM_RELEASES_TOKEN }}
+        run: |
+          mkdir assets
+          python3 src/publish_release.py assets --tag "${RELEASE_TAG}" | while read -r name; do
+            gh release download "${RELEASE_TAG}" -R "${VCM_REPO}" -D assets -p "${name}" || echo "not in release: ${name}"
+          done
+          gh release view "${RELEASE_TAG}" -R "${VCM_REPO}" --json body,publishedAt \
+            -q '.body' > assets/release-notes.md
+          gh release view "${RELEASE_TAG}" -R "${VCM_REPO}" --json publishedAt \
+            -q '.publishedAt[0:10]' > published.txt
+          ls -l assets
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Plan the publication (verifies checksums)
+        shell: bash
+        run: |
+          aws s3 cp "s3://${DOWNLOADS_BUCKET_NAME}/matrix.json" current-matrix.json --only-show-errors || true
+          python3 src/publish_release.py plan --tag "${RELEASE_TAG}" --assets assets \
+            --published "$(cat published.txt)" --matrix current-matrix.json --out out
+
+      - name: Upload files
+        shell: bash
+        run: |
+          while IFS=$'\t' read -r path key type; do
+            aws s3 cp "${path}" "s3://${DOWNLOADS_BUCKET_NAME}/${key}" --content-type "${type}" --only-show-errors
+          done < out/uploads.tsv
+
+      - name: Publish the new matrix (last, so nothing is listed before it is uploaded)
+        shell: bash
+        run: |
+          aws s3 cp out/matrix.json "s3://${DOWNLOADS_BUCKET_NAME}/matrix.json" \
+            --content-type application/json --cache-control "no-store" --only-show-errors
+
+      - name: Remove releases that fell out of retention
+        shell: bash
+        run: |
+          while read -r prefix; do
+            [ -n "${prefix}" ] || continue
+            echo "Deleting ${prefix}"
+            aws s3 rm "s3://${DOWNLOADS_BUCKET_NAME}/${prefix}" --recursive --only-show-errors
+          done < out/delete-prefixes.txt
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### Published ${RELEASE_TAG}"
+            echo
+            echo "Uploaded $(wc -l < out/uploads.tsv) files to \`releases/${RELEASE_TAG}/\`."
+            echo
+            echo "Releases now listed:"
+            python3 -c "import json;[print('- '+r['version']+' ('+r['channel']+')') for r in json.load(open('out/matrix.json'))['releases']]"
+          } >> "${GITHUB_STEP_SUMMARY}"

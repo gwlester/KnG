@@ -19,6 +19,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTENT_DIR = REPO_ROOT / "content" / "blog"
 LEGAL_DIR = REPO_ROOT / "content" / "legal"
 FAQ_SOURCE = REPO_ROOT / "content" / "faq.md"
+DOWNLOAD_OPTIONS = REPO_ROOT / "content" / "downloads" / "options.json"
+DOWNLOAD_PAGE = REPO_ROOT / "www" / "download.html"
 SITE_URL = "https://www.kng-consulting.com"
 # Verify against the Louisiana Secretary of State registration.
 LEGAL_ENTITY = "KnG Consulting, LLC"
@@ -401,6 +403,129 @@ def render_faq_page() -> Path:
     return out
 
 
+def _esc(text: str) -> str:
+    return html_lib.escape(text, quote=True)
+
+
+def render_picker(options: dict) -> str:
+    app_options = "\n".join(
+        f'                <option value="{_esc(a["id"])}">{_esc(a["name"])}</option>' for a in options["apps"]
+    )
+    label = options.get("channel_label", "")
+    current = f"Current release ({label})" if label else "Current release"
+    data = json.dumps(options, ensure_ascii=False).replace("</", "<\\/")
+    return f"""<div class="section-heading" id="picker-heading">
+            <p class="eyebrow">Choose your download</p>
+            <h2>Pick an app and a platform</h2>
+          </div>
+          <form class="picker" id="download-picker" data-endpoint="{_esc(options.get("endpoint", ""))}" onsubmit="return false">
+            <div class="field">
+              <label for="pick-app">Application</label>
+              <select id="pick-app">
+                <option value="">Choose an app...</option>
+{app_options}
+              </select>
+            </div>
+            <fieldset class="field platform-field">
+              <legend>Platform</legend>
+              <div id="pick-platforms" class="radio-row"></div>
+            </fieldset>
+            <div class="field">
+              <label for="pick-version">Version</label>
+              <select id="pick-version">
+                <option value="current">{_esc(current)}</option>
+                <option value="previous">Previous release</option>
+              </select>
+            </div>
+            <p class="picker-note" id="pick-note" role="status" aria-live="polite">Choose an app and a platform.</p>
+            <div class="picker-actions">
+              <button class="button button-primary" type="button" id="pick-go" disabled>Download</button>
+              <a id="pick-alt" href="#" hidden></a>
+            </div>
+            <p class="license-note">By downloading you agree to the <a href="license.html">License Agreement</a>.</p>
+            <noscript><p class="picker-note">The picker needs JavaScript. The table below shows what is planned.</p></noscript>
+          </form>
+          <script type="application/json" id="picker-options">{data}</script>"""
+
+
+def render_availability(options: dict) -> str:
+    cols = [("mac", "macOS"), ("windows", "Windows"), ("linux", "Linux"), ("android", "Android")]
+    supported = {}
+    for app in options["apps"]:
+        for plat in app["platforms"]:
+            supported.setdefault(plat["matrix_app"], set()).add(plat["id"])
+    head = "".join(f'<th scope="col">{label}</th>' for _, label in cols)
+    rows = []
+    for key, info in options["matrix_apps"].items():
+        cells = "".join(
+            '<td class="yes">Yes</td>' if pid in supported.get(key, set()) else '<td class="no">-</td>'
+            for pid, _ in cols
+        )
+        rows.append(
+            f'                <tr>\n                  <th scope="row">{_esc(info["name"])}<span>{_esc(info["blurb"])}</span></th>\n                  {cells}\n                </tr>'
+        )
+    body = "\n".join(rows)
+    return f"""<div class="table-wrap">
+            <table class="platform-table">
+              <thead>
+                <tr>
+                  <th scope="col">App</th>
+                  {head}
+                </tr>
+              </thead>
+              <tbody>
+{body}
+              </tbody>
+            </table>
+          </div>"""
+
+
+def _doc_link(endpoint: str, kind: str, fmt: str, label: str, available: bool) -> str:
+    attrs = f'data-doc-kind="{kind}" data-doc-format="{fmt}" data-label="{label}"'
+    if endpoint and available:
+        href = f"{endpoint}?doc={kind}&amp;format={fmt}&amp;version=current&amp;v=1"
+        return f'<a class="button" href="{href}" {attrs}>{label}</a>'
+    return f'<a class="button" aria-disabled="true" role="link" {attrs}>{label} (coming soon)</a>'
+
+
+def render_documents(options: dict) -> str:
+    endpoint = options.get("endpoint", "")
+    labels = {"html": "Read online", "pdf": "Download PDF"}
+    cards = []
+    for doc in options["documents"]:
+        buttons = " ".join(
+            _doc_link(endpoint, doc["kind"], f, labels.get(f, f.upper()), doc["available"]) for f in doc["formats"]
+        )
+        cards.append(
+            f"""            <article class="card">
+              <h3>{_esc(doc["title"])}</h3>
+              <p>{_esc(doc["description"])}</p>
+              <p class="card-actions">{buttons}</p>
+            </article>"""
+        )
+    extras = " &middot; ".join(
+        _doc_link(endpoint, e["kind"], e["format"], _esc(e["label"]), e["available"]).replace('class="button"', 'class="text-link"')
+        for e in options.get("extras", [])
+    )
+    cards_html = "\n".join(cards)
+    return f"""<div class="grid">
+{cards_html}
+          </div>
+          <p class="extras">{extras}</p>"""
+
+
+def refresh_download_page() -> None:
+    options = json.loads(DOWNLOAD_OPTIONS.read_text(encoding="utf-8"))
+    html = DOWNLOAD_PAGE.read_text(encoding="utf-8")
+    for start, end, block in (
+        ("<!-- PICKER_START -->", "<!-- PICKER_END -->", render_picker(options)),
+        ("<!-- AVAILABILITY_START -->", "<!-- AVAILABILITY_END -->", render_availability(options)),
+        ("<!-- DOCS_START -->", "<!-- DOCS_END -->", render_documents(options)),
+    ):
+        html = _replace_between(html, start, end, "          " + block, DOWNLOAD_PAGE)
+    DOWNLOAD_PAGE.write_text(html, encoding="utf-8")
+
+
 def main() -> None:
     posts = load_posts()
     if not posts:
@@ -422,6 +547,7 @@ def main() -> None:
     update_homepage(posts)
     legal = render_legal_pages()
     render_faq_page()
+    refresh_download_page()
     refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
     print(f"Rendered {len(legal)} legal page(s) to {WWW_DIR}")

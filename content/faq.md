@@ -27,7 +27,11 @@ The apps send nothing to us. See the [Privacy Policy](privacy.html) for the deta
 
 ## Which computers and devices are supported?
 
-The desktop apps run on Windows, macOS, and Linux. Android apps for on-the-go use are planned for Google Play. There is no iPhone or iPad version yet.
+The desktop apps run on Windows, macOS, and Linux. The Android apps for on-the-go use are provided as APK files you download from this site, and Google Play listings are planned. There is no iPhone or iPad version yet.
+
+## How do I install an Android app from an APK?
+
+Open the downloaded file. If Android asks, allow your browser or Files app to install unknown apps, and choose to install anyway if Android shows a Play Protect notice. The [Download page](download.html#installing) has the details.
 
 ## How do I get my hymnals into the system?
 
