@@ -1,6 +1,6 @@
 {
   "FormatVersion": 1,
-  "endpoint": "",
+  "endpoint": "https://kdslqntqrqe2vl7ydpbml522ie0xaigk.lambda-url.us-east-1.on.aws/",
   "channel_label": "Beta",
   "platforms": {
     "android": {
