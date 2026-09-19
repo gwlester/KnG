@@ -11,7 +11,7 @@ For internal work (human or agent), follow `CLAUDE.md` (mirrored from
 - Branch as `work/<work-item-name>` before editing; never edit on `main`
   first.
 - Track work items as `##` sections in `Prompts/ToDo.md`, moving each to
-  `Prompts/Done.md` once implementation, tests, and docs are complete.
+  `Prompts/Done.md` once implementation, tests, and docs are complete. (`Prompts/` is a separate private repository; see CLAUDE.md.)
 - Keep documentation in sync with implementation changes, use ASCII by
   default, and preserve the repository's existing style.
 - Releases (once `Version.MD` and `ReleseNotes/` are in active use) require

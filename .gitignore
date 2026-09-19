@@ -48,3 +48,6 @@ terraform.rc
 # planout
 # Built by terraform (archive_file)
 *.zip
+
+# Planning notes live in the private repo gwlester/KnG-Prompts, cloned here
+/Prompts/

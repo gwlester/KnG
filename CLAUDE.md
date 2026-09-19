@@ -21,6 +21,13 @@ When `Prompts/ToDo.md` and `Prompts/Done.md` exist:
 - Keep the section in `Prompts/ToDo.md` until implementation, tests, and documentation are complete.
 - Move the completed section to `Prompts/Done.md` only after validation passes.
 
+`Prompts/` is its own **private** repository (`gwlester/KnG-Prompts`), cloned at
+`./Prompts` and ignored by this repository so planning notes stay out of the
+public KnG history. Commit and push ToDo/Done/runbook changes from inside
+`Prompts/` (directly on `main`; no work branch needed for note edits). On a new
+machine: `git clone https://github.com/gwlester/KnG-Prompts.git Prompts`.
+Never put partner names, prices, or contract terms in this public repository.
+
 ## Compatibility and Infrastructure
 
 - Every JSON or API contract change requires an explicit `FormatVersion` or `X-API-Version` compatibility decision.
