@@ -51,3 +51,6 @@ terraform.rc
 
 # Planning notes live in the private repo gwlester/KnG-Prompts, cloned here
 /Prompts/
+
+# Per-machine Claude Code permission rules
+/.claude/settings.local.json
