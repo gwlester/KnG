@@ -6,8 +6,10 @@ KnG website, Terraform, and site files.
 - `www/` — the static site that gets deployed (HTML, CSS, ...); `www/blog/`
   is generated, see below
 - `content/blog/` — blog posts, as Markdown with front matter
-- `content/legal/` — privacy policy and license agreement (Markdown);
-  `build_blog.py` renders them to `www/privacy.html` and `www/license.html`
+- `content/legal/` — privacy policy, services terms, and license agreement
+  (Markdown); `content/faq.md` — the Support/FAQ page. `build_blog.py`
+  renders them to `www/<slug>.html` and refreshes the shared header/footer
+  (between the `SITE_HEADER`/`SITE_FOOTER` markers) on every hand-written page
 - `src/` — Python: `build_blog.py` renders `content/blog/` into
   `www/blog/`; `contact_handler/` is the contact-form Lambda
 - `tests/` — `python3 -m unittest discover -s tests`

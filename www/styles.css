@@ -31,6 +31,13 @@ body {
   color: var(--ink);
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
 }
 
 a {
@@ -446,6 +453,7 @@ a:focus-visible,
 }
 
 .field input,
+.field select,
 .field textarea {
   width: 100%;
   padding: 0.7rem 0.85rem;
@@ -457,6 +465,7 @@ a:focus-visible,
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   border-color: var(--accent);
   outline: 3px solid rgba(200, 129, 26, 0.35);
@@ -488,6 +497,39 @@ a:focus-visible,
 
 .form-status.is-error {
   color: #a3261d;
+}
+
+/* FAQ ------------------------------------------------------------- */
+
+.faq-list {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq-item summary {
+  padding: 1rem 0;
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.faq-item summary:hover {
+  color: var(--accent-dark);
+}
+
+.faq-answer {
+  padding: 0 0 1rem;
+  color: var(--ink-soft);
+}
+
+.faq-answer p {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
 }
 
 /* Download table -------------------------------------------------- */
@@ -570,6 +612,7 @@ a:focus-visible,
 /* Footer ---------------------------------------------------------- */
 
 .site-footer {
+  margin-top: auto;
   background: var(--navy);
   color: #b9c3dc;
 }

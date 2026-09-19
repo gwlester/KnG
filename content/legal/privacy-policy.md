@@ -9,7 +9,7 @@ description: How KnG Consulting handles information on this website and in Virtu
 
 ## Who we are
 
-This website and Virtual Church Musician are provided by KnG Consulting (Gerald Lester). You can reach us at inquiries@kng-consulting.com.
+This website and Virtual Church Musician are provided by {{legal_entity}}. You can reach us at inquiries@kng-consulting.com.
 
 ## Virtual Church Musician apps
 
@@ -25,7 +25,11 @@ If you install an app from Google Play, Google's own privacy practices apply to 
 
 ## Contact form
 
-If you send us a message, we receive the name, email address, and message you type. We use them only to read and reply to your message. The form sends your message by email (using Amazon SES) to inquiries@kng-consulting.com. We do not keep it in a database and do not use it for marketing. The message stays in our email account until we no longer need it. You can ask us to delete it at any time.
+If you send us a message, we receive the name, email address, topic, organization (optional), and message you type. We use them only to read and reply to your message. We do not send automatic replies or any other email through the form. The form sends your message by email (using Amazon SES) to inquiries@kng-consulting.com. We do not keep it in a database and do not use it for marketing. The message stays in our email account until we no longer need it. You can ask us to delete it at any time.
+
+## Services
+
+If you ask us for a quote or engage us for a service, we collect what is needed to do the work, such as your contact details, your church or organization's name, project details, and, for hardware, a delivery address. We use it only to provide the service, and we do not sell it. Payments, if any, are processed by a third-party payment service under its own privacy policy.
 
 ## Downloads and purchases
 

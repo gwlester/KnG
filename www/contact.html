@@ -8,17 +8,21 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- SITE_HEADER_START -->
     <header class="site-header">
       <nav class="top-nav" aria-label="Primary">
         <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
         <ul class="nav-links">
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
           <li><a href="download.html">Download</a></li>
+          <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>
           <li><a href="contact.html" aria-current="page">Contact</a></li>
         </ul>
       </nav>
     </header>
+<!-- SITE_HEADER_END -->
 
     <section class="hero page-hero">
       <div class="container">
@@ -35,7 +39,7 @@
             <h2>Send us a message</h2>
             <p class="lead">
               Questions about Virtual Church Musician or KnG Consulting? Send
-              us a note and we will reply by email.
+              us a note. We reply by email, usually within two business days.
             </p>
           </div>
           <form
@@ -47,6 +51,20 @@
             <div class="field">
               <label for="name">Name</label>
               <input id="name" name="name" type="text" autocomplete="name" maxlength="100" required />
+            </div>
+            <div class="field">
+              <label for="topic">Topic</label>
+              <select id="topic" name="topic">
+                <option value="general">General question</option>
+                <option value="customization">Customization</option>
+                <option value="hymnal">Hymnal metadata consultation</option>
+                <option value="hardware">Hardware buildout</option>
+                <option value="purchase">Purchase question</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="organization">Church or organization (optional)</label>
+              <input id="organization" name="organization" type="text" autocomplete="organization" maxlength="100" />
             </div>
             <div class="field">
               <label for="email">Email</label>
@@ -72,6 +90,14 @@
         var form = document.getElementById("contact-form");
         var status = document.getElementById("form-status");
         var button = form.querySelector("button[type=submit]");
+        var wanted = new URLSearchParams(window.location.search).get("topic");
+        if (wanted) {
+          for (var i = 0; i < form.topic.options.length; i++) {
+            if (form.topic.options[i].value === wanted) {
+              form.topic.value = wanted;
+            }
+          }
+        }
 
         function show(message, isError) {
           status.textContent = message;
@@ -97,6 +123,8 @@
             body: JSON.stringify({
               FormatVersion: 1,
               name: form.name.value,
+              topic: form.topic.value,
+              organization: form.organization.value,
               email: form.email.value,
               message: form.message.value,
               website: form.website.value
@@ -125,18 +153,23 @@
       })();
     </script>
 
+    <!-- SITE_FOOTER_START -->
     <footer class="site-footer">
       <div class="footer-inner">
-        <p>© 2026 KnG Consulting</p>
+        <p>© 2026 KnG Consulting, LLC</p>
         <ul class="footer-links">
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
           <li><a href="download.html">Download</a></li>
+          <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li><a href="privacy.html">Privacy</a></li>
           <li><a href="license.html">License</a></li>
+          <li><a href="services-terms.html">Services Terms</a></li>
         </ul>
       </div>
     </footer>
+<!-- SITE_FOOTER_END -->
   </body>
 </html>

@@ -1,8 +1,11 @@
 """Contact-form Lambda: validates a JSON POST and emails it through SES.
 
 Request body (FormatVersion 1):
-  {"FormatVersion": 1, "name": str, "email": str, "message": str, "website": str}
-"website" is a honeypot -- real visitors never fill it in.
+  {"FormatVersion": 1, "name": str, "email": str, "message": str, "website": str,
+   "topic": str (optional), "organization": str (optional)}
+"website" is a honeypot -- real visitors never fill it in. "topic" and
+"organization" were added later as optional fields; requests without them
+are still valid, so FormatVersion stays 1.
 """
 
 import base64
@@ -14,6 +17,14 @@ FORMAT_VERSION = 1
 MAX_NAME = 100
 MAX_EMAIL = 254
 MAX_MESSAGE = 5000
+MAX_ORGANIZATION = 100
+TOPICS = {
+    "general": "General question",
+    "customization": "Customization",
+    "hymnal": "Hymnal metadata consultation",
+    "hardware": "Hardware buildout",
+    "purchase": "Purchase question",
+}
 EMAIL_RE = re.compile(r"^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$")
 
 _ses = None
@@ -77,6 +88,8 @@ def handler(event, context):
     name = _clean_line(str(data.get("name", "")))
     email = str(data.get("email", "")).strip()
     message = str(data.get("message", "")).strip()
+    topic = str(data.get("topic") or "general")
+    organization = _clean_line(str(data.get("organization") or ""))
 
     if not name or len(name) > MAX_NAME:
         return _response(400, False, "Please enter your name.")
@@ -85,16 +98,30 @@ def handler(event, context):
     if not message or len(message) > MAX_MESSAGE:
         return _response(400, False, "Please enter a message (up to 5000 characters).")
 
+    if topic not in TOPICS:
+        return _response(400, False, "Please choose a topic from the list.")
+    if len(organization) > MAX_ORGANIZATION:
+        return _response(400, False, "Please shorten the organization name.")
+
+    topic_label = TOPICS[topic]
+    details = f"Name: {name}\n"
+    if organization:
+        details += f"Organization: {organization}\n"
+    details += f"Email: {email}\nTopic: {topic_label}\n"
+
     try:
         _client().send_email(
             Source=os.environ["SES_SENDER"],
             Destination={"ToAddresses": [os.environ["SES_RECIPIENT"]]},
             ReplyToAddresses=[email],
             Message={
-                "Subject": {"Data": f"Website inquiry from {name}", "Charset": "UTF-8"},
+                "Subject": {
+                    "Data": f"[{topic_label}] Website inquiry from {name}",
+                    "Charset": "UTF-8",
+                },
                 "Body": {
                     "Text": {
-                        "Data": f"Name: {name}\nEmail: {email}\n\n{message}\n",
+                        "Data": f"{details}\n{message}\n",
                         "Charset": "UTF-8",
                     }
                 },

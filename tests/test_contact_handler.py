@@ -59,6 +59,37 @@ class ContactHandlerTests(unittest.TestCase):
         self.assertEqual(kwargs["ReplyToAddresses"], ["pat@example.com"])
         self.assertEqual(kwargs["Source"], "no-reply@kng-consulting.com")
 
+    def test_topic_and_organization_appear_in_the_email(self):
+        payload = valid(topic="hardware", organization="First Church")
+        status, body = self.call(event(payload))
+        self.assertEqual((status, body["ok"]), (200, True))
+        kwargs = self.ses.send_email.call_args.kwargs
+        self.assertEqual(
+            kwargs["Message"]["Subject"]["Data"],
+            "[Hardware buildout] Website inquiry from Pat Example",
+        )
+        text = kwargs["Message"]["Body"]["Text"]["Data"]
+        self.assertIn("Organization: First Church", text)
+        self.assertIn("Topic: Hardware buildout", text)
+
+    def test_topic_and_organization_are_optional(self):
+        status, _ = self.call(event(valid()))
+        self.assertEqual(status, 200)
+        subject = self.ses.send_email.call_args.kwargs["Message"]["Subject"]["Data"]
+        self.assertTrue(subject.startswith("[General question]"))
+
+    def test_unknown_topic_and_long_organization_are_rejected(self):
+        for payload in (valid(topic="nope"), valid(organization="x" * 101)):
+            with self.subTest(payload=payload):
+                status, body = self.call(event(payload))
+                self.assertEqual((status, body["ok"]), (400, False))
+        self.ses.send_email.assert_not_called()
+
+    def test_newlines_in_organization_cannot_inject_headers(self):
+        self.call(event(valid(organization="Church\r\nBcc: x@y.com")))
+        text = self.ses.send_email.call_args.kwargs["Message"]["Body"]["Text"]["Data"]
+        self.assertIn("Organization: Church Bcc: x@y.com", text)
+
     def test_honeypot_is_silently_dropped(self):
         status, body = self.call(event(valid(website="http://spam")))
         self.assertEqual((status, body["ok"]), (200, True))

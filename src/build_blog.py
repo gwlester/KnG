@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Render content/blog/*.md into www/blog/, content/legal/*.md into
-www/<slug>.html, and refresh the homepage's latest-posts section. Run
-locally to preview, or via deploy-to-aws.yml before the S3 sync. No
+"""Render content/blog/*.md into www/blog/, content/legal/*.md and
+content/faq.md into www/<slug>.html, refresh the shared header/footer on
+the hand-written pages, and refresh the homepage's latest-posts section.
+Run locally to preview, or via deploy-to-aws.yml before the S3 sync. No
 arguments."""
 
+import html as html_lib
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -15,6 +18,28 @@ import markdown
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTENT_DIR = REPO_ROOT / "content" / "blog"
 LEGAL_DIR = REPO_ROOT / "content" / "legal"
+FAQ_SOURCE = REPO_ROOT / "content" / "faq.md"
+SITE_URL = "https://www.kng-consulting.com"
+# Verify against the Louisiana Secretary of State registration.
+LEGAL_ENTITY = "KnG Consulting, LLC"
+
+NAV_ITEMS = [
+    ("virtual-church-musician.html", "Virtual Church Musician"),
+    ("services.html", "Services"),
+    ("download.html", "Download"),
+    ("faq.html", "Support"),
+    ("blog/index.html", "Blog"),
+    ("contact.html", "Contact"),
+]
+FOOTER_EXTRA = [
+    ("privacy.html", "Privacy"),
+    ("license.html", "License"),
+    ("services-terms.html", "Services Terms"),
+]
+HEADER_START = "<!-- SITE_HEADER_START -->"
+HEADER_END = "<!-- SITE_HEADER_END -->"
+FOOTER_START = "<!-- SITE_FOOTER_START -->"
+FOOTER_END = "<!-- SITE_FOOTER_END -->"
 WWW_DIR = REPO_ROOT / "www"
 BLOG_OUT_DIR = WWW_DIR / "blog"
 INDEX_HTML = WWW_DIR / "index.html"
@@ -88,7 +113,47 @@ def load_posts() -> list[Post]:
     return posts
 
 
-def page_shell(*, title: str, description: str, prefix: str, body: str) -> str:
+def header_html(prefix: str, current: str | None = None) -> str:
+    items = "\n".join(
+        f'          <li><a href="{prefix}{href}"'
+        + (' aria-current="page"' if href == current else "")
+        + f">{label}</a></li>"
+        for href, label in NAV_ITEMS
+    )
+    return f"""    <header class="site-header">
+      <nav class="top-nav" aria-label="Primary">
+        <a class="brand" href="{prefix}index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
+        <ul class="nav-links">
+{items}
+        </ul>
+      </nav>
+    </header>"""
+
+
+def footer_html(prefix: str) -> str:
+    items = "\n".join(
+        f'          <li><a href="{prefix}{href}">{label}</a></li>'
+        for href, label in NAV_ITEMS + FOOTER_EXTRA
+    )
+    return f"""    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>© {date.today().year} {LEGAL_ENTITY}</p>
+        <ul class="footer-links">
+{items}
+        </ul>
+      </div>
+    </footer>"""
+
+
+def page_shell(
+    *,
+    title: str,
+    description: str,
+    prefix: str,
+    body: str,
+    current: str | None = None,
+    head_extra: str = "",
+) -> str:
     return f"""<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -96,37 +161,46 @@ def page_shell(*, title: str, description: str, prefix: str, body: str) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content="{description}" />
-    <link rel="stylesheet" href="{prefix}styles.css" />
+    <link rel="stylesheet" href="{prefix}styles.css" />{head_extra}
   </head>
   <body>
-    <header class="site-header">
-      <nav class="top-nav" aria-label="Primary">
-        <a class="brand" href="{prefix}index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
-        <ul class="nav-links">
-          <li><a href="{prefix}virtual-church-musician.html">Virtual Church Musician</a></li>
-          <li><a href="{prefix}download.html">Download</a></li>
-          <li><a href="{prefix}blog/index.html">Blog</a></li>
-          <li><a href="{prefix}contact.html">Contact</a></li>
-        </ul>
-      </nav>
-    </header>
+{HEADER_START}
+{header_html(prefix, current)}
+{HEADER_END}
 {body}
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <p>© {date.today().year} KnG Consulting</p>
-        <ul class="footer-links">
-          <li><a href="{prefix}virtual-church-musician.html">Virtual Church Musician</a></li>
-          <li><a href="{prefix}download.html">Download</a></li>
-          <li><a href="{prefix}blog/index.html">Blog</a></li>
-          <li><a href="{prefix}contact.html">Contact</a></li>
-          <li><a href="{prefix}privacy.html">Privacy</a></li>
-          <li><a href="{prefix}license.html">License</a></li>
-        </ul>
-      </div>
-    </footer>
+{FOOTER_START}
+{footer_html(prefix)}
+{FOOTER_END}
   </body>
 </html>
 """
+
+
+def _replace_between(html: str, start: str, end: str, replacement: str, path: Path) -> str:
+    pattern = re.compile(re.escape(start) + r".*?" + re.escape(end), re.DOTALL)
+    if not pattern.search(html):
+        raise ValueError(f"{path}: missing {start} / {end} markers")
+    return pattern.sub(lambda _m: f"{start}\n{replacement}\n{end}", html)
+
+
+def refresh_chrome() -> None:
+    """Rewrite the shared header/footer in the hand-written top-level pages."""
+    for path in sorted(WWW_DIR.glob("*.html")):
+        html = path.read_text(encoding="utf-8")
+        if HEADER_START not in html:
+            continue
+        html = _replace_between(html, HEADER_START, HEADER_END, header_html("", path.name), path)
+        html = _replace_between(html, FOOTER_START, FOOTER_END, footer_html(""), path)
+        path.write_text(html, encoding="utf-8")
+
+
+def render_tokens(text: str) -> str:
+    """Fill {{legal_entity}} and {{refund_days}} in Markdown content."""
+    license_text = (LEGAL_DIR / "license-agreement.md").read_text(encoding="utf-8")
+    refund = re.search(r"refund within \*\*(\d+) days\*\*", license_text)
+    if not refund:
+        raise ValueError("license-agreement.md: could not find the refund period")
+    return text.replace("{{legal_entity}}", LEGAL_ENTITY).replace("{{refund_days}}", refund.group(1))
 
 
 def render_post_page(post: Post) -> str:
@@ -146,6 +220,7 @@ def render_post_page(post: Post) -> str:
         description=post.summary,
         prefix="../",
         body=body,
+        current="blog/index.html",
     )
 
 
@@ -178,6 +253,7 @@ def render_archive_page(posts: list[Post]) -> str:
         description="Product direction, practical lessons, and what comes next for KnG Consulting.",
         prefix="../",
         body=body,
+        current="blog/index.html",
     )
 
 
@@ -227,7 +303,7 @@ def render_legal_pages() -> list[Path]:
         for required in ("title", "slug"):
             if required not in fields:
                 raise ValueError(f"{path}: front matter missing '{required}'")
-        body_html = markdown.markdown(match.group(2).strip(), extensions=["extra"])
+        body_html = markdown.markdown(render_tokens(match.group(2)).strip(), extensions=["extra"])
         body = f"""
     <main>
       <article class="section">
@@ -251,6 +327,80 @@ def render_legal_pages() -> list[Path]:
     return written
 
 
+def render_faq_page() -> Path:
+    """Render content/faq.md (front matter, an intro, then one '## Question'
+    heading per entry) into www/faq.html, with FAQPage structured data."""
+    match = FRONT_MATTER_RE.match(FAQ_SOURCE.read_text(encoding="utf-8"))
+    if not match:
+        raise ValueError(f"{FAQ_SOURCE}: missing '---' front matter block")
+    fields = {}
+    for line in match.group(1).splitlines():
+        key, _, value = line.partition(":")
+        if key.strip():
+            fields[key.strip()] = value.strip()
+    parts = re.split(r"^## (.+)$", render_tokens(match.group(2)), flags=re.MULTILINE)
+    intro_html = markdown.markdown(parts[0].strip(), extensions=["extra"])
+    entries = []
+    for question, answer in zip(parts[1::2], parts[2::2]):
+        entries.append((question.strip(), markdown.markdown(answer.strip(), extensions=["extra"])))
+    if not entries:
+        raise ValueError(f"{FAQ_SOURCE}: no '## Question' entries found")
+
+    items = "\n".join(
+        f"""          <details class="faq-item">
+            <summary>{q}</summary>
+            <div class="faq-answer">{a}</div>
+          </details>"""
+        for q, a in entries
+    )
+    body = f"""
+    <main>
+      <article class="section">
+        <div class="container post-body">
+          <h1>{fields["title"]}</h1>
+          {intro_html}
+          <div class="faq-list">
+{items}
+          </div>
+        </div>
+      </article>
+    </main>"""
+
+    def plain(fragment: str) -> str:
+        return html_lib.unescape(re.sub(r"<[^>]+>", "", fragment)).strip()
+
+    ld = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": q,
+                "acceptedAnswer": {"@type": "Answer", "text": plain(a)},
+            }
+            for q, a in entries
+        ],
+    }
+    head_extra = (
+        '\n    <script type="application/ld+json">'
+        + json.dumps(ld, ensure_ascii=False).replace("</", "<\\/")
+        + "</script>"
+    )
+    out = WWW_DIR / "faq.html"
+    out.write_text(
+        page_shell(
+            title=f"{fields['title']} | KnG Consulting",
+            description=fields.get("description", ""),
+            prefix="",
+            body=body,
+            current="faq.html",
+            head_extra=head_extra,
+        ),
+        encoding="utf-8",
+    )
+    return out
+
+
 def main() -> None:
     posts = load_posts()
     if not posts:
@@ -271,6 +421,8 @@ def main() -> None:
     )
     update_homepage(posts)
     legal = render_legal_pages()
+    render_faq_page()
+    refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
     print(f"Rendered {len(legal)} legal page(s) to {WWW_DIR}")
 

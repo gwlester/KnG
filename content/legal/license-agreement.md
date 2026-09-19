@@ -7,7 +7,7 @@ description: Commercial Software License Agreement for Virtual Church Musician.
 
 **Last Updated:** August 29, 2026
 
-This Commercial Software License Agreement (“Agreement”) is between **Gerald Lester**, a **person** (“Licensor”), and the person or legal entity purchasing, downloading, installing, or using the Software (“Customer”).
+This Commercial Software License Agreement (“Agreement”) is between **KnG Consulting, LLC**, a limited liability company (“Licensor”), and the person or legal entity purchasing, downloading, installing, or using the Software (“Customer”).
 
 By selecting “I Agree,” clicking an acceptance button, completing an online order, downloading, installing, accessing, or using the Software, Customer agrees to be bound by this Agreement. If Customer does not agree, Customer must not purchase, download, install, access, or use the Software.
 

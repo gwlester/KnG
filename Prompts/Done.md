@@ -162,3 +162,21 @@ analytics. The license is a copy of Virtual Church Musician's
 `license_config.json`, the personal street address removed, and the support
 contact set to `inquiries@kng-consulting.com`. `tests/test_legal_pages.py`
 guards against the personal details reappearing.
+
+## Services Page, Support/FAQ, Features, and Documentation Section
+
+Completed 2026-09-18 (first cut). New `services.html` (customization, hymnal
+metadata consultation, hardware buildouts, each with a Request a quote button
+that preselects the contact form's Topic), a Support/FAQ page rendered from
+`content/faq.md` (with FAQPage structured data and the refund period read from
+the license), a Features section on the product page, and a Documentation
+section on the Download page (guide links disabled until the first public
+release). The contact form gained optional Topic and Organization fields
+(`FormatVersion` stays 1; both are optional) and the Lambda puts the topic in
+the email subject. Services Terms added; the privacy policy now covers
+services; the licensor is named as KnG Consulting, LLC (site, and on the
+Virtual Church Musician branch `work/License_Match_Privacy_Policy`). Site copy
+now mentions MP3 playback and MIDI output. The header and footer are generated
+from one place (`build_blog.py`) for every page. SES is used only for the
+contact form to `inquiries@`; no customer emails are sent, so SES production
+access is not needed.
