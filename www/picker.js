@@ -169,17 +169,18 @@
       Array.prototype.forEach.call(anchors, function (a) {
         var formats = docFormats(status, versionSelect.value, a.getAttribute("data-doc-kind"));
         var format = a.getAttribute("data-doc-format");
-        var label = a.getAttribute("data-label") || a.textContent;
+        var label = a.getAttribute("data-label") || "";
+        var span = a.querySelector(".doc-label") || a;
         if (endpoint && formats.indexOf(format) >= 0) {
           a.href = docUrl(endpoint, a.getAttribute("data-doc-kind"), format, versionSelect.value);
           a.removeAttribute("aria-disabled");
           a.removeAttribute("role");
-          a.textContent = label;
+          span.textContent = label;
         } else {
           a.removeAttribute("href");
           a.setAttribute("aria-disabled", "true");
           a.setAttribute("role", "link");
-          a.textContent = label + " (coming soon)";
+          span.textContent = label + " (coming soon)";
         }
       });
     }

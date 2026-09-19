@@ -480,12 +480,25 @@ def render_availability(options: dict) -> str:
           </div>"""
 
 
+NEW_TAB_ICON = (
+    '<svg class="new-tab-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">'
+    '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+    'd="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>'
+    '<span class="visually-hidden"> (opens in a new tab)</span>'
+)
+
+
 def _doc_link(endpoint: str, kind: str, fmt: str, label: str, available: bool) -> str:
+    """HTML guides open in a new tab (with an icon); PDFs and other files download."""
+    new_tab = fmt == "html"
     attrs = f'data-doc-kind="{kind}" data-doc-format="{fmt}" data-label="{label}"'
+    if new_tab:
+        attrs += ' target="_blank" rel="noopener noreferrer"'
+    icon = NEW_TAB_ICON if new_tab else ""
     if endpoint and available:
         href = f"{endpoint}?doc={kind}&amp;format={fmt}&amp;version=current&amp;v=1"
-        return f'<a class="button" href="{href}" {attrs}>{label}</a>'
-    return f'<a class="button" aria-disabled="true" role="link" {attrs}>{label} (coming soon)</a>'
+        return f'<a class="button button-secondary" href="{href}" {attrs}><span class="doc-label">{label}</span>{icon}</a>'
+    return f'<a class="button button-secondary" aria-disabled="true" role="link" {attrs}><span class="doc-label">{label} (coming soon)</span>{icon}</a>'
 
 
 def render_documents(options: dict) -> str:
@@ -504,7 +517,7 @@ def render_documents(options: dict) -> str:
             </article>"""
         )
     extras = " &middot; ".join(
-        _doc_link(endpoint, e["kind"], e["format"], _esc(e["label"]), e["available"]).replace('class="button"', 'class="text-link"')
+        _doc_link(endpoint, e["kind"], e["format"], _esc(e["label"]), e["available"]).replace('class="button button-secondary"', 'class="text-link"')
         for e in options.get("extras", [])
     )
     cards_html = "\n".join(cards)

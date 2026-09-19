@@ -75,6 +75,23 @@ class SitePagesTests(unittest.TestCase):
                 self.assertIn(f"contact.html?topic={topic}", html)
                 self.assertIn(f'<option value="{topic}">', contact)
 
+    def test_read_online_guides_open_in_a_new_tab_with_an_icon(self):
+        import re
+
+        html = self.read("download.html")
+        anchors = re.findall(r"<a [^>]*data-doc-kind=[^>]*>.*?</a>", html, re.S)
+        read_online = [a for a in anchors if 'data-doc-format="html"' in a]
+        pdf = [a for a in anchors if 'data-doc-format="pdf"' in a]
+        self.assertEqual(len(read_online), 2)
+        for a in read_online:
+            self.assertIn('target="_blank"', a)
+            self.assertIn("noopener", a)
+            self.assertIn("new-tab-icon", a)
+            self.assertIn("opens in a new tab", a)
+        for a in pdf:
+            self.assertNotIn("target=", a)
+            self.assertNotIn("new-tab-icon", a)
+
     def test_product_and_home_pages_mention_mp3_and_midi(self):
         for name in ("index.html", "virtual-church-musician.html"):
             html = self.read(name)
