@@ -65,11 +65,11 @@ Download links, license keys, or activation credentials may be limited in time o
 
 ## 5. Activation and Account Requirements
 
-The Software may require activation, registration, an internet connection, a Licensor account, or periodic online verification.
+The Software is designed to run without an internet connection. It does not contact Licensor to activate, register, or verify a license, and it does not require a Licensor account.
 
-Customer must provide accurate registration information and keep account credentials confidential. Customer is responsible for all activity conducted through Customer’s account.
+If Customer creates an account with a third-party sales platform to purchase or download the Software, Customer is responsible for keeping those account credentials confidential and for all activity conducted through that account.
 
-Licensor may use reasonable technical measures to verify licenses, prevent unauthorized use, enforce usage limits, and protect the Software. Customer must not bypass or interfere with those measures.
+Licensor may use reasonable technical measures that operate locally within the Software to verify licenses, prevent unauthorized use, enforce usage limits, and protect the Software. Customer must not bypass or interfere with those measures.
 
 ## 6. License Restrictions
 
@@ -127,13 +127,13 @@ Customer receives only the license expressly granted in this Agreement. Customer
 
 ## 11. Customer Content and Data
 
-If the Software permits Customer to enter, upload, or process data, Customer retains ownership of that data.
+Customer retains ownership of all data that Customer enters into or creates with the Software.
 
-Customer grants Licensor a limited license to host, copy, process, transmit, and use Customer data only as reasonably necessary to provide, support, secure, maintain, and improve the Software.
+The Software runs on Customer’s own devices and servers. Licensor does not host, copy, receive, or process Customer data through the Software, and Customer grants Licensor no license to Customer data.
 
 Customer is responsible for the legality, accuracy, security, and integrity of Customer data and for obtaining all permissions required for its use with the Software.
 
-Licensor may collect technical, diagnostic, and usage information relating to the Software for support, security, analytics, and product improvement, provided that Licensor does not use such information to identify Customer except as necessary to provide the Software or comply with law.
+The Software does not collect or transmit technical, diagnostic, or usage information to Licensor. Information that Customer chooses to send to Licensor, such as a support request, is used only to respond to that request.
 
 ## 12. Third-Party Software
 

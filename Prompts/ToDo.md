@@ -283,21 +283,19 @@ availability table with a disabled button.
 3. Required "I agree" checkbox beside the button (recommended) -- yes/no?
 4. Licensor identity: the license still names you personally. Should KnG
    Consulting (if it is an entity or DBA) be the licensor instead?
-5. **Consistency problem to resolve before launch:** the license agreement
-   (sections on customer data and "technical, diagnostic, and usage
-   information ... for support, security, analytics, and product
-   improvement") reserves rights to collect data, while the privacy policy
-   says the apps send nothing. Both are public now. Recommend removing or
-   narrowing those license clauses to match reality (lawyer review advised).
-6. **Source-of-truth drift:** the site's license is a *copy*. Virtual Church
-   Musician's own `agreement.md` still has the street address on its line 6,
-   and `license_config.json` still lists the personal Gmail as
-   `support_contact` -- those values get bundled into the apps at build time.
-   Want the same change made in the Virtual Church Musician repo (separate
-   repo, so I have not touched it)?
-7. Does the Server phone home for license validation? The policy says no
-   app sends information to us; if the paid apps validate keys online, the
-   policy must say so.
+5. ~~License vs. privacy-policy consistency~~ **Resolved 2026-09-18:** the
+   license (sections 5 and 11) now says the software runs offline, never
+   contacts the Licensor, hosts no customer data and collects no usage
+   information. Lawyer review of the whole agreement is still advised.
+6. ~~Source-of-truth drift~~ **Resolved 2026-09-18** on the Virtual Church
+   Musician branch `work/License_Match_Privacy_Policy` (address removed,
+   `support_contact` -> `inquiries@kng-consulting.com`, bundled copies
+   regenerated, tests updated). **Not yet merged into `main`:** that repo's
+   mandatory full local test-suite gate has to run first. This site's copy is
+   regenerated from that branch's `agreement.md` -- re-copy it whenever the
+   agreement changes.
+7. ~~Server phone-home~~ **Resolved 2026-09-18:** no -- it works fully
+   air-gapped; the privacy policy now says so.
 8. Retention wording: the policy says contact-form messages stay in the
    mailbox "until no longer needed" -- fine, or do you want a fixed period?
 

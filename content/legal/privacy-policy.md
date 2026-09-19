@@ -13,7 +13,7 @@ This website and Virtual Church Musician are provided by KnG Consulting (Gerald 
 
 ## Virtual Church Musician apps
 
-The apps do not collect, transmit, or share usage data, diagnostic data, or personal information with KnG Consulting. The music, services, and settings you create stay on your own devices and on the server you run. The apps talk to each other on the network you control, not to us.
+The apps work without an internet connection, and the Server can run on a fully air-gapped network. They do not collect, transmit, or share usage data, diagnostic data, or personal information with KnG Consulting. The music, services, and settings you create stay on your own devices and on the server you run. The apps talk to each other on the network you control, not to us.
 
 If you install an app from Google Play, Google's own privacy practices apply to the store and to any information Google collects about your installation.
 
