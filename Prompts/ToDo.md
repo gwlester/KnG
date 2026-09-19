@@ -1,5 +1,175 @@
 # To Do List
 
+## Virtual Church Musician HTML Page Changes
+
+1. Card order should be
+   1. Template Editor
+   2. Service Builder
+   3. Service Runner
+   4. Admin and Security
+   5. Server
+   6. MIDI Player
+2. How do you feel about adding the icons to the above cards?
+
+### Review notes (Claude, 2026-09-18) -- nothing implemented
+
+**Card order (item 1)** -- straightforward; the home page's "Prepare"
+card text ("Service Builder and Template Editor") should be reordered to
+match. Questions and suggestions:
+
+- The cards currently carry workflow pills (Prepare / Run / Manage). The new
+  order puts MIDI Player last, but its pill says "Run", so the pills no
+  longer sit in runs. Options: (a) drop the pills, (b) relabel MIDI Player
+  "Play", or (c) keep the pills and accept the interleaving. **Recommend
+  (a) or (b).**
+- The Download page's app order (Runner, Builder, Editor, ...) differs from
+  this page's (Editor, Builder, Runner, ...). Intentional? If so, fine
+  (product page = workflow order, download = most-wanted first); otherwise
+  **recommend using one order everywhere** so the site feels consistent.
+
+**Icons (item 2)** -- **Recommend yes.** Real app icons are the cheapest way
+to make this page feel like a product page and to help visitors recognise
+the apps after install. Notes:
+
+- The icons exist in the VCM repo (`builds/icons/<app>/`), but `preview.png`
+  is only 64x64 -- soft on retina screens at card size. Use the larger PNGs
+  under each app's `linux/hicolor/` directory, or export from the `.icns`,
+  or supply SVGs if source artwork exists. Target roughly 96 px displayed,
+  192 px source.
+- Admin and Security is one card, so the shared Admin icon (README notes no
+  dedicated Security artwork) is not a problem here.
+- Questions: is the artwork yours to publish (no third-party assets)? OK to
+  copy the files into this repo under `www/img/` (they become public)?
+- Decorative use: `alt=""` since the app name sits next to it. On the
+  Download page, icons inside a native `<select>` are not possible; see the
+  picker note below.
+
+## Downloads Page
+
+Order from top to botton:
+1. Pick Application
+   - Pull down with order:
+      1. Service Runner
+      2. Service Builder
+      3. Template Editor
+      4. Admin and Security
+      5. Server
+      6. MIDI Player
+2. Plaform
+   - Defaults to the platform accessing the web page.
+   - For 1 to 4, option order is:
+      1. Andriod
+      2. Windows
+      3. Mac
+      4. Linux
+   - For 5 and 6, option order is:
+      1. Linux
+      2. Windows
+      3. Mac
+3. Button that says **Download**
+   - Only enabled when 1 and 2 are selected.
+
+Hits a lambda that returns a redirect based on a JSON "matrix" -- currently all redirects to a "Comming Soon" page.
+
+### Review notes (Claude, 2026-09-18) -- nothing implemented
+
+Typos to fix when written up: "botton", "Plaform", "Andriod", "Comming
+Soon".
+
+**Biggest question first: is a download gated by purchase?** The VCM repo's
+`licenses/agreement.md` is a *Commercial* license titled "Online Purchase and
+Download License", and the site copy talks about a "sales platform". If
+installers are only for paying customers, the design changes (a public
+redirect would let anyone skip payment). Please decide:
+
+1. Free download / public beta -- anyone can download. Simple.
+2. Paid, with the sales platform (Gumroad, Paddle, Lemon Squeezy, ...)
+   hosting or delivering the files -- this page becomes a "Buy" / "Get it"
+   page and the picker mostly disappears.
+3. Paid, but files hosted by us behind a license key or signed, expiring
+   links -- needs a real backend (this is where a Lambda earns its keep).
+
+Either way, the agreement says downloading means accepting it, so the page
+should link the agreement near the button ("By downloading you agree to
+the license agreement") -- worth doing in every case.
+
+**Lambda vs. static -- recommend static unless you need gating or counts.**
+
+- A Lambda is only necessary if we want to (a) gate downloads, (b) count
+  them, or (c) change targets without a site deploy.
+- Static alternative: a `downloads.json` matrix shipped *inside each release*
+  (`releases/<sha>/`), with the button doing `window.location = url` in
+  JS. Advantage specific to our blue-green setup: preview shows the
+  *preview* release's matrix and live shows live's; promoting or rolling
+  back moves the matrix along with the page. A single shared Lambda with the
+  matrix baked in would change what live visitors download the moment CI
+  applies it, before any promotion.
+- If a Lambda is wanted anyway (e.g. counts via CloudWatch logs): make the
+  Download button a plain GET form/link to a Function URL (`?app=&platform=`),
+  returning a 302. That works without CORS or fetch, and JS only handles
+  defaults and enable/disable. Only ever redirect to URLs found in the matrix,
+  never to anything from the query string (no open redirect).
+- A single source of truth: keep the matrix in the repo
+  (e.g. `content/downloads/matrix.json`), have the build render the existing
+  availability table *and* embed the JSON for the picker, so the table, the
+  picker and the redirects can never disagree. Give it a `FormatVersion`
+  (per CLAUDE.md's contract rule).
+
+**Where do the files live?** The VCM repo is *private*, so its GitHub
+release URLs will 404 for the public. Options: (a) copy release assets to a
+public location we control (S3 + CloudFront path such as `/dl/`, or a second
+bucket) -- **recommended**, also lets us keep the "keep 1 previous release"
+idea; (b) a separate public releases-only repo; (c) hand off to the sales
+platform. Related: who updates the matrix per release? VCM's README table is
+already generated from deterministic tag-based URLs, so a small script
+(`update_downloads.py <tag>`) could produce the matrix; the VCM release
+workflow could call it, but writing into this repo needs a token -- start
+manual (run the script, commit) and automate later if releases get frequent.
+
+**Picker design / behaviour:**
+
+- Platform detection: check Android *before* Linux (Android UAs contain
+  "Linux"); prefer `navigator.userAgentData.platform` with a UA fallback.
+  iPhone/iPad and ChromeOS/unknown: no default, plus an honest note
+  ("iOS is not available yet").
+- Mac chip (Apple Silicon vs Intel) cannot be detected reliably. Question:
+  is the `.dmg` universal? If not, we need an extra choice.
+- Platform is a better fit as radio buttons (3-4 options, detected one
+  pre-selected) than a second pull-down; the app pull-down is fine as a
+  native `<select>` (accessible, works on mobile).
+- Cascading rules to specify: when the app changes, rebuild the platform
+  list, keep the selection if still valid, otherwise clear it and disable the
+  button. Example: Android detected + "Server" chosen -> Android is not
+  offered, so nothing is selected.
+- Options are not uniform per app. From the VCM README: Admin is
+  desktop-only, **Security is Android-only** -- so "Admin and Security" needs
+  a rule: Android -> Security.apk, Windows/Mac/Linux -> Admin. Please
+  confirm that is intended (and whether the label should say so).
+- Windows has both `.exe` and `.msi`; Linux is `.deb` only (Debian/Ubuntu).
+  Which is the default for Windows? Label options clearly, e.g. "Windows
+  (64-bit)", "Linux (.deb, 64-bit)".
+- Disabled button: add a line of helper text ("Choose an app and a platform")
+  rather than a silent grey button.
+
+**"Coming Soon" target.** `coming-soon.html` no longer exists. Rather than
+redirecting people to a dead-end page, **recommend** an `available: false`
+flag per matrix entry: the UI keeps the button disabled and shows "Coming
+soon" next to the choice. When a release is ready, flip flags -- no lambda
+or redirect change.
+
+**Suggested extras (cheap, high value):** show the version and a "Beta"
+label (the latest VCM release is a `-b.N` prerelease); links to the User
+Manual, System Administrator Guide, SHA256SUMS and release notes (all
+already produced per release); brief install notes per platform. Ask:
+are the Windows/macOS installers signed/notarized? Unsigned ones trigger
+SmartScreen/Gatekeeper warnings, and Android APKs need "install unknown
+apps" -- worth a short help section either way.
+
+**Suggested implementation order (when you say go):** decide gating (above)
+-> decide hosting -> matrix format + script -> picker page + tests ->
+hosting/redirect wiring. The card-order/icon change in the section above is
+independent and can go first.
+
 ## Blue-Green Deployments
 
 **Status: implemented and exercised against real AWS (2026-09-18).**
