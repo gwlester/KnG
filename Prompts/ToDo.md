@@ -186,11 +186,27 @@ DNS over. Not started as a group; each line names where the work lives.
 
 - [ ] **Decide where internal planning lives.** `gwlester/KnG` is a *public*
   repository, so this file and Done.md (sales-platform choice, licensing model,
-  hardware plans, publisher discussions) are visible to anyone. Options: keep
-  going but never name partners or prices here; move `Prompts/` to a private
-  repository; or make this repository private (GitHub Actions minutes are then
-  limited). **Recommend** at least keeping partner names, prices, and contract
-  terms out of the repo now; the publisher below is deliberately unnamed.
+  hardware plans, publisher discussions) are visible to anyone, and everything
+  ever committed stays in the public history. Options:
+  - *`.gitignore` the two files:* **not recommended.** It does not hide what
+    is already in history, and untracked files lose history, backups, and the
+    branch-and-commit workflow that CLAUDE.md relies on.
+  - *Make the repository private:* **recommended.** The website is served from
+    AWS, so it stays public regardless. Cost to check first: environment
+    protection rules (the `production-switch` required-reviewer gate) are
+    available for private repositories only on GitHub Pro/Team/Enterprise, not
+    the Free plan (the Virtual Church Musician notes already mention missing
+    private-repo branch protection, so the account is probably on Free).
+    GitHub Pro is about a few dollars a month and would also enable branch
+    protection on both private repos. The OIDC trust uses the repository's
+    immutable ID, so it survives a visibility change; re-check one deploy after.
+  - *Move `Prompts/` to a separate private repository:* works on the Free plan,
+    but needs a CLAUDE.md change and a second clone.
+  - *Scrub history* (rewrite and force-push): only if something truly secret
+    was committed. I checked: the publisher's name never was, and there are no
+    keys or passwords; account and resource names are low-sensitivity.
+  Whatever is chosen, keep partner names, prices, and contract terms out of
+  this repository until it is private.
 - [ ] **Publisher editions:** decide whether they are in scope for launch
   (**recommend not**; see the item below), but settle the edition-ID and
   bundle-signing hooks while license enforcement is designed.
