@@ -2,536 +2,254 @@
 
 ## Downloads Page
 
-Order from top to botton:
-1. Pick Application
-   - Pull down with order:
-      1. Service Runner
-      2. Service Builder
-      3. Template Editor
-      4. Admin and Security
-      5. Server
-      6. MIDI Player
-2. Plaform
-   - Defaults to the platform accessing the web page.
-   - For 1 to 4, option order is:
-      1. Andriod
-      2. Windows
-      3. Mac
-      4. Linux
-   - For 5 and 6, option order is:
-      1. Linux
-      2. Windows
-      3. Mac
-3. Button that says **Download**
-   - Only enabled when 1 and 2 are selected.
+**Status:** the Download page is still a static availability table with a
+disabled button and a disabled Documentation section. Everything below is
+design and decisions; nothing in the picker or the download backend is built.
+Icons, card order, Free/Paid labels, the Privacy Policy and License pages, the
+Services page, Support/FAQ, and the Features section are done (see Done.md).
 
-Hits a lambda that returns a redirect based on a JSON "matrix" -- currently all redirects to a "Comming Soon" page.
+### What we are building
 
-Add download of User and System Admin Guide.
+Top to bottom on the Download page:
 
-### Guides download -- review notes (Claude, 2026-09-18) -- nothing implemented
+1. **Pick Application** (pull-down), in the same order as the Virtual Church
+   Musician page: Template Editor, Service Builder, Service Runner, Admin and
+   Security, Server, MIDI Player. No app is preselected ("Choose an app...").
+2. **Platform.** Defaults to the platform of the visitor's browser.
+   - Free apps (Template Editor, Service Builder, Service Runner, Admin and
+     Security): Android, Windows, Mac, Linux. Android means *Get it on Google
+     Play* (an external link, not a download). Admin is desktop-only and
+     Security is Android-only, so "Admin and Security" offers Android ->
+     Security and Windows/Mac/Linux -> Admin.
+   - Paid apps (Server, MIDI Player): Linux, Windows, Mac (no Android).
+   - When the app changes, rebuild the platform list; keep the choice if still
+     valid, otherwise clear it and disable the button.
+3. **Version.** Defaults to the current release; the previous release is also
+   available (current and current - 1). Beta versions appear only with access
+   (open question 2).
+4. **Button.** Enabled only when an app and a platform are chosen (and the
+   agreement box is ticked, if we adopt it -- open question 3). Helper text
+   when disabled ("Choose an app and a platform"). The label follows the entry
+   type: Download, Get it on Google Play, Buy, or Coming soon (disabled).
+5. **License.** A link to the License Agreement beside the button, "By
+   downloading you agree to the License Agreement".
+6. **Documentation** (below the picker): two cards, User Manual and System
+   Administrator Guide, each with *Read online* (HTML) and *Download PDF*, for
+   the selected version, marked "applies to vX.Y.Z". English only for now (see
+   open question 7). SHA256SUMS and the release notes sit beside them. The
+   guides are also linked from the product page and the Services page.
+7. **Install notes** per platform (see Launch Readiness; the installers are
+   not signed or notarized).
 
-Context: every Virtual Church Musician release already attaches a **User
-Manual** (the four client apps) and a **System Administrator Guide**
-(installing and maintaining the Server and MIDI Player), each as a Markdown
-zip, HTML and PDF. So the content exists; the questions are presentation and
-access.
+### Decisions (settled)
 
-**Recommendations**
+- **Who can download:** the four free apps (desktop and mobile) are free.
+  Server and MIDI Player are paid, sold through a sales platform (not chosen
+  yet). Until it is, they show "Coming soon".
+- **Android:** mobile apps are distributed through Google Play only.
+- **Desktop installers:** stored in a private S3 bucket; a Lambda hands out
+  signed URLs valid for 5 minutes, generated at click time (so no one-week
+  links). Retention: current release plus the previous one.
+- **The matrix** (which file each app/platform/version maps to) is private and
+  is never stored in this public repository or shipped to the browser. No
+  AppConfig; a `matrix.json` object in the private bucket instead.
+- **Ownership:** the Virtual Church Musician release workflow uploads the
+  installers, the guides, and the matrix (same AWS account, through an OIDC
+  role); this repo owns only the picker page and the Lambda.
+- **Documentation:** public (no purchase needed), HTML plus PDF only (no
+  Markdown zip), hosted at stable readable URLs (`/docs/<version>/...` plus a
+  `latest` alias), no signing needed. The guides ship inside the installers
+  already, so air-gapped sites have them.
+- **License agreement:** linked from the Download page. It names KnG
+  Consulting, LLC, and the personal details are removed.
+- **Typos:** fix them whenever seen, in any file.
 
-- A separate **Documentation** section below the picker, not another picker
-  row: two cards (User Manual, System Administrator Guide), each with
-  "Read online" (HTML) and "Download PDF". Skip the Markdown zip on the
-  public page.
-- The guides follow the **Version** control (default: current), since a
-  guide matches its release; show "applies to vX.Y.Z" on each card.
-- Host the HTML at stable, linkable URLs (e.g. `/docs/<version>/...`, plus a
-  `latest` alias) instead of force-download redirects -- readable in the
-  browser, linkable from support emails, indexable. The Virtual Church
-  Musician release workflow uploads them next to the installers, same as the
-  matrix.
-- Public docs need no signed URLs (the 5-minute signing is for installers).
-- **Air-gapped audience:** these sites often cannot look anything up during
-  install. Say "download for offline use", and check whether the Server
-  installer ships with the guide (or a pointer to it); if not, consider
-  bundling the PDF.
-- Also link the guides from the product page ("Documentation") and, for
-  hardware buildouts, from the Services page.
-- Put SHA256SUMS and the release notes beside them (already produced per
-  release).
+### Open questions
 
-**Questions**
+Each has my recommendation; a one-line answer is enough.
 
-1. Public or buyers-only? The System Administrator Guide covers the paid
-   Server and MIDI Player. **Recommend public** (fewer support questions, helps
-   evaluation, needed before install on an air-gapped site) -- but please
-   confirm it contains nothing sensitive (default credentials, internal
-   hostnames) before it goes on the open web.
-2. Formats: HTML + PDF only, or also the Markdown zip?
-3. **Languages:** the repo has English, German and Spanish sources under
-   `docs/`. Are translated guides published with each release? If yes, add a
-   language selector (English default); if they are incomplete or not
-   maintained, say the guides are English-only. Should the site itself stay
-   English-only for now?
-4. Each release, show only that version's guides, or always the latest with
-   an archive of older ones?
+1. **What must stay private?** The *targets* (file locations, purchase URLs)
+   and unlisted beta versions are private. The *availability matrix itself*
+   (which app exists on which platform) is already public marketing, and the
+   picker must show choices. **Recommend:** the picker's options are
+   embedded in the page; only targets and betas stay server-side. (Hiding the
+   options too means the picker fetches every choice from the Lambda; doable,
+   but I would not.) Agree?
+2. **Beta access and "current".** Every release so far is a `-b.N`
+   prerelease. **Recommend** a `channel` (stable | beta) on each matrix
+   entry; the default Version is the latest *stable*; betas are listed only
+   with an access code typed into the page (or a private link). Until the
+   first stable release exists, should the public see the latest beta labelled
+   "Beta", or nothing? Retention: current and current - 1 *per channel*?
+3. **Agreement checkbox.** **Recommend** a required "I have read and agree to
+   the License Agreement" box beside the button (much easier to defend than a
+   link alone). Yes or no? And do the *free* clients need a simpler EULA, or
+   does this agreement (written for online purchase) cover them?
+4. **Paid products.** Which sales platform? **Recommend** a Merchant of
+   Record (Paddle, Lemon Squeezy, FastSpring, Gumroad): they collect and
+   remit sales tax/VAT worldwide. Key question: **how are licenses issued and
+   checked for a Server that runs air-gapped?** Offline checking needs a
+   license file or key the app can verify without contacting anyone. What
+   exists in Virtual Church Musician today, and can the chosen platform
+   generate it?
+5. **Google Play.** Are all four mobile apps going on Play (Template Editor,
+   Service Builder, Service Runner, Security)? Timing note: the release APK
+   is currently signed with a debug key and Play needs a proper upload key and
+   app bundle (tracked in the Virtual Church Musician ToDo), and a new
+   personal Play account may need a closed test (about 12 testers for 14 days
+   -- verify the current rule).
+6. **Desktop file details.** Is the macOS `.dmg` universal (Apple Silicon and
+   Intel) or Apple-Silicon-only? For Windows, which is the default, `.exe` or
+   `.msi`? **Recommend** `.msi` for the paid Server and MIDI Player (service
+   installs) and `.exe` for the desktop apps, but tell me what you prefer.
+7. **Translation.** For now the site and guides are English only. To your
+   question: **no, Google's free on-the-fly website translator is not an
+   option** -- Google limited it to non-commercial sites in 2019 and is ending
+   support for it on October 1, 2026; the paid Cloud Translation API needs
+   developer integration. Also, any third-party translation widget adds
+   scripts and cookies, which would contradict the Privacy Policy. Visitors
+   can already use their own browser's built-in translate. **Recommend:**
+   translate at build time into static pages (German and Spanish guide sources
+   already exist), have a native speaker review, keep the English legal pages
+   authoritative, and add `hreflang` links. Questions: which languages, which
+   pages (whole site, or guides plus a few key pages), and is translation
+   really a blocker for going live? **I would not block go-live on it** --
+   ship English, add languages after. The language selector: I will build the
+   structure now, but show the control only once a second language exists,
+   rather than a one-item drop-down; say if you want it visible anyway.
+8. **Guides review.** I scanned the English guides: they mention only
+   variable names and "placeholder credentials", no real secrets or hostnames.
+   Before publishing, have someone read the System Administrator Guide (built
+   from the `INSTALL_*` files) once for anything that should not be public.
+9. **Contact-form retention.** The Privacy Policy says messages stay in the
+   mailbox "until no longer needed". Keep that wording, or set a fixed period
+   (for example 24 months)? **Recommend** keeping it.
 
-### Review notes (Claude, 2026-09-18) -- nothing implemented
+### Design notes (proposed, pending the questions above)
 
-Typos to fix when written up: "botton", "Plaform", "Andriod", "Comming
-Soon".
+- **Matrix entry:** `{app, platform, version, channel, type, target, sha256,
+  available}` with `type` = `download` | `store` | `purchase` | `coming-soon`,
+  in a `matrix.json` with a `FormatVersion` (CLAUDE.md's compatibility rule).
+- **Endpoint:** `GET /download?app=&platform=&version=&v=1` returning a 302
+  (works as a plain link, no CORS). It only ever redirects to targets found in
+  the matrix; unknown input is rejected. Redirect logs give download counts.
+  Because live and preview share one Lambda, it must stay backward-compatible
+  with whichever page is live.
+- **Signing method:** S3 pre-signed URLs from the Lambda (5 minutes is well
+  inside the Lambda role's credential lifetime). Move to CloudFront signed URLs
+  only if egress cost or a custom download domain matters later.
+- **Cost guard:** add an AWS Budgets alert (about $10/month) before launch.
+- **Platform detection:** check Android before Linux; iPhone/iPad and unknown
+  platforms get no default plus an honest note ("not available on iOS yet");
+  Apple Silicon versus Intel cannot be detected, hence question 6. Platform as
+  radio buttons (detected one preselected) rather than a second pull-down.
 
-**Biggest question first: is a download gated by purchase?** The VCM repo's
-`licenses/agreement.md` is a *Commercial* license titled "Online Purchase and
-Download License", and the site copy talks about a "sales platform". If
-installers are only for paying customers, the design changes (a public
-redirect would let anyone skip payment). Please decide:
+### Build plan
 
-1. Free download / public beta -- anyone can download. Simple.
-2. Paid, with the sales platform (Gumroad, Paddle, Lemon Squeezy, ...)
-   hosting or delivering the files -- this page becomes a "Buy" / "Get it"
-   page and the picker mostly disappears.
-3. Paid, but files hosted by us behind a license key or signed, expiring
-   links -- needs a real backend (this is where a Lambda earns its keep).
+1. Answer the open questions above (1-6 block the backend; 7-9 do not).
+2. **Virtual Church Musician repo:** extend the release workflow to upload
+   installers, guides, and `matrix.json` to the downloads bucket (new work
+   item there once the questions are settled).
+3. **Terraform (this repo):** downloads bucket, Lambda + Function URL, and an
+   OIDC role for the Virtual Church Musician release workflow. The CI role
+   needs widening again, and you run those applies.
+4. **This repo:** picker page, agreement link/box, Documentation section,
+   tests, plus the matrix format validator.
+5. As they become available: Google Play links, the sales-platform product
+   pages, translations.
 
-Either way, the agreement says downloading means accepting it, so the page
-should link the agreement near the button ("By downloading you agree to
-the license agreement") -- worth doing in every case.
+## Launch Readiness
 
-- Answer: add the license agreement.
+Everything that must be true before promoting a release to live and cutting
+DNS over. Not started as a group; each line names where the work lives.
 
-- Answer: the desktop and mobile are free.  The server and midi player are paid using one of the sales platform.
-
-**Lambda vs. static -- recommend static unless you need gating or counts.**
-
-- A Lambda is only necessary if we want to (a) gate downloads, (b) count
-  them, or (c) change targets without a site deploy.
-- Static alternative: a `downloads.json` matrix shipped *inside each release*
-  (`releases/<sha>/`), with the button doing `window.location = url` in
-  JS. Advantage specific to our blue-green setup: preview shows the
-  *preview* release's matrix and live shows live's; promoting or rolling
-  back moves the matrix along with the page. A single shared Lambda with the
-  matrix baked in would change what live visitors download the moment CI
-  applies it, before any promotion.
-- If a Lambda is wanted anyway (e.g. counts via CloudWatch logs): make the
-  Download button a plain GET form/link to a Function URL (`?app=&platform=`),
-  returning a 302. That works without CORS or fetch, and JS only handles
-  defaults and enable/disable. Only ever redirect to URLs found in the matrix,
-  never to anything from the query string (no open redirect).
-- A single source of truth: keep the matrix in the repo
-  (e.g. `content/downloads/matrix.json`), have the build render the existing
-  availability table *and* embed the JSON for the picker, so the table, the
-  picker and the redirects can never disagree. Give it a `FormatVersion`
-  (per CLAUDE.md's contract rule).
-
-  - Answer: I don't want someone examining the HTMl/Javascript in their browser and see the full matrix.  We could keep the matrix in AppConfig -- and push it there from the repo.
-
-**Where do the files live?** The VCM repo is *private*, so its GitHub
-release URLs will 404 for the public. Options: (a) copy release assets to a
-public location we control (S3 + CloudFront path such as `/dl/`, or a second
-bucket) -- **recommended**, also lets us keep the "keep 1 previous release"
-idea; (b) a separate public releases-only repo; (c) hand off to the sales
-platform. Related: who updates the matrix per release? VCM's README table is
-already generated from deterministic tag-based URLs, so a small script
-(`update_downloads.py <tag>`) could produce the matrix; the VCM release
-workflow could call it, but writing into this repo needs a token -- start
-manual (run the script, commit) and automate later if releases get frequent.
-
-- Answer:
-   1. The mobile apps will be on the Play Store.
-   2. The desktop, I would think in an S3 bucket that the lambda gives a signed url with a 1 week duration.
-   3. The server and midi will depend on the sales platform -- not sure yet.
-   4. Yes, we can add a version, default to current.  That way we can keep a previous release and have the option to offer access to betas.
-
-**Picker design / behaviour:**
-
-- Platform detection: check Android *before* Linux (Android UAs contain
-  "Linux"); prefer `navigator.userAgentData.platform` with a UA fallback.
-  iPhone/iPad and ChromeOS/unknown: no default, plus an honest note
-  ("iOS is not available yet").
-- Mac chip (Apple Silicon vs Intel) cannot be detected reliably. Question:
-  is the `.dmg` universal? If not, we need an extra choice.
-- Platform is a better fit as radio buttons (3-4 options, detected one
-  pre-selected) than a second pull-down; the app pull-down is fine as a
-  native `<select>` (accessible, works on mobile).
-- Cascading rules to specify: when the app changes, rebuild the platform
-  list, keep the selection if still valid, otherwise clear it and disable the
-  button. Example: Android detected + "Server" chosen -> Android is not
-  offered, so nothing is selected.
-- Options are not uniform per app. From the VCM README: Admin is
-  desktop-only, **Security is Android-only** -- so "Admin and Security" needs
-  a rule: Android -> Security.apk, Windows/Mac/Linux -> Admin. Please
-  confirm that is intended (and whether the label should say so).
-- Windows has both `.exe` and `.msi`; Linux is `.deb` only (Debian/Ubuntu).
-  Which is the default for Windows? Label options clearly, e.g. "Windows
-  (64-bit)", "Linux (.deb, 64-bit)".
-- Disabled button: add a line of helper text ("Choose an app and a platform")
-  rather than a silent grey button.
-
-**"Coming Soon" target.** `coming-soon.html` no longer exists. Rather than
-redirecting people to a dead-end page, **recommend** an `available: false`
-flag per matrix entry: the UI keeps the button disabled and shows "Coming
-soon" next to the choice. When a release is ready, flip flags -- no lambda
-or redirect change.
-
-**Suggested extras (cheap, high value):** show the version and a "Beta"
-label (the latest VCM release is a `-b.N` prerelease); links to the User
-Manual, System Administrator Guide, SHA256SUMS and release notes (all
-already produced per release); brief install notes per platform. Ask:
-are the Windows/macOS installers signed/notarized? Unsigned ones trigger
-SmartScreen/Gatekeeper warnings, and Android APKs need "install unknown
-apps" -- worth a short help section either way.
-
-- Answer: yes.
-
-**Suggested implementation order (when you say go):** decide gating (above)
--> decide hosting -> matrix format + script -> picker page + tests ->
-hosting/redirect wiring. The card-order/icon change in the section above is
-independent and can go first.
-
-### Round 2 (Claude, 2026-09-18) -- reacting to your answers
-
-**Decisions I am taking as settled (tell me if wrong):** free clients
-(desktop + mobile), paid Server + MIDI Player via a sales platform (platform
-TBD); Android via Google Play; desktop installers in S3 behind a Lambda that
-hands out signed URLs; a Version control (default: current) that also allows
-older and beta releases; Windows/macOS installers are signed/notarized; the
-license agreement gets linked. Icons are not used inside the select.
-
-**1. The matrix cannot live in this repo.** `gwlester/KnG` is a *public*
-repo, so a matrix committed here is public no matter where it is deployed --
-"push it to AppConfig from the repo" would leak it. Also, releases happen in
-the private VCM repo (`release.yml`), which is the thing that knows the tag,
-file names and checksums. **Recommend: VCM's release workflow owns the
-matrix.** It uploads installers to the downloads bucket and writes the
-matrix there (same AWS account, via an OIDC role trusted for the VCM repo);
-this repo only owns the picker UI and the Lambda. Releasing becomes one
-step, with no cross-repo commit or token.
-
-**2. What exactly must stay private? Please clarify**, because it decides the
-design:
-
-- (a) The *targets* (S3 keys, store/purchase URLs) and unlisted *beta
-  versions* -- these are easy: only the Lambda ever sees them, the browser
-  gets a redirect. This is what signed URLs give you.
-- (b) The *availability matrix itself* (which app exists on which
-  platform). That is already public marketing information (the table on the
-  page), and the picker must show choices, so hiding it entirely means the
-  picker fetches options from the Lambda step by step. Doable, but I would not
-  bother unless you have a reason.
-  **Recommend: options public/embedded, targets and betas private.**
-
-**3. AppConfig vs. the alternatives.** AppConfig works (validation, staged
-rollout, rollback) but adds a service, a Lambda layer, several Terraform
-resources and IAM, for a JSON file that changes once per release. **Recommend
-a `matrix.json` object in the private downloads bucket instead**: bucket
-versioning gives rollback, the release workflow uploads it together with the
-installers, and the Lambda caches it for ~60 s. Is there a reason you want
-AppConfig (gradual rollout, feature flags)? If not, skip it.
-
-**4. The one-week signed URL will not work as described.** A URL presigned
-by a Lambda (temporary role credentials) stops working when those credentials
-expire -- hours, not a week; a true 7-day presign needs a long-lived IAM
-user key, which I would not create. It is also unnecessary if the Download
-button generates the URL at click time: **5-15 minutes is plenty** (the
-signature only has to be valid when the download *starts*). Why a week --
-emailing links after purchase, or resumable downloads? If long-lived links
-are needed, use **CloudFront signed URLs/cookies** in front of the bucket
-(any expiry, cheaper egress, custom domain such as `downloads.` later).
-**Recommend CloudFront in front of the private bucket (OAC) for all desktop
-files.**
-
-**5. Free files do not need signing.** For public releases, plain CloudFront
-URLs are simpler, cacheable and resumable. Signing is only needed for betas
-and paid files. Do you want signed URLs on the free releases too (e.g., to
-count downloads or block hot-linking)? Counting works without signing --
-the Lambda's redirect log is the count.
-
-**6. Beta access: how is it granted?** Options: a private link
-(`?channel=beta&code=...`), a code typed into the page, or invite-only. And
-what is "current" today? Every VCM release so far is a `-b.N` prerelease.
-**Recommend an explicit `channel` (stable | beta) per release in the matrix**:
-default Version = latest *stable*; betas listed only with a code; until the
-first stable exists, decide whether the public gets the latest beta (labelled
-"Beta") or nothing. Also decide retention (how many old releases stay in the
-bucket) -- a lifecycle rule can enforce it.
-
-**7. Android = Google Play, so no APK matrix.** The Android choice becomes
-"Get it on Google Play" (an external link, not a download); the sideload help
-I suggested is no longer needed. Questions: are all four mobile apps going on
-Play? Heads-up: Play requires a publicly hosted **privacy policy** URL and a
-developer contact -- **recommend adding Privacy Policy (and Terms) pages
-to this site**; and new personal developer accounts must run a closed test
-(12 testers, 14 days) before production -- verify the current rule, as it
-affects the schedule.
-
-**8. Server and MIDI Player (paid).** Until the sales platform is chosen,
-model them as `type: purchase, available: false` ("Coming soon"). Each
-matrix entry then has a `type`: `download` (signed/CloudFront link), `store`
-(Play), `purchase` (sales-platform page) or `coming-soon`, and the button
-label follows ("Download", "Get it on Google Play", "Buy"). When choosing a
-platform, **recommend a Merchant of Record** (Paddle, Lemon Squeezy,
-FastSpring, Gumroad): they collect and remit sales tax/VAT worldwide,
-which is a large burden for a solo seller; plain Stripe Payment Links do not.
-Key question: how does the app validate a purchase -- the VCM repo has
-`license_config.json`; will the platform's license-key service be used, or
-your own? That affects which platforms fit.
-
-**9. License agreement -- three flags before it goes on the web.**
-- The agreement (`licenses/agreement.md` in VCM) names you personally
-  and includes a **home street address**, and `license_config.json` lists a
-  personal Gmail as support contact. Publishing it exposes both. Use a
-  business address/PO box and `inquiries@kng-consulting.com`? Is KnG
-  Consulting a legal entity that should be the licensor?
-- It is written as an *Online Purchase* license. Do the **free** clients need
-  their own (simpler) EULA, or does this cover them?
-- **Recommend a required "I have read and agree" checkbox** beside the
-  button (enabled only with app + platform + checkbox), not just a link:
-  it is much easier to defend than link-only. (Not legal advice -- worth a
-  lawyer's look before launch.) Where should the source of truth live so
-  the site never shows a stale copy: rendered from the VCM file at build
-  time, or copied in when the agreement changes (it is dated 2026-08-29)?
-
-**10. API contract and rollout notes.**
-- **Endpoint shape:** `GET /download?app=&platform=&version=&v=1` returning
-  302, so it works as a plain link with no CORS. `v` (or an `X-API-Version`)
-  and the matrix `FormatVersion` satisfy CLAUDE.md's compatibility rule --
-  and because the live page and the preview page both call one shared Lambda,
-  **the Lambda must stay backward-compatible** with the page currently live.
-- **Validation:** only ever redirect to URLs from the matrix; reject unknown
-  app/platform/version.
-- **New AWS pieces** (S3 downloads bucket, CloudFront distribution + OAC,
-  Lambda + Function URL, IAM for the VCM release role) will need CI-role
-  widening again -- you will be running those applies, same as before.
-- **Cost guard:** public downloads can get expensive if abused. **Recommend
-  an AWS Budgets alert** (e.g. $10/month) before launch.
-
-**Revised order of work (still nothing implemented):** (1) card order,
-pills, icons (independent, do first) -> (2) your answers to #2, #4, #6, #9
--> (3) matrix format + VCM release-workflow step -> (4) downloads bucket +
-CloudFront + Lambda in Terraform -> (5) picker page + agreement page + tests
--> (6) Play Store and sales-platform links as they become available.
-
-### Decisions and status (2026-09-18)
-
-**Decided:** the matrix does not live in this (public) repo; signed URLs
-last 5 minutes and are generated at click time; no AppConfig; Free/Paid
-labels; privacy policy added; personal details removed from the published
-license; the license agreement gets linked from the Download page.
-
-**Done:** icons, card order, Free/Paid labels, Privacy Policy and License
-pages (see Done.md). The Download page itself is still the static
-availability table with a disabled button.
-
-**Still open (blocks building the picker):**
-
-1. Privacy scope (#2 above): confirm options stay public and only targets
-   and betas are private (my recommendation).
-2. Beta access (#6): private link, typed code, or invite; and what "current"
-   means while every release is a `-b.N` prerelease.
-3. Required "I agree" checkbox beside the button (recommended) -- yes/no?
-4. Licensor identity: the license still names you personally. Should KnG
-   Consulting (if it is an entity or DBA) be the licensor instead?
-5. ~~License vs. privacy-policy consistency~~ **Resolved 2026-09-18:** the
-   license (sections 5 and 11) now says the software runs offline, never
-   contacts the Licensor, hosts no customer data and collects no usage
-   information. Lawyer review of the whole agreement is still advised.
-6. ~~Source-of-truth drift~~ **Resolved 2026-09-18** on the Virtual Church
-   Musician branch `work/License_Match_Privacy_Policy` (address removed,
-   `support_contact` -> `inquiries@kng-consulting.com`, bundled copies
-   regenerated, tests updated). **Not yet merged into `main`:** that repo's
-   mandatory full local test-suite gate has to run first. This site's copy is
-   regenerated from that branch's `agreement.md` -- re-copy it whenever the
-   agreement changes.
-7. ~~Server phone-home~~ **Resolved 2026-09-18:** no -- it works fully
-   air-gapped; the privacy policy now says so.
-8. Retention wording: the policy says contact-form messages stay in the
-   mailbox "until no longer needed" -- fine, or do you want a fixed period?
-
-### Status update (2026-09-18, later) -- Services / Support / Documentation first cut done
-
-**Answers taken:** hymnal bundles = hymnal metadata definitions;
-customization = custom versions built by KnG (customers cannot change the
-code); KnG is an LLC; SES only for the contact form to you, no customer
-emails; documentation section on the Download page; FAQ first cut; features
-as a section on the product page (a separate Features page can wait until
-there are screenshots).
-
-**Answers received (2026-09-18):** legal name "KnG Consulting, LLC" confirmed;
-free apps needing the Server is the intended message; the installers are
-**not** notarized (the FAQ's macOS answer stands); Services Terms and the
-license get counsel review; reply time is now "5 to 10 business days";
-hardware is either a custom build KnG sells or installation on supplied
-hardware, with the Raspberry Pi 4 or 5 recommended (now on the Services page,
-FAQ, home teaser and Services Terms).
-
-**Still open:**
-
-1. **Raspberry Pi needs an arm64 build.** The Linux packages the release
-   workflow builds are `amd64` only (`virtual-church-musician-*_amd64.deb`),
-   which will not install on a Pi. Virtual Church Musician's ToDo already has
-   a "First Use Configuration GUI" for Pi hardware, but I found nothing about
-   arm64 packages. The site now recommends the Pi, so this is a launch
-   dependency. Which Pi OS and architecture (64-bit Raspberry Pi OS)?
-2. **Buildout details for the Services page,** when you are ready: what a
-   custom build includes (Pi model, power supply, case, storage, USB audio
-   interface or audio HAT, USB MIDI interface), whether the software licenses
-   are included in the price, and warranty/return terms. A short
-   recommended-hardware list would let visitors who supply their own hardware
-   buy the right parts.
-3. **Unsigned installers -- the Download page needs install help.** Since the
-   installers are not notarized/signed: macOS shows "damaged" (FAQ has the
-   fix), and unsigned Windows installers normally trigger SmartScreen ("Windows
-   protected your PC"). The user guide says nothing about SmartScreen -- is
-   that true in your testing? Recommend adding a short "Installing" note per
-   platform to the Download page and, before public launch, getting the
-   installers signed (Apple Developer Program for notarization; a Windows
-   code-signing certificate or Azure Trusted Signing), because unsigned
-   installers hurt trust for a church audience.
-4. **Services Terms and license: counsel review** before promoting to live.
-5. **About section** is minimal; add background, a photo, and any church
-   willing to be quoted.
-6. **Guides:** links are disabled. Confirm the System Administrator Guide
-   contains nothing sensitive before publishing; decide languages (English,
-   German and Spanish sources exist) and formats (HTML + PDF).
-7. Optional follow-ups: one blog post per service; per-item pricing once you
-   have engagements.
+- [ ] **Merge the Virtual Church Musician branches** `work/License_Match_Privacy_Policy`
+  (license: offline, no data collection, KnG Consulting, LLC as licensor, no
+  personal details) and `work/todo-pi-build-and-signing`. That repo's full local
+  test gate must run first. Until the first is merged, apps built from `main`
+  still ship the old license text.
+- [ ] **Counsel review** of the License Agreement, Services Terms, and Privacy
+  Policy. The Services Terms and the license edits were drafted by me.
+- [ ] **Raspberry Pi arm64 packages** (Virtual Church Musician ToDo). The site
+  already recommends the Pi 4/5; released Linux packages are amd64 only, and the
+  package installer needs internet for `pip`. Either finish this before
+  launch or soften the Pi wording until it ships.
+- [ ] **Installer signing and notarization** (Virtual Church Musician ToDo),
+  and, meanwhile, a per-platform "Installing" note on the Download page. The
+  installers are not notarized (macOS shows "damaged"; FAQ has the fix); test
+  what Windows shows (SmartScreen) and write it down.
+- [ ] **Sales platform chosen** (question 4) and **Google Play listing**
+  (question 5), or the paid apps and Android stay "Coming soon" at launch.
+- [ ] **Hardware buildout details for the Services page:** what a custom Pi
+  build includes (Pi model, power, case, storage, USB audio interface, USB MIDI
+  interface), whether the Server/MIDI Player licenses are included in the price,
+  warranty and return terms, and a short recommended-hardware list for people
+  who supply their own. Until then the page says only "we set it up" and
+  "prices are by quote".
+- [ ] **About section:** only public facts are on it now. Add background, a
+  photo, and any church willing to be quoted.
+- [ ] **Publish the guides** after the review in question 8; wire the
+  Documentation links to real URLs.
+- [ ] **Translation**, only if you decide it must precede launch (question 7).
+- [ ] **Go live** (see Blue-Green Deployments): promote a release, swap the
+  `www` CNAMEs and apex forwarding at GoDaddy, delete the old buckets.
+- [ ] Optional after launch: one blog post per service; per-item pricing once
+  you have engagements.
 
 ## Blue-Green Deployments
 
-**Status: implemented and exercised against real AWS (2026-09-18).**
-Pushes to `master` apply Terraform, upload `releases/<sha>/`, and point
-`preview.kng-consulting.com` at it. **Remaining:** promote a release to live
-(manual "Run workflow" + `production-switch` approval), then cut DNS over at
-GoDaddy (swap the `www` CNAMEs to the live CloudFront domain, forward the
-apex domains to `https://www.<domain>`), then tear down the old buckets
-listed below. Not scheduled -- expected to be days out. Including
-the pre-existing-infrastructure note further down -- fully resolved, no
-open questions left on this item.
+**Status: built and exercised against real AWS.** Pushes to `master` apply
+Terraform, upload the site to `releases/<sha>/`, and point
+`preview.kng-consulting.com` at it, then stop. **Remaining:** promote a release
+to live, cut DNS over at GoDaddy, and tear down the old buckets (listed
+below). Not scheduled; expected to be days out. See Launch Readiness.
 
-**What's actually built, per the numbered list below:**
+**How it works (as built):**
 
-- `terraform/cloudfront.tf`: the origin's `origin_path` plus a
-  `lifecycle { ignore_changes = [origin] }` on the distribution, so
-  Terraform sets it once on creation and never fights the CLI switch
-  again. Tradeoff, deliberate: this also means Terraform won't notice a
-  future change to the bucket/OAC either -- remove `ignore_changes`
-  temporarily for that one apply if the bucket or OAC is ever replaced.
-- `.github/workflows/deploy-to-aws.yml`: split into `build-and-upload`
-  (syncs to `releases/$GITHUB_SHA/`, nothing user-facing changes) and
-  `switch-live` (flips `origin_path` via `aws cloudfront
-  update-distribution` + `jq`, invalidates, then deletes every
-  `releases/*` prefix except the new live one and the one it replaced).
-- `.github/workflows/rollback.yml` (new): `workflow_dispatch` with a
-  `release_sha` input, flips `origin_path` back + invalidates. No
-  approval gate on this one -- see the file's own comment for why.
-- **GitHub Environments created via the API (2026-09-16):** `production`
-  (no restrictions) and `production-switch` (required reviewer:
-  `gwlester`) -- `switch-live` runs under `production-switch`, so it
-  pauses for manual approval before anything user-facing changes.
+- Pushes to `master` (`.github/workflows/deploy-to-aws.yml`): `terraform apply`,
+  then `build-and-upload` syncs to `releases/$GITHUB_SHA/` and points the
+  preview distribution at it. Nothing user-facing changes.
+- **Going live is manual:** Actions -> Deploy to AWS -> Run workflow (on
+  `master`) -> approve at the `production-switch` GitHub Environment (required
+  reviewer `gwlester`). `switch-live` flips the live distribution's
+  `origin_path`, invalidates the cache, and deletes every `releases/*` prefix
+  except the new live one and the one before it. It runs only on manual dispatch
+  because a push run waiting for approval held the concurrency lock and blocked
+  later pushes.
+- **Rollback:** `.github/workflows/rollback.yml`, `workflow_dispatch` with a
+  `release_sha`; flips `origin_path` back and invalidates. No approval gate.
+- **Preview** (`terraform/cloudfront_preview.tf`): a second CloudFront
+  distribution aliased to `preview.kng-consulting.com`, same bucket and OAC,
+  caching disabled, so the reviewer always sees the release just uploaded. Only
+  entries in `live_domain_names` alias the live distribution
+  (CloudFront requires each alias on exactly one distribution).
+- **Shared script:** `.github/scripts/set_cloudfront_origin_path.sh` does the
+  `origin_path` flip for preview, switch-live, and rollback.
+- **State:** Terraform state is in the S3 bucket
+  `kng-consulting-tfstate-734677164811` (native lockfile), so CI and local runs
+  share it.
+- **The live distribution has `lifecycle { ignore_changes = [origin] }`**, so
+  Terraform never fights the CLI switch. Tradeoff: it also will not notice a
+  future change to the bucket or OAC -- remove `ignore_changes` for one apply if
+  either is ever replaced. (A related limit: new CloudFront behaviors or origins
+  cannot be added to the live distribution through Terraform.)
+- **CI lessons, for whoever touches the workflow next:** `hashFiles()` is not
+  allowed in a job-level `if` (it silently produced "workflow file issue" and
+  zero jobs for weeks); the deploy role's OIDC trust must accept the repo's
+  immutable subject claim (`repo:gwlester@<id>/KnG@<id>:...`); the deploy role
+  needs read access as well as write access for Terraform's refresh.
 
-**Smoke test, as actually implemented (upgraded 2026-09-16):** a real
-pre-switch preview URL now exists -- see "Preview environment" below.
-`build-and-upload` points `preview.kng-consulting.com` at every uploaded
-release automatically (no approval needed, it's not user-facing), so the
-`production-switch` approval step's smoke test is now: open
-`https://preview.kng-consulting.com`, check it, then approve. **Changed
-2026-09-18:** `switch-live` now runs only on a manual `workflow_dispatch`
-(pushes just upload and update preview), because a push run waiting for
-approval held the deploy concurrency lock and blocked every later push.
+**Decisions:** S3 release prefixes plus a CloudFront `origin_path` switch (no
+second bucket, no Route 53, DNS stays at GoDaddy); the switch is done by CLI, not
+Terraform; a manual smoke test on the preview URL is always required before
+approving; retention is the live release plus one previous; the switch needs
+explicit approval.
 
-**Preview environment (added 2026-09-16):** a second CloudFront
-distribution (`terraform/cloudfront_preview.tf`), aliased to
-`preview.kng-consulting.com` (a SAN on the same ACM cert, via the new
-`preview_domain_name` variable), sharing the same OAC and S3 bucket
-(bucket policy in `s3.tf` now allows both distributions' ARNs). Uses the
-AWS managed "CachingDisabled" policy instead of "CachingOptimized" --
-every request goes straight to S3, so the reviewer always sees the exact
-release just uploaded with no invalidation step needed. `rollback.yml`
-also points preview at whatever it rolls back to, so it never shows a
-stale release. `variables.tf`'s old `domain_names` was renamed
-`live_domain_names` to make room for this (only entries in
-`live_domain_names` are live-distribution aliases; `preview_domain_name`
-is only ever aliased on the preview distribution -- CloudFront requires
-each alias belong to exactly one distribution). New GitHub repo variable
-needed at bootstrap: `PREVIEW_CLOUDFRONT_DISTRIBUTION_ID` (optional --
-the preview-flip steps no-op without it), plus one more GoDaddy CNAME --
-both added to `Prompts/AWS_Deployment.md`.
-
-The three places that flip a distribution's `origin_path` (preview flip,
-switch-live, rollback) now share one script,
-`.github/scripts/set_cloudfront_origin_path.sh`, instead of three copies
-of near-identical `jq`/`aws cloudfront` calls.
-
-**CI "workflow file issue" -- resolved 2026-09-18.** Every push run of
-`deploy-to-aws.yml` used to fail instantly with zero jobs. Root cause: a
-job-level `if: hashFiles(...)`, which GitHub only allows in step-level
-expressions. Removing it fixed it (the earlier `main`->`master` and missing
-Environments theories were red herrings). Follow-on fixes the same day:
-the deploy role's OIDC trust now also accepts the repo's immutable subject
-claim (`use_immutable_subject` is on), Terraform state moved to S3, the
-role got read access for refresh, and `switch-live` now runs only on manual
-dispatch so an unapproved push can't hold the concurrency lock.
-
-**Previous state, now replaced by the above:** `deploy-to-aws.yml` used
-to run `aws s3 sync www s3://$S3_BUCKET_NAME --delete` directly against
-the one bucket CloudFront serves from, then invalidate `/*` every push --
-a bad deploy was live the moment the sync finished, with no fast
-switch-back.
-
-**Design notes below, for reference (all decided and implemented above):**
-
-1. **Release-prefixed S3 layout.** Sync each deploy to
-   `s3://$S3_BUCKET_NAME/releases/<git-sha>/` instead of the bucket root
-   (`--delete` scoped to that one prefix only, never touching other
-   releases) — this is what actually makes blue/green possible: the new
-   release exists in S3 before anything user-facing changes.
-2. **CloudFront Origin Path as the switch.** Point
-   `aws_cloudfront_distribution.site`'s origin at whichever release prefix
-   is "live" via its `origin_path`. Going live = update the distribution's
-   origin path to the new release prefix + invalidate `/*`. Rollback =
-   flip origin path back to a previous (still-retained) release prefix +
-   invalidate — no rebuild or re-upload needed. (Chosen over two separate
-   buckets, or two CloudFront distributions behind weighted DNS — the
-   latter would need Route53, and DNS stays at GoDaddy per the existing
-   AWS Components decision.)
-3. **Terraform vs. CLI for the switch -- decided: CLI.** The switch step
-   runs a plain `aws cloudfront update-distribution` call in the workflow,
-   not a `terraform apply` of an `origin_path` variable -- keeps the
-   switch decoupled from the Terraform-managed baseline config, so nothing
-   fights Terraform's state if the origin path is ever touched directly.
-4. **Split "upload" from "switch" in the workflow.** Two distinct steps
-   (or jobs): upload a new release prefix, then a separate, later step
-   does the switch. A few minutes of CloudFront propagation delay on the
-   switch itself is acceptable for this site.
-5. **Smoke test -- decided: manual, always.** Before the switch step
-   runs, a manual smoke test against the new release prefix's URL is
-   required, in addition to whatever automated smoke test the workflow
-   also runs. Not "flip and watch."
-6. **Switch approval -- decided: manual, at this time.** The switch does
-   not run automatically on a successful build/smoke test -- it needs an
-   explicit go-ahead (e.g. a GitHub Environment protection rule requiring
-   approval, or a separate manually-triggered `workflow_dispatch` step),
-   the same shape as the release-tag approval gate elsewhere in this
-   project. Revisit later if that becomes unnecessary friction.
-7. **Retention -- decided: keep 1 previous release.** Only the live
-   release prefix plus the one immediately before it are kept.
-   Implemented as an explicit delete step in `switch-live` (not an S3
-   lifecycle rule -- lifecycle rules work on object age, not "keep the
-   last N," so an explicit step reading the distribution's own prior
-   `origin_path` was the more precise fit).
-8. **Rollback trigger.** A `workflow_dispatch` input ("roll back to
-   release `<sha>`") that just re-points `origin_path` + invalidates, with
-   no rebuild -- limited to the 1 retained previous release per the
-   retention decision above.
-
-**Pre-existing infrastructure (resolved 2026-09-16).** Manually created
-(not IaC-managed), in the same AWS account, region us-east-2 (Ohio) --
-this Terraform's default `aws_region` is us-east-1, which is fine, the
-two don't need to match. `kng-consulting.com`/`.net` are currently live
-there via GoDaddy DNS, so the DNS flip to the new CloudFront
-distribution's domain remains the actual go-green cutover moment, not
-the Terraform apply itself.
+**Pre-existing infrastructure.** Manually created (not IaC-managed), in the
+same AWS account, region us-east-2 (Ohio); this Terraform defaults to
+us-east-1, and the two do not need to match. `kng-consulting.com`/`.net` are
+live there through GoDaddy DNS, so the DNS flip to the new CloudFront
+distribution's domain is the actual go-live moment, not any Terraform apply.
 
 Existing S3 buckets in the account, all confirmed safe to delete once
 the new stack is live (kept here for the eventual manual teardown):
@@ -555,13 +273,7 @@ no CloudFront/ACM in the old setup at all. Unconfirmed, but consistent
 with everything else here, and not something this project needs to rely
 on either way.
 
-**Name-collision check: clear, confirmed 2026-09-16.** No bucket above
-is named `kng-consulting-site` (this Terraform's `bucket_name` default),
-and no `kng-github-actions-deploy` IAM role exists either. `terraform
-apply` can proceed with `terraform/variables.tf`/`oidc.tf`'s defaults
-as-is -- no rename needed, and `Prompts/AWS_Deployment.md` step 0's
-collision check is already satisfied, no need to re-run it.
-
-Gerald tears down the old infrastructure manually once the new stack is
-confirmed live, whenever he's satisfied it's safe to -- not scripted, not
-run unattended.
+No name collisions with this Terraform (`kng-consulting-site` bucket,
+`kng-github-actions-deploy` role) were found. Gerald tears down the old
+infrastructure manually once the new stack is confirmed live, whenever he is
+satisfied it is safe to -- not scripted, not run unattended.
