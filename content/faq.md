@@ -3,7 +3,7 @@ title: Support and FAQ
 slug: faq
 description: Answers to common questions about Virtual Church Musician, plus where to find guides and how to reach us.
 ---
-Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within two business days.
+Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within 5 to 10 business days.
 
 ## Which apps are free, and which are paid?
 
@@ -53,9 +53,13 @@ This means the app has not been notarized by Apple yet; nothing is actually wron
 
 Yes. KnG Consulting creates custom versions of Virtual Church Musician. Customers cannot change the software themselves under the license, but we can. See [Services](services.html) and ask for a quote.
 
-## Can you build the Server or MIDI Player hardware?
+## Can you set up the Server or MIDI Player hardware?
 
-Yes. We build out and configure Servers and MIDI Players. See [Services](services.html) and ask for a quote.
+Yes, in either of two ways: a custom build that we sell you, or installation and configuration on hardware you supply. See [Services](services.html) and ask for a quote.
+
+## What hardware do you recommend?
+
+We recommend the Raspberry Pi 4 or Raspberry Pi 5 for both the Server and the MIDI Player. The Server and MIDI Player also run on Windows, macOS, and Linux computers.
 
 ## How do I get help?
 

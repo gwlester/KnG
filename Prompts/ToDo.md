@@ -357,40 +357,45 @@ emails; documentation section on the Download page; FAQ first cut; features
 as a section on the product page (a separate Features page can wait until
 there are screenshots).
 
-**Please verify or decide:**
+**Answers received (2026-09-18):** legal name "KnG Consulting, LLC" confirmed;
+free apps needing the Server is the intended message; the installers are
+**not** notarized (the FAQ's macOS answer stands); Services Terms and the
+license get counsel review; reply time is now "5 to 10 business days";
+hardware is either a custom build KnG sells or installation on supplied
+hardware, with the Raspberry Pi 4 or 5 recommended (now on the Services page,
+FAQ, home teaser and Services Terms).
 
-1. **Legal name.** The site uses "KnG Consulting, LLC" (one constant,
-   `LEGAL_ENTITY` in `src/build_blog.py`; the license text comes from the
-   Virtual Church Musician repo). Check it against the Louisiana Secretary of
-   State registration.
-2. **Reply time.** The pages say "usually within two business days". Change
-   it if you cannot commit to that.
-3. **Free apps need the Server.** The user guide says every app connects to
-   the Church Music Server, so the free apps are only useful with the paid
-   Server. The site now says so (product page, FAQ). Is that the message you
-   want, or should "free" be framed differently?
-4. **macOS notarization.** You said the installers are signed/notarized, but
-   the user guide tells macOS users the app "has not been notarized yet" and
-   points them to `fix_app_permissions.command`, and the release workflow
-   publishes unsigned artifacts when signing credentials are missing. The FAQ
-   currently follows the guide. Which is true today? Same question for
-   Windows SmartScreen.
-5. **Services Terms** are a first draft (fees, IP, hardware, liability,
-   Louisiana law). Have counsel review them, and the whole license, before
-   the site goes live.
-6. **Hardware business model** is still open: do you sell and ship hardware,
-   configure hardware the church buys, or install on-site? The page
-   deliberately says only "we build out and configure" and "prices are by
-   quote" -- no shipping, warranty, packages or prices until decided. Also
-   still useful: a recommended-hardware list, and which of Server / MIDI
-   Player licenses are included in a buildout.
-7. **About section** is minimal (only facts already public). Add background,
-   experience, photo, and any church willing to be quoted.
-8. **Guides:** links are disabled. Before publishing them, confirm the
-   System Administrator Guide holds nothing sensitive, and decide languages
-   (English, German and Spanish sources exist) and formats (HTML + PDF).
-9. Optional follow-ups: one blog post per service; a public-domain demo
-   hymnal-metadata download; per-item pricing once you have engagements.
+**Still open:**
+
+1. **Raspberry Pi needs an arm64 build.** The Linux packages the release
+   workflow builds are `amd64` only (`virtual-church-musician-*_amd64.deb`),
+   which will not install on a Pi. Virtual Church Musician's ToDo already has
+   a "First Use Configuration GUI" for Pi hardware, but I found nothing about
+   arm64 packages. The site now recommends the Pi, so this is a launch
+   dependency. Which Pi OS and architecture (64-bit Raspberry Pi OS)?
+2. **Buildout details for the Services page,** when you are ready: what a
+   custom build includes (Pi model, power supply, case, storage, USB audio
+   interface or audio HAT, USB MIDI interface), whether the software licenses
+   are included in the price, and warranty/return terms. A short
+   recommended-hardware list would let visitors who supply their own hardware
+   buy the right parts.
+3. **Unsigned installers -- the Download page needs install help.** Since the
+   installers are not notarized/signed: macOS shows "damaged" (FAQ has the
+   fix), and unsigned Windows installers normally trigger SmartScreen ("Windows
+   protected your PC"). The user guide says nothing about SmartScreen -- is
+   that true in your testing? Recommend adding a short "Installing" note per
+   platform to the Download page and, before public launch, getting the
+   installers signed (Apple Developer Program for notarization; a Windows
+   code-signing certificate or Azure Trusted Signing), because unsigned
+   installers hurt trust for a church audience.
+4. **Services Terms and license: counsel review** before promoting to live.
+5. **About section** is minimal; add background, a photo, and any church
+   willing to be quoted.
+6. **Guides:** links are disabled. Confirm the System Administrator Guide
+   contains nothing sensitive before publishing; decide languages (English,
+   German and Spanish sources exist) and formats (HTML + PDF).
+7. Optional follow-ups: one blog post per service; per-item pricing once you
+   have engagements.
 
 ## Blue-Green Deployments
 
