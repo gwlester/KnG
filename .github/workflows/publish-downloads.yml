@@ -12,6 +12,10 @@ on:
         description: "Virtual Church Musician release tag, e.g. v1.0.1-b.7 (blank = newest release)"
         required: false
         default: ""
+      macos_notarized:
+        description: "The macOS installers in this release are signed and notarized (cannot be detected here)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -74,6 +78,17 @@ jobs:
             -q '.publishedAt[0:10]' > published.txt
           ls -l assets
 
+      - name: Detect installer signatures
+        shell: bash
+        env:
+          MACOS_NOTARIZED: ${{ inputs.macos_notarized }}
+        run: |
+          sudo apt-get install -y osslsigncode >/dev/null
+          apksigner="$(ls -d "${ANDROID_HOME}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)"
+          test -n "${apksigner}"
+          python3 src/verify_signatures.py --tag "${RELEASE_TAG}" --assets assets \
+            --apksigner "${apksigner}" --attest-apple "${MACOS_NOTARIZED:-false}" --out signatures.json
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -85,7 +100,8 @@ jobs:
         run: |
           aws s3 cp "s3://${DOWNLOADS_BUCKET_NAME}/matrix.json" current-matrix.json --only-show-errors || true
           python3 src/publish_release.py plan --tag "${RELEASE_TAG}" --assets assets \
-            --published "$(cat published.txt)" --matrix current-matrix.json --out out
+            --published "$(cat published.txt)" --matrix current-matrix.json --out out \
+            --signatures signatures.json
 
       - name: Upload files
         shell: bash
@@ -117,6 +133,6 @@ jobs:
             echo
             echo "Uploaded $(wc -l < out/uploads.tsv) files to \`releases/${RELEASE_TAG}/\`."
             echo
-            echo "Releases now listed:"
-            python3 -c "import json;[print('- '+r['version']+' ('+r['channel']+')') for r in json.load(open('out/matrix.json'))['releases']]"
+            echo "Releases now listed (unsigned ones block going live):"
+            python3 -c "import json;[print('- '+r['version']+' ('+r['channel']+', '+('signed' if r.get('signed') else 'UNSIGNED')+')') for r in json.load(open('out/matrix.json'))['releases']]"
           } >> "${GITHUB_STEP_SUMMARY}"

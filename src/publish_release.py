@@ -65,8 +65,9 @@ def content_type(name: str) -> str:
     return mimetypes.guess_type(name)[0] or "application/octet-stream"
 
 
-def plan_release(tag: str, assets: dict, artifact_map: dict, published: str) -> dict:
-    """assets: filename -> Path of every downloaded release asset."""
+def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, signatures: dict = None) -> dict:
+    """assets: filename -> Path of every downloaded release asset.
+    signatures: filename -> bool from verify_signatures.py; None means nothing was verified."""
     checksum_name = artifact_map.get("checksum_asset", "SHA256SUMS.txt")
     sums = parse_checksums(assets[checksum_name].read_text(encoding="utf-8")) if checksum_name in assets else {}
     prefix = f"releases/{tag}"
@@ -85,13 +86,16 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str) -> 
             raise PublishError(f"{name} is not listed in {checksum_name}")
         if sums[name] != digest:
             raise PublishError(f"checksum mismatch for {name}")
-        files.append(
-            {
-                "app": entry["app"], "platform": entry["platform"], "arch": entry["arch"],
-                "format": entry["format"], "default": bool(entry.get("default")),
-                "key": f"{prefix}/{name}", "filename": name, "sha256": digest, "size": path.stat().st_size,
-            }
-        )
+        signing = entry.get("signing", "none")
+        record = {
+            "app": entry["app"], "platform": entry["platform"], "arch": entry["arch"],
+            "format": entry["format"], "default": bool(entry.get("default")),
+            "key": f"{prefix}/{name}", "filename": name, "sha256": digest, "size": path.stat().st_size,
+            "signing": signing,
+        }
+        if signing != "none":
+            record["signed"] = bool(signatures and signatures.get(name) is True)
+        files.append(record)
         uploads.append((path, f"{prefix}/{name}", content_type(name)))
 
     for entry in artifact_map["documents"]:
@@ -107,7 +111,12 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str) -> 
 
     if not files:
         raise PublishError("no publishable installers were found in the release assets")
-    release = {"version": tag, "channel": channel_for(tag), "published": published, "files": files, "documents": documents}
+    unsigned = [f["filename"] for f in files if f.get("signed") is False]
+    release = {
+        "version": tag, "channel": channel_for(tag), "published": published,
+        "signed": not unsigned, "unsigned_files": unsigned,
+        "files": files, "documents": documents,
+    }
     return {"release": release, "uploads": uploads, "warnings": warnings}
 
 
@@ -127,13 +136,42 @@ def merge_matrix(matrix: dict, release: dict, keep: int = KEEP_PER_CHANNEL):
     return matrix, [r["version"] for r in dropped]
 
 
+def unsigned_releases(matrix: dict) -> list:
+    """(version, unsigned file names) for every listed release that is not fully signed.
+    A release without a `signed` flag (published before signing was tracked) counts as unsigned."""
+    found = []
+    for release in matrix.get("releases", []):
+        if release.get("signed") is True:
+            continue
+        names = release.get("unsigned_files") or ["(signing status unknown)"]
+        found.append((release["version"], names))
+    return found
+
+
+def cmd_check_live(args) -> int:
+    path = Path(args.matrix)
+    matrix = json.loads(path.read_text(encoding="utf-8")) if path.exists() and path.stat().st_size else {}
+    bad = unsigned_releases(matrix)
+    if not bad:
+        print("ok: every release listed in the downloads matrix is signed (or none are listed)")
+        return 0
+    print("error: unsigned releases are still listed in the downloads matrix:", file=sys.stderr)
+    for version, names in bad:
+        print(f"  {version}: {', '.join(names[:6])}{' ...' if len(names) > 6 else ''}", file=sys.stderr)
+    print("Publish a signed release until these age out, or delete their releases/<tag>/ folders and matrix entries.", file=sys.stderr)
+    return 1
+
+
 def cmd_plan(args) -> int:
     artifact_map = json.loads(Path(args.map).read_text(encoding="utf-8"))
     assets = {p.name: p for p in Path(args.assets).iterdir() if p.is_file()}
     matrix_path = Path(args.matrix)
     matrix = json.loads(matrix_path.read_text(encoding="utf-8")) if matrix_path.exists() and matrix_path.stat().st_size else {}
+    signatures = None
+    if args.signatures and Path(args.signatures).exists():
+        signatures = json.loads(Path(args.signatures).read_text(encoding="utf-8"))
     try:
-        plan = plan_release(args.tag, assets, artifact_map, args.published)
+        plan = plan_release(args.tag, assets, artifact_map, args.published, signatures)
     except PublishError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -147,7 +185,7 @@ def cmd_plan(args) -> int:
         print(f"warning: {warning}", file=sys.stderr)
     print(
         f"{args.tag} ({plan['release']['channel']}): {len(plan['release']['files'])} installers, "
-        f"{len(plan['release']['documents'])} documents; releases kept: "
+        f"{len(plan['release']['documents'])} documents; signed: {plan['release']['signed']}; releases kept: "
         f"{[r['version'] for r in new_matrix['releases']]}; dropping: {dropped}"
     )
     return 0
@@ -173,7 +211,11 @@ def main(argv=None) -> int:
     plan.add_argument("--matrix", required=True, help="current matrix.json (may not exist)")
     plan.add_argument("--map", default=str(DEFAULT_MAP))
     plan.add_argument("--out", required=True)
+    plan.add_argument("--signatures", help="signatures.json from verify_signatures.py")
     plan.set_defaults(func=cmd_plan)
+    check = sub.add_parser("check-live", help="fail if any listed release is unsigned")
+    check.add_argument("--matrix", required=True)
+    check.set_defaults(func=cmd_check_live)
     assets = sub.add_parser("assets", help="list the release assets to download")
     assets.add_argument("--tag", required=True)
     assets.add_argument("--map", default=str(DEFAULT_MAP))

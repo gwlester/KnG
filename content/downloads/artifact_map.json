@@ -1,6 +1,6 @@
 {
   "FormatVersion": 1,
-  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published (paid products are delivered by the sales platform).",
+  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published (paid products are delivered by the sales platform). signing: apple = macOS notarization (attested by the workflow input), authenticode = Windows signature (detected), apk = a non-debug signing certificate (detected), none = not required.",
   "checksum_asset": "SHA256SUMS.txt",
   "files": [
     {
@@ -10,7 +10,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apple"
     },
     {
       "asset": "TemplateEditor.exe",
@@ -19,7 +20,8 @@
       "arch": "any",
       "format": "exe",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "TemplateEditor_{base}_x64.msi",
@@ -28,7 +30,8 @@
       "arch": "x64",
       "format": "msi",
       "default": false,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-template-desktop_{ver}_amd64.deb",
@@ -37,7 +40,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "none"
     },
     {
       "asset": "ServiceBuilder.dmg",
@@ -46,7 +50,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apple"
     },
     {
       "asset": "ServiceBuilder.exe",
@@ -55,7 +60,8 @@
       "arch": "any",
       "format": "exe",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "ServiceBuilder_{base}_x64.msi",
@@ -64,7 +70,8 @@
       "arch": "x64",
       "format": "msi",
       "default": false,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-builder-desktop_{ver}_amd64.deb",
@@ -73,7 +80,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "none"
     },
     {
       "asset": "ServiceRunnerDesktop.dmg",
@@ -82,7 +90,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apple"
     },
     {
       "asset": "ServiceRunnerDesktop.exe",
@@ -91,7 +100,8 @@
       "arch": "any",
       "format": "exe",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "ServiceRunnerDesktop_{base}_x64.msi",
@@ -100,7 +110,8 @@
       "arch": "x64",
       "format": "msi",
       "default": false,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-runner-desktop_{ver}_amd64.deb",
@@ -109,7 +120,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "none"
     },
     {
       "asset": "ChurchMusicAdmin.dmg",
@@ -118,7 +130,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apple"
     },
     {
       "asset": "ChurchMusicAdmin.exe",
@@ -127,7 +140,8 @@
       "arch": "any",
       "format": "exe",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "ChurchMusicAdmin_{base}_x64.msi",
@@ -136,7 +150,8 @@
       "arch": "x64",
       "format": "msi",
       "default": false,
-      "public": true
+      "public": true,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-admin_{ver}_amd64.deb",
@@ -145,7 +160,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "none"
     },
     {
       "asset": "ChurchMusicServer.dmg",
@@ -154,7 +170,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "apple"
     },
     {
       "asset": "ChurchMusicServer.exe",
@@ -163,7 +180,8 @@
       "arch": "any",
       "format": "exe",
       "default": false,
-      "public": false
+      "public": false,
+      "signing": "authenticode"
     },
     {
       "asset": "ChurchMusicServer_{base}_x64.msi",
@@ -172,7 +190,8 @@
       "arch": "x64",
       "format": "msi",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-server_{ver}_amd64.deb",
@@ -181,7 +200,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "none"
     },
     {
       "asset": "ChurchMusicMidiPlayer.dmg",
@@ -190,7 +210,8 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "apple"
     },
     {
       "asset": "ChurchMusicMidiPlayer.exe",
@@ -199,7 +220,8 @@
       "arch": "any",
       "format": "exe",
       "default": false,
-      "public": false
+      "public": false,
+      "signing": "authenticode"
     },
     {
       "asset": "ChurchMusicMidiPlayer_{base}_x64.msi",
@@ -208,7 +230,8 @@
       "arch": "x64",
       "format": "msi",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "authenticode"
     },
     {
       "asset": "virtual-church-musician-midi-player_{ver}_amd64.deb",
@@ -217,7 +240,8 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": false
+      "public": false,
+      "signing": "none"
     },
     {
       "asset": "TemplateEditor.apk",
@@ -226,7 +250,8 @@
       "arch": "any",
       "format": "apk",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apk"
     },
     {
       "asset": "ServiceBuilder.apk",
@@ -235,7 +260,8 @@
       "arch": "any",
       "format": "apk",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apk"
     },
     {
       "asset": "ServiceRunner.apk",
@@ -244,7 +270,8 @@
       "arch": "any",
       "format": "apk",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apk"
     },
     {
       "asset": "Security.apk",
@@ -253,7 +280,8 @@
       "arch": "any",
       "format": "apk",
       "default": true,
-      "public": true
+      "public": true,
+      "signing": "apk"
     }
   ],
   "documents": [

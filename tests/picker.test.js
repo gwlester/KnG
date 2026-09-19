@@ -114,3 +114,10 @@ test("version labels and document lookups", () => {
   assert.equal(P.docUrl("https://x.example/", "user-manual", "pdf", "previous"),
     "https://x.example/?doc=user-manual&format=pdf&version=previous&v=1");
 });
+
+test("an unsigned release is labelled as such", () => {
+  const labels = P.versionLabels({ FormatVersion: 1, current: { version: "v1.0.1-b.6", channel: "beta", signed: false }, previous: null }, "Beta");
+  assert.equal(labels.current, "Current release (v1.0.1-b.6, Beta, unsigned)");
+  const signed = P.versionLabels({ FormatVersion: 1, current: { version: "v1.1.0", channel: "stable", signed: true }, previous: null }, "Beta");
+  assert.equal(signed.current, "Current release (v1.1.0)");
+});

@@ -129,6 +129,7 @@ def _status(matrix: dict) -> dict:
             "version": release["version"],
             "channel": release.get("channel", "beta"),
             "published": release.get("published", ""),
+            "signed": release.get("signed"),
             "available": {k: sorted(v) for k, v in files.items()},
             "documents": {k: sorted(v) for k, v in docs.items()},
         }

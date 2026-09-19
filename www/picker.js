@@ -105,7 +105,8 @@
     var cur = pick(status, "current");
     var prev = pick(status, "previous");
     function name(r) {
-      var tag = r.version + (r.channel === "beta" && channelLabel ? ", " + channelLabel : "");
+      var tag = r.version + (r.channel === "beta" && channelLabel ? ", " + channelLabel : "") +
+        (r.signed === false ? ", unsigned" : "");
       return "(" + tag + ")";
     }
     return {

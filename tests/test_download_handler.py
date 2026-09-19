@@ -137,6 +137,7 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertEqual(body["previous"]["version"], "v1.0.1-b.6")
         self.assertEqual(body["current"]["available"]["template-editor:windows"], ["exe", "msi"])
         self.assertEqual(body["current"]["documents"]["user-manual"], ["html", "pdf"])
+        self.assertIn("signed", body["current"])
         self.assertNotIn("releases/", result["body"])
         self.assertNotIn("key", result["body"])
         self.assertIn("max-age=60", result["headers"]["Cache-Control"])

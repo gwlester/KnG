@@ -5,6 +5,11 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      allow_unsigned_downloads:
+        description: "Go live even though unsigned releases are listed in the downloads matrix (emergency override)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,6 +26,7 @@ env:
   CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
   PREVIEW_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.PREVIEW_CLOUDFRONT_DISTRIBUTION_ID }}
   TERRAFORM_WORKING_DIRECTORY: ${{ vars.TERRAFORM_WORKING_DIRECTORY }}
+  DOWNLOADS_BUCKET_NAME: ${{ vars.DOWNLOADS_BUCKET_NAME }}
 
 jobs:
   terraform:
@@ -166,6 +172,17 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      # Go-live gate: the downloads matrix is shared by preview and live, so no
+      # unsigned release may be listed when the live site changes. Skips when
+      # the downloads bucket is not configured. See Prompts/ToDo.md ("Installer
+      # Signing and Install Guidance").
+      - name: Downloads gate (no unsigned release may be listed)
+        if: ${{ env.DOWNLOADS_BUCKET_NAME != '' && !inputs.allow_unsigned_downloads }}
+        shell: bash
+        run: |
+          aws s3 cp "s3://${DOWNLOADS_BUCKET_NAME}/matrix.json" matrix.json --only-show-errors || echo '{}' > matrix.json
+          python3 src/publish_release.py check-live --matrix matrix.json
 
       - name: Flip CloudFront origin path to the new release
         shell: bash

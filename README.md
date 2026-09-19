@@ -15,8 +15,10 @@ KnG website, Terraform, and site files.
 - `content/downloads/` — `options.json` (public picker options for the Download
   page) and `artifact_map.json` (which Virtual Church Musician release assets are
   published where); `src/download_handler/` is the download Lambda and
-  `src/publish_release.py` plans a release publication, run by the manual
-  `publish-downloads.yml` workflow
+  `src/publish_release.py` plans a release publication and
+  `src/verify_signatures.py` detects whether its installers are signed, both run by
+  the manual `publish-downloads.yml` workflow. `publish_release.py check-live` is
+  the go-live gate that `switch-live` runs: no unsigned release may be listed
 - `tests/` — `python3 -m unittest discover -s tests`
 - `terraform/` — AWS infrastructure (S3, ACM, CloudFront, the GitHub Actions
   deploy role) — see `terraform/README.md` for setup
