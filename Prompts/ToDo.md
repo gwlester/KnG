@@ -1,5 +1,149 @@
 # To Do List
 
+## Services Page
+
+1. Customization of the Virtual Church Musican.
+2. Consultation on Hymnal Bundle building.
+3. Hardware buildouts for Servers and MIDI Players.
+
+### Review notes (Claude, 2026-09-18) -- nothing implemented
+
+Typo to fix when written up: "Musican". Suggested page-copy wording:
+"Customization of Virtual Church Musician", "Hymnal bundle consultation",
+"Hardware buildouts for Servers and MIDI Players".
+
+**Recommendation: one Services page with three sections** (anchor links),
+not three pages; add "Services" to the nav after Virtual Church Musician and
+a three-card teaser on the home page. Split into separate pages later only if
+a service grows its own content (e.g., a hardware page with a parts list).
+Each section: what it is, what is included, who it is for, how an engagement
+works (contact -> short call -> written proposal), and a **Request a quote**
+button that opens the contact form with the topic preselected
+(`contact.html?topic=hardware`).
+
+**Questions -- Customization**
+
+1. What can be customized? Give me 3-4 concrete examples visitors can
+   picture (branding, custom service templates, import tooling, integrations,
+   new features, languages?).
+2. Who owns the result: a private build for that church, or folded into the
+   product? Is source code ever delivered? Fixed price, hourly, or either?
+3. The license (section 6) forbids customers from modifying the software, so
+   customization done by you needs its own written terms. **Recommend a short
+   services agreement / statement-of-work template.** Do you have one?
+4. A customized build has to be re-merged with every release. Is ongoing
+   maintenance offered, and priced separately?
+
+**Questions -- Hymnal bundle consultation**
+
+1. Definition check: I read "bundle" as the ZIP music bundle / Mega Bundle
+   (catalog definitions plus MP3/MIDI files) that Admin imports (see the
+   Virtual Church Musician README and `demo/mega_bundle/`). Correct? Is the
+   service (a) advising a church how to build its own, (b) KnG building and
+   delivering the bundle, or (c) both?
+2. **Copyright.** Hymn texts, tunes, arrangements and MIDI recordings can be
+   copyrighted. Recommend an explicit line on the page: KnG advises on
+   structure and tooling, the customer is responsible for having the rights to
+   the content, and KnG does not supply copyrighted hymn content unless it
+   is licensed. Do you distribute any content besides the public-domain demo
+   bundle?
+3. Suggestion: offer that public-domain demo bundle as a free download from
+   this section -- it shows what a bundle is and is a natural lead-in to the
+   consultation.
+4. Delivery: remote sessions, on-site, a written guide, or all of these?
+   Hourly or fixed?
+
+**Questions -- Hardware buildouts**
+
+1. **The deciding question:** do you sell and ship hardware, configure
+   hardware the church buys, or specify parts and install on-site? It drives
+   inventory, sales tax, shipping, warranty/returns, insurance and payment
+   handling.
+2. Fixed packages vs. quote. **Recommend 2-3 named packages** (e.g., Server;
+   Server + MIDI Player) with a parts list and price, plus "custom".
+3. Selling point to confirm before I write copy: pre-installed and
+   pre-configured, works fully air-gapped, no subscription, no internet
+   needed. What is the offline update path (USB installer)?
+4. Are the Server and MIDI Player licenses included in the hardware price, or
+   bought separately (the sales platform is not chosen yet -- a dependency)?
+5. Geography: on-site where? Ship within the US only? Remote support scope?
+6. Warranty: vendor pass-through plus your labor? Response time?
+7. Even if you never sell hardware, a published **recommended-hardware list**
+   (OS, CPU/RAM, audio interface for the MIDI Player) is useful and a natural
+   first deliverable. Do you have one?
+
+**Cross-cutting questions and recommendations**
+
+1. **Business identity.** Is KnG Consulting a legal entity (LLC/DBA)? Selling
+   services and hardware is where an entity and liability / errors-and-omissions
+   insurance matter, and it decides who the contracting party is (same
+   question as the open licensor-identity item below). Not legal advice --
+   worth a short conversation with an accountant or lawyer.
+2. **Services terms.** Services need their own terms (scope, payment,
+   liability limits, IP for customizations, hardware returns) separate from
+   the software license. Recommend a "Services Terms" page linked from this
+   page and the footer, and referenced in every quote.
+3. **Privacy policy.** Quotes and hardware orders mean collecting church
+   names, shipping addresses and payment details. The policy currently covers
+   only contact-form messages -- it must be updated before this launches.
+4. **Contact form: add a Topic dropdown** (General, Customization, Hymnal
+   bundle, Hardware, Purchase question) and put it in the email subject so
+   inquiries sort themselves; optionally "Church name" and "Phone
+   (optional)". Additive optional fields are backward compatible, so this
+   stays `FormatVersion` 1 (record that decision when implemented).
+5. **Auto-reply** ("we will reply within N business days") would be nice, but
+   SES is in sandbox mode and can only send to verified addresses. It needs
+   **SES production access** (a form in the console, usually approved within a
+   day) -- recommend requesting it before launch. Meanwhile put the expected
+   reply time on the page. What reply time can you commit to?
+6. **Pricing:** recommend "Contact for a quote" at first; add "starting at"
+   figures once you have real engagements to base them on.
+7. **Trust:** the site has no About page and no testimonials. Services are
+   bought from a person -- recommend a short "About Gerald" block on this
+   page (background, experience with church music) and, if any church will
+   let you, a named quote or case study. Photo?
+8. **SEO/blog:** cheap wins are one blog post per service ("Building a
+   hymnal bundle: where to start") and Service/ProfessionalService structured
+   data on the page.
+9. Which order should the three services appear in? I would lead with
+   customization or hardware (the most concrete), but it is your call.
+10. **FAQ page -- recommend yes**, and I would go one step further: a
+    **Support** hub (nav item) that groups the FAQ, the Documentation
+    (User Manual and System Administrator Guide from the Downloads item) and
+    Contact, instead of scattering them. Suggested first FAQ entries, all
+    answerable from facts already settled:
+    - Which apps are free and which are paid? (Free clients; paid Server and
+      MIDI Player.)
+    - Does it need an internet connection or an account? (No; the Server runs
+      fully air-gapped.)
+    - Where is my data, and do you collect anything? (On your own devices and
+      server; nothing is sent to KnG -- links to the Privacy Policy.)
+    - Which platforms are supported? (Windows, macOS, Linux; Android via
+      Google Play.)
+    - How do I buy, and what is the refund period? (Must match the license --
+      currently 30 days.)
+    - How do I get a hymnal bundle into the app? (Admin's bundle import;
+      link to the public-domain demo bundle.)
+    - Do you offer customization, hardware, or consultation? (Link to
+      Services.)
+    - How do I get support? (Contact form; reply-time commitment.)
+    Questions and suggestions:
+    - Where should it live: one FAQ page with categories, or short FAQs on
+      each page (Downloads, Services)? **Recommend one page** plus links from
+      the relevant pages.
+    - Any terms-like answer (refunds, warranty, what "free" means) must match
+      the license agreement word for word in substance; where possible,
+      generate those from `license_config.json` values rather than retyping,
+      so they cannot drift.
+    - Add FAQPage structured data (JSON-LD) so answers can appear in search
+      results.
+    - Are there frequently asked questions from real users already (church
+      staff, beta testers)? Those beat guesses; the contact form's new Topic
+      field will also show what people ask.
+    - Who keeps it current? Recommend the FAQ lives as Markdown under
+      `content/` (like the legal pages) so updating it is a text edit and a
+      push.
+
 ## Downloads Page
 
 Order from top to botton:
@@ -26,6 +170,55 @@ Order from top to botton:
    - Only enabled when 1 and 2 are selected.
 
 Hits a lambda that returns a redirect based on a JSON "matrix" -- currently all redirects to a "Comming Soon" page.
+
+Add download of User and System Admin Guide.
+
+### Guides download -- review notes (Claude, 2026-09-18) -- nothing implemented
+
+Context: every Virtual Church Musician release already attaches a **User
+Manual** (the four client apps) and a **System Administrator Guide**
+(installing and maintaining the Server and MIDI Player), each as a Markdown
+zip, HTML and PDF. So the content exists; the questions are presentation and
+access.
+
+**Recommendations**
+
+- A separate **Documentation** section below the picker, not another picker
+  row: two cards (User Manual, System Administrator Guide), each with
+  "Read online" (HTML) and "Download PDF". Skip the Markdown zip on the
+  public page.
+- The guides follow the **Version** control (default: current), since a
+  guide matches its release; show "applies to vX.Y.Z" on each card.
+- Host the HTML at stable, linkable URLs (e.g. `/docs/<version>/...`, plus a
+  `latest` alias) instead of force-download redirects -- readable in the
+  browser, linkable from support emails, indexable. The Virtual Church
+  Musician release workflow uploads them next to the installers, same as the
+  matrix.
+- Public docs need no signed URLs (the 5-minute signing is for installers).
+- **Air-gapped audience:** these sites often cannot look anything up during
+  install. Say "download for offline use", and check whether the Server
+  installer ships with the guide (or a pointer to it); if not, consider
+  bundling the PDF.
+- Also link the guides from the product page ("Documentation") and, for
+  hardware buildouts, from the Services page.
+- Put SHA256SUMS and the release notes beside them (already produced per
+  release).
+
+**Questions**
+
+1. Public or buyers-only? The System Administrator Guide covers the paid
+   Server and MIDI Player. **Recommend public** (fewer support questions, helps
+   evaluation, needed before install on an air-gapped site) -- but please
+   confirm it contains nothing sensitive (default credentials, internal
+   hostnames) before it goes on the open web.
+2. Formats: HTML + PDF only, or also the Markdown zip?
+3. **Languages:** the repo has English, German and Spanish sources under
+   `docs/`. Are translated guides published with each release? If yes, add a
+   language selector (English default); if they are incomplete or not
+   maintained, say the guides are English-only. Should the site itself stay
+   English-only for now?
+4. Each release, show only that version's guides, or always the latest with
+   an archive of older ones?
 
 ### Review notes (Claude, 2026-09-18) -- nothing implemented
 
