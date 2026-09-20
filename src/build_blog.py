@@ -415,11 +415,13 @@ def render_videos_page() -> Path:
     def card(v: dict) -> str:
         meta = f'<p class="video-meta">{_esc(v["audience"])} &middot; {_esc(v["length"])}</p>'
         if v.get("available"):
-            poster = f' poster="{base}{v["id"]}.jpg"'
+            # Versioned file names (id-v<n>) so a re-recorded video is never served stale from the CDN.
+            stem = f'{v["id"]}-v{v.get("version", 1)}'
+            poster = f' poster="{base}{stem}.jpg"'
             media = (
-                f'<video controls preload="metadata"{poster}>'
-                f'<source src="{base}{v["id"]}.mp4" type="video/mp4" />'
-                f'<track kind="captions" src="{base}{v["id"]}.vtt" srclang="en" label="English" default />'
+                f'<video controls preload="metadata" crossorigin="anonymous"{poster}>'
+                f'<source src="{base}{stem}.mp4" type="video/mp4" />'
+                f'<track kind="captions" src="{base}{stem}.vtt" srclang="en" label="English" default />'
                 "Your browser does not play this video.</video>"
             )
             transcript = v.get("transcript_html", "")

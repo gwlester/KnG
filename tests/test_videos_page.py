@@ -48,7 +48,9 @@ class VideosPageTests(unittest.TestCase):
             build_blog.VIDEOS_SOURCE, build_blog.WWW_DIR = saved_src, saved_out
             tmp.unlink(missing_ok=True)
         self.assertIn('<track kind="captions"', html)
-        self.assertIn("media/overview.mp4", html)
+        self.assertIn("overview-v1.mp4", html)
+        self.assertIn("https://d1ra9wr4fsrl0u.cloudfront.net/", html)
+        self.assertIn('crossorigin="anonymous"', html)
         self.assertIn("Transcript", html)
 
     def test_support_links_to_the_videos_page(self):
