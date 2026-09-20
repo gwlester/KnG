@@ -31,6 +31,22 @@ def make_release_dir(tmp: Path, tag=TAG, skip=(), corrupt=()):
 
 
 class PublishReleaseTests(unittest.TestCase):
+    def test_a_renamed_asset_can_be_listed_as_alternatives(self):
+        entry = {"asset": ["TemplateEditor.exe", "VCMTemplates.exe"], "app": "template-editor", "platform": "windows",
+                 "arch": "any", "format": "exe", "default": True, "public": True, "signing": "none"}
+        amap = {"checksum_asset": "SHA256SUMS.txt", "files": [entry], "documents": []}
+        self.assertEqual(pr.asset_names(entry, TAG), ["TemplateEditor.exe", "VCMTemplates.exe"])
+        for present in ("TemplateEditor.exe", "VCMTemplates.exe"):
+            with self.subTest(present=present), tempfile.TemporaryDirectory() as d:
+                tmp = Path(d)
+                data = b"installer"
+                (tmp / present).write_bytes(data)
+                (tmp / "SHA256SUMS.txt").write_text(f"{hashlib.sha256(data).hexdigest()}  {present}\n")
+                assets = {p.name: p for p in tmp.iterdir()}
+                plan = pr.plan_release(TAG, assets, amap, "2026-09-20")
+                self.assertEqual([f["filename"] for f in plan["release"]["files"]], [present])
+                self.assertEqual(plan["warnings"], [])
+
     def test_version_expansion(self):
         self.assertEqual(pr.expand("A_{base}_x64.msi", TAG), "A_1.0.1_x64.msi")
         self.assertEqual(pr.expand("a_{ver}_amd64.deb", TAG), "a_1.0.1-b.7_amd64.deb")

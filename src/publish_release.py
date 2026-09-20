@@ -65,6 +65,22 @@ def content_type(name: str) -> str:
     return mimetypes.guess_type(name)[0] or "application/octet-stream"
 
 
+def asset_names(entry: dict, tag: str) -> list:
+    """`asset` is one file name or a list of alternatives (a renamed product ships under a new file name; releases
+    from before the rename keep the old one). All names are expanded with the tag."""
+    raw = entry["asset"]
+    return [expand(n, tag) for n in (raw if isinstance(raw, list) else [raw])]
+
+
+def find_asset(entry: dict, tag: str, assets: dict):
+    """(name, path) of the first alternative present in the release, else (first name, None)."""
+    names = asset_names(entry, tag)
+    for name in names:
+        if name in assets:
+            return name, assets[name]
+    return names[0], None
+
+
 def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, signatures: dict = None) -> dict:
     """assets: filename -> Path of every downloaded release asset.
     signatures: filename -> bool from verify_signatures.py; None means nothing was verified."""
@@ -76,8 +92,7 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
     for entry in artifact_map["files"]:
         if not entry.get("public", True):
             continue
-        name = expand(entry["asset"], tag)
-        path = assets.get(name)
+        name, path = find_asset(entry, tag, assets)
         if path is None:
             warnings.append(f"missing asset: {name}")
             continue
@@ -99,8 +114,7 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
         uploads.append((path, f"{prefix}/{name}", content_type(name)))
 
     for entry in artifact_map["documents"]:
-        name = expand(entry["asset"], tag)
-        path = assets.get(name)
+        name, path = find_asset(entry, tag, assets)
         if path is None:
             warnings.append(f"missing document: {name}")
             continue
@@ -194,8 +208,8 @@ def cmd_plan(args) -> int:
 def cmd_assets(args) -> int:
     """Print the release asset names the workflow needs to download."""
     artifact_map = json.loads(Path(args.map).read_text(encoding="utf-8"))
-    names = [expand(e["asset"], args.tag) for e in artifact_map["files"] if e.get("public", True)]
-    names += [expand(d["asset"], args.tag) for d in artifact_map["documents"] if d["asset"] != "release-notes.md"]
+    names = [n for e in artifact_map["files"] if e.get("public", True) for n in asset_names(e, args.tag)]
+    names += [n for d in artifact_map["documents"] if d["asset"] != "release-notes.md" for n in asset_names(d, args.tag)]
     for name in dict.fromkeys(names):
         print(name)
     return 0
