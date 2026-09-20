@@ -9,6 +9,10 @@ Answers to common questions about Virtual Church Musician. The [User Manual and 
 
 The Template Editor, Service Builder, Service Runner, and Admin and Security apps are free to download. They connect to your church's Server, which, like the MIDI Player, is a paid product.
 
+## Can I try it before buying?
+
+Yes. Every app has a **Try the Demo** button that runs it with no Server at all, against a small set of built-in sample data: a "Demo" hymnal with 14 hymns, 4 chants, 2 service templates, and 2 published services. An orange DEMO MODE banner stays on screen, nothing is sent over the network, and changes are discarded when you close the app. No music plays in demo mode -- Service Runner shows an item moving through its playback states, but produces no sound and sends no MIDI -- so there is no audio hardware to set up. Close the app and open it again to leave the demo.
+
 ## Do the free apps need the Server?
 
 Yes. The apps connect over your church's network to the Church Music Server, which stores your hymnals, hymns, chants, templates, and services and plays the music at the right moment.
