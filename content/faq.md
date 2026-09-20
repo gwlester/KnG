@@ -3,23 +3,23 @@ title: Support and FAQ
 slug: faq
 description: Answers to common questions about Virtual Church Musician, plus where to find guides and how to reach us.
 ---
-Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. There is a page of [training and demo videos](videos.html) too. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within 5 to 10 business days.
+Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. There is a page of [training and demo videos](training.html) too. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within 5 to 10 business days.
 
 ## Which apps are free, and which are paid?
 
-The Template Editor, Service Builder, Service Runner, and Admin and Security apps are free to download. They connect to your church's Server, which, like the MIDI Player, is a paid product.
+VCM Templates, VCM Services, VCM Runner, VCM Administrator, and VCM Security are free to download. They connect to your church's VCM Server, which, like the VCM MIDI Player, is a paid product.
 
 ## Can I try it before buying?
 
-Yes. Every app has a **Try the Demo** button that runs it with no Server at all, against a small set of built-in sample data: a "Demo" hymnal with 14 hymns, 4 chants, 2 service templates, and 2 published services. An orange DEMO MODE banner stays on screen, nothing is sent over the network, and changes are discarded when you close the app. No music plays in demo mode -- Service Runner shows an item moving through its playback states, but produces no sound and sends no MIDI -- so there is no audio hardware to set up. Close the app and open it again to leave the demo.
+Yes. Every app has a **Try the Demo** button that runs it with no Server at all, against a small set of built-in sample data: a "Demo" hymnal with 14 hymns, 4 chants, 2 service templates, and 2 published services. An orange DEMO MODE banner stays on screen, nothing is sent over the network, and changes are discarded when you close the app. No music plays in demo mode -- VCM Runner shows an item moving through its playback states, but produces no sound and sends no MIDI -- so there is no audio hardware to set up. Close the app and open it again to leave the demo.
 
 ## Do the free apps need the Server?
 
-Yes. The apps connect over your church's network to the Church Music Server, which stores your hymnals, hymns, chants, templates, and services and plays the music at the right moment.
+Yes. The apps connect over your church's network to the VCM Server, which stores your hymnals, hymns, chants, templates, and services and plays the music at the right moment.
 
 ## What does it play?
 
-The Server plays MP3 recordings as stereo audio through your sound system, and it can send MIDI files to a MIDI instrument such as an organ or keyboard. If the instrument is connected to the Server, the Server sends the MIDI directly. If it is not, a MIDI Player placed next to the instrument receives the file over your church network and plays it.
+The Server plays MP3 recordings as stereo audio through your sound system, and it can send MIDI files to a MIDI instrument such as an organ or keyboard. If the instrument is connected to the Server, the Server sends the MIDI directly. If it is not, a VCM MIDI Player placed next to the instrument receives the file over your church network and plays it.
 
 ## Does it need an internet connection or an account?
 
@@ -39,13 +39,13 @@ Open the downloaded file. If Android asks, allow your browser or Files app to in
 
 ## How do I get my hymnals into the system?
 
-Hymnals, seasons, categories, hymns, chants, and service templates are brought in as definitions, using Import Hymn and Chant Definitions in the Administration Console. The MP3 and MIDI music files are loaded separately with Load Music Files, and a Mega Bundle brings in both in one step. We can help you plan and build your hymnal metadata definitions; see [Services](services.html).
+Hymnals, seasons, categories, hymns, chants, and service templates are brought in as definitions, using Import Hymn and Chant Definitions in the VCM Administrator. The MP3 and MIDI music files are loaded separately with Load Music Files, and a Mega Bundle brings in both in one step. We can help you plan and build your hymnal metadata definitions; see [Services](services.html).
 
 ## Do I need the rights to the music I load?
 
 Yes. You are responsible for having the rights to the music files and other content you load into the system. We do not supply copyrighted music.
 
-## How do I buy the Server and the MIDI Player?
+## How do I buy the VCM Server and the VCM MIDI Player?
 
 The paid products will be sold through an online sales platform. Purchase details will be posted on the Download page before the first public release. Questions in the meantime: [contact us](contact.html).
 
@@ -61,13 +61,13 @@ This means the app has not been notarized by Apple yet; nothing is actually wron
 
 Yes. KnG Consulting creates custom versions of Virtual Church Musician, and can brand and tailor editions for publishers. Customers cannot change the software themselves under the license, but we can. See [Services](services.html) and ask for a quote.
 
-## Can you set up the Server or MIDI Player hardware?
+## Can you set up VCM Server or VCM MIDI Player hardware?
 
 Yes, in either of two ways: a custom build that we sell you, or installation and configuration on hardware you supply. See [Services](services.html) and ask for a quote.
 
 ## What hardware do you recommend?
 
-We recommend the Raspberry Pi 4 or Raspberry Pi 5 for both the Server and the MIDI Player. The Server and MIDI Player also run on Windows, macOS, and Linux computers.
+We recommend the Raspberry Pi 4 or Raspberry Pi 5 for both the VCM Server and the VCM MIDI Player. The VCM Server and VCM MIDI Player also run on Windows, macOS, and Linux computers.
 
 ## How do I get help?
 
@@ -75,4 +75,4 @@ Start with the [User Manual and System Administrator Guide](download.html#docume
 
 ## Are there training videos?
 
-Yes. The [Videos page](videos.html) will have short, captioned videos for each app, on a computer and on an Android phone or tablet, starting with how to connect to your church's Server. Each one has a written transcript. Some are still being made and are marked "Coming soon".
+Yes. The [Training page](training.html) will have short, captioned videos for each app, on a computer and on an Android phone or tablet, starting with how to connect to your church's Server. Each one has a written transcript. Some are still being made and are marked "Coming soon".

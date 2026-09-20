@@ -19,6 +19,7 @@
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
           <li><a href="services.html">Services</a></li>
           <li><a href="download.html" aria-current="page">Download</a></li>
+          <li><a href="training.html">Training</a></li>
           <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>
           <li><a href="contact.html">Contact</a></li>
@@ -64,12 +65,12 @@
               <label for="pick-app">Application</label>
               <select id="pick-app">
                 <option value="">Choose an app...</option>
-                <option value="template-editor">Template Editor</option>
-                <option value="service-builder">Service Builder</option>
-                <option value="service-runner">Service Runner</option>
-                <option value="admin-security">Admin and Security</option>
+                <option value="template-editor">VCM Templates</option>
+                <option value="service-builder">VCM Services</option>
+                <option value="service-runner">VCM Runner</option>
+                <option value="admin-security">VCM Administrator and VCM Security</option>
                 <option value="server">Server</option>
-                <option value="midi-player">MIDI Player</option>
+                <option value="midi-player">VCM MIDI Player</option>
               </select>
             </div>
             <fieldset class="field platform-field">
@@ -91,7 +92,7 @@
             <p class="license-note">By downloading you agree to the <a href="license.html">License Agreement</a>.</p>
             <noscript><p class="picker-note">The picker needs JavaScript. The table below shows what is planned.</p></noscript>
           </form>
-          <script type="application/json" id="picker-options">{"FormatVersion": 1, "endpoint": "https://kdslqntqrqe2vl7ydpbml522ie0xaigk.lambda-url.us-east-1.on.aws/", "channel_label": "Beta", "platforms": {"android": {"label": "Android (APK)", "note": "Android installs from an APK file. Your device will ask you to allow installs from this source; the steps are under Installing on Android below."}, "windows": {"label": "Windows"}, "mac": {"label": "macOS"}, "linux": {"label": "Linux (.deb)"}}, "matrix_apps": {"template-editor": {"name": "Template Editor", "blurb": "Reusable service templates"}, "service-builder": {"name": "Service Builder", "blurb": "Prepare the order of service"}, "service-runner": {"name": "Service Runner", "blurb": "Run the service live"}, "admin": {"name": "Admin", "blurb": "Administration console"}, "security": {"name": "Security", "blurb": "Mobile companion for the Admin console"}, "server": {"name": "Server", "blurb": "Central service for the other apps"}, "midi-player": {"name": "MIDI Player", "blurb": "Sends MIDI files to your instrument"}}, "apps": [{"id": "template-editor", "name": "Template Editor", "tier": "free", "platforms": [{"id": "android", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-builder", "name": "Service Builder", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-runner", "name": "Service Runner", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "admin-security", "name": "Admin and Security", "tier": "free", "platforms": [{"id": "android", "matrix_app": "security", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "admin", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "admin", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "admin", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "server", "name": "Server", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}, {"id": "midi-player", "name": "MIDI Player", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}], "documents": [{"kind": "user-manual", "title": "User Manual", "description": "For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.", "formats": ["html", "pdf"], "available": false}, {"kind": "system-admin-guide", "title": "System Administrator Guide", "description": "For the person who installs and maintains the Server and MIDI Player.", "formats": ["html", "pdf"], "available": false}], "extras": [{"kind": "sha256sums", "label": "Checksums (SHA256SUMS)", "format": "txt", "available": false}, {"kind": "release-notes", "label": "Release notes", "format": "md", "available": false}]}</script>
+          <script type="application/json" id="picker-options">{"FormatVersion": 1, "endpoint": "https://kdslqntqrqe2vl7ydpbml522ie0xaigk.lambda-url.us-east-1.on.aws/", "channel_label": "Beta", "platforms": {"android": {"label": "Android (APK)", "note": "Android installs from an APK file. Your device will ask you to allow installs from this source; the steps are under Installing on Android below."}, "windows": {"label": "Windows"}, "mac": {"label": "macOS"}, "linux": {"label": "Linux (.deb)"}}, "matrix_apps": {"template-editor": {"name": "VCM Templates", "blurb": "Reusable service templates"}, "service-builder": {"name": "VCM Services", "blurb": "Prepare the order of service"}, "service-runner": {"name": "VCM Runner", "blurb": "Run the service live"}, "admin": {"name": "Admin", "blurb": "VCM Administrator"}, "security": {"name": "Security", "blurb": "Mobile companion for the VCM Administrator"}, "server": {"name": "Server", "blurb": "Central service for the other apps"}, "midi-player": {"name": "VCM MIDI Player", "blurb": "Sends MIDI files to your instrument"}}, "apps": [{"id": "template-editor", "name": "VCM Templates", "tier": "free", "platforms": [{"id": "android", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "template-editor", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-builder", "name": "VCM Services", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-builder", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "service-runner", "name": "VCM Runner", "tier": "free", "platforms": [{"id": "android", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "service-runner", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "admin-security", "name": "VCM Administrator and VCM Security", "tier": "free", "platforms": [{"id": "android", "matrix_app": "security", "type": "download", "available": false, "formats": ["apk"], "default_format": "apk"}, {"id": "windows", "matrix_app": "admin", "type": "download", "available": false, "formats": ["exe", "msi"], "default_format": "exe"}, {"id": "mac", "matrix_app": "admin", "type": "download", "available": false, "formats": ["dmg"], "default_format": "dmg"}, {"id": "linux", "matrix_app": "admin", "type": "download", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}]}, {"id": "server", "name": "Server", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "server", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}, {"id": "midi-player", "name": "VCM MIDI Player", "tier": "paid", "platforms": [{"id": "linux", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["deb"], "default_format": "deb", "arches": ["amd64"]}, {"id": "windows", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["msi", "exe"], "default_format": "msi"}, {"id": "mac", "matrix_app": "midi-player", "type": "purchase", "available": false, "formats": ["dmg"], "default_format": "dmg"}]}], "documents": [{"kind": "user-manual", "title": "User Manual", "description": "For the people who use the apps day to day: the VCM Templates, VCM Services, VCM Runner, and VCM Administrator.", "formats": ["html", "pdf"], "available": false}, {"kind": "system-admin-guide", "title": "System Administrator Guide", "description": "For the person who installs and maintains the Server and VCM MIDI Player.", "formats": ["html", "pdf"], "available": false}], "extras": [{"kind": "sha256sums", "label": "Checksums (SHA256SUMS)", "format": "txt", "available": false}, {"kind": "release-notes", "label": "Release notes", "format": "md", "available": false}]}</script>
 <!-- PICKER_END -->
 
           <div class="section-heading">
@@ -109,23 +110,23 @@
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row">Template Editor<span>Reusable service templates</span></th>
+                  <th scope="row">VCM Templates<span>Reusable service templates</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
                 </tr>
                 <tr>
-                  <th scope="row">Service Builder<span>Prepare the order of service</span></th>
+                  <th scope="row">VCM Services<span>Prepare the order of service</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
                 </tr>
                 <tr>
-                  <th scope="row">Service Runner<span>Run the service live</span></th>
+                  <th scope="row">VCM Runner<span>Run the service live</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td>
                 </tr>
                 <tr>
-                  <th scope="row">Admin<span>Administration console</span></th>
+                  <th scope="row">Admin<span>VCM Administrator</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">-</td>
                 </tr>
                 <tr>
-                  <th scope="row">Security<span>Mobile companion for the Admin console</span></th>
+                  <th scope="row">Security<span>Mobile companion for the VCM Administrator</span></th>
                   <td class="no">-</td><td class="no">-</td><td class="no">-</td><td class="yes">Yes</td>
                 </tr>
                 <tr>
@@ -133,7 +134,7 @@
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">-</td>
                 </tr>
                 <tr>
-                  <th scope="row">MIDI Player<span>Sends MIDI files to your instrument</span></th>
+                  <th scope="row">VCM MIDI Player<span>Sends MIDI files to your instrument</span></th>
                   <td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">-</td>
                 </tr>
               </tbody>
@@ -157,12 +158,12 @@
           <div class="grid">
             <article class="card">
               <h3>User Manual</h3>
-              <p>For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.</p>
+              <p>For the people who use the apps day to day: the VCM Templates, VCM Services, VCM Runner, and VCM Administrator.</p>
               <p class="card-actions"><a class="button button-secondary" aria-disabled="true" role="link" data-doc-kind="user-manual" data-doc-format="html" data-label="Read online" target="_blank" rel="noopener noreferrer"><span class="doc-label">Read online (coming soon)</span><svg class="new-tab-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="visually-hidden"> (opens in a new tab)</span></a> <a class="button button-secondary" aria-disabled="true" role="link" data-doc-kind="user-manual" data-doc-format="pdf" data-label="Download PDF"><span class="doc-label">Download PDF (coming soon)</span></a></p>
             </article>
             <article class="card">
               <h3>System Administrator Guide</h3>
-              <p>For the person who installs and maintains the Server and MIDI Player.</p>
+              <p>For the person who installs and maintains the Server and VCM MIDI Player.</p>
               <p class="card-actions"><a class="button button-secondary" aria-disabled="true" role="link" data-doc-kind="system-admin-guide" data-doc-format="html" data-label="Read online" target="_blank" rel="noopener noreferrer"><span class="doc-label">Read online (coming soon)</span><svg class="new-tab-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="visually-hidden"> (opens in a new tab)</span></a> <a class="button button-secondary" aria-disabled="true" role="link" data-doc-kind="system-admin-guide" data-doc-format="pdf" data-label="Download PDF"><span class="doc-label">Download PDF (coming soon)</span></a></p>
             </article>
           </div>
@@ -215,6 +216,7 @@
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
           <li><a href="services.html">Services</a></li>
           <li><a href="download.html">Download</a></li>
+          <li><a href="training.html">Training</a></li>
           <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>
           <li><a href="contact.html">Contact</a></li>

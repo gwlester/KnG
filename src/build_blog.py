@@ -30,6 +30,7 @@ NAV_ITEMS = [
     ("virtual-church-musician.html", "Virtual Church Musician"),
     ("services.html", "Services"),
     ("download.html", "Download"),
+    ("training.html", "Training"),
     ("faq.html", "Support"),
     ("blog/index.html", "Blog"),
     ("contact.html", "Contact"),
@@ -453,20 +454,20 @@ def render_videos_page() -> Path:
     <main>
       <article class="section">
         <div class="container">
-          <h1>Videos</h1>
+          <h1>Training</h1>
           <p class="lead">{_esc(data["intro"])} Need something else? See <a href="faq.html">Support and FAQ</a> or <a href="contact.html">contact us</a>.</p>
 {sections}
         </div>
       </article>
     </main>"""
-    out = WWW_DIR / "videos.html"
+    out = WWW_DIR / "training.html"
     out.write_text(
         page_shell(
-            title="Videos | KnG Consulting",
-            description="Training and demo videos for Virtual Church Musician: connecting to your Server, and using the Template Editor, Service Builder, Service Runner and Administration Console.",
+            title="Training | KnG Consulting",
+            description="Training and demo videos for Virtual Church Musician: connecting to your Server, and using the VCM Templates, VCM Services, VCM Runner and VCM Administrator.",
             prefix="",
             body=body,
-            current="faq.html",
+            current="training.html",
         ),
         encoding="utf-8",
     )

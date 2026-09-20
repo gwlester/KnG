@@ -37,7 +37,7 @@
           "length": "about 1:55",
           "available": true,
           "version": 3,
-          "transcript_html": "<p>This is the video everyone needs first. In this video: connecting to your church&#x27;s Server.</p><p>Everything in Virtual Church Musician lives on one computer at your church: the Church Music Server. Every app talks to it over your church&#x27;s network. All you need is to be on the same Wi-Fi.</p><p>When you open any app, it looks for the Server by itself. This is called Discover. You&#x27;ll see a progress bar while it searches.</p><p>If your church has more than one Server, for example on two campuses, the app asks which to use. It remembers your choice.</p><p>The very first time, a brand-new Server has no administrator yet. If you see a message asking you to finish setup from the Admin app, that&#x27;s what it means. The administrator does that step; it&#x27;s covered in the administrator videos.</p><p>Everyone else sees Enroll This Device. Type your username, add a label such as &#x27;Lobby tablet&#x27; or &#x27;Office PC&#x27; so the administrator can tell devices apart, and choose Request Enrollment.</p><p>A Waiting for Approval window appears. Someone with the Administration Console has to approve you. You can leave this window open, or choose Check Now once you know it&#x27;s done.</p><p>Once you&#x27;re approved, you&#x27;ll be asked to choose a password and agree to the license.</p><p>Choose a password, agree to the license, and you&#x27;re in.</p><p>If the app can&#x27;t find the Server: check you&#x27;re on the same Wi-Fi, try Discover a second time, and if it still can&#x27;t, the Server may be off. Ask your technical contact.</p><p>That&#x27;s connecting to your church&#x27;s Server, and everyone needs this one. Next, choose the videos for your job on the Videos page: administrators, service planners and whoever presses Play each have their own.</p>"
+          "transcript_html": "<p>This is the video everyone needs first. In this video: connecting to your church&#x27;s Server.</p><p>Everything in Virtual Church Musician lives on one computer at your church: the Church Music Server. Every app talks to it over your church&#x27;s network. All you need is to be on the same Wi-Fi.</p><p>When you open any app, it looks for the Server by itself. This is called Discover. You&#x27;ll see a progress bar while it searches.</p><p>If your church has more than one Server, for example on two campuses, the app asks which to use. It remembers your choice.</p><p>The very first time, a brand-new Server has no administrator yet. If you see a message asking you to finish setup from the Admin app, that&#x27;s what it means. The administrator does that step; it&#x27;s covered in the administrator videos.</p><p>Everyone else sees Enroll This Device. Type your username, add a label such as &#x27;Lobby tablet&#x27; or &#x27;Office PC&#x27; so the administrator can tell devices apart, and choose Request Enrollment.</p><p>A Waiting for Approval window appears. Someone with the VCM Administrator has to approve you. You can leave this window open, or choose Check Now once you know it&#x27;s done.</p><p>Once you&#x27;re approved, you&#x27;ll be asked to choose a password and agree to the license.</p><p>Choose a password, agree to the license, and you&#x27;re in.</p><p>If the app can&#x27;t find the Server: check you&#x27;re on the same Wi-Fi, try Discover a second time, and if it still can&#x27;t, the Server may be off. Ask your technical contact.</p><p>That&#x27;s connecting to your church&#x27;s Server, and everyone needs this one. Next, choose the videos for your job on the Videos page: administrators, service planners and whoever presses Play each have their own.</p>"
         }
       ]
     },
@@ -47,7 +47,7 @@
       "videos": [
         {
           "id": "admin-console",
-          "title": "The Administration Console",
+          "title": "Using VCM Administrator",
           "blurb": "Set up the Server, approve and manage devices, and learn what each screen is for.",
           "audience": "The church administrator",
           "length": "about 4:30",
@@ -94,7 +94,7 @@
         {
           "id": "android-security",
           "title": "Approving a device from your phone",
-          "blurb": "Use the Security app to approve, reject and suspend devices away from the server computer.",
+          "blurb": "Use VCM Security to approve, reject and suspend devices away from the server computer.",
           "audience": "The church administrator",
           "length": "about 2:30",
           "available": false
@@ -102,7 +102,7 @@
         {
           "id": "android-planning",
           "title": "Templates and services on a phone",
-          "blurb": "The Template Editor and Service Builder on a touch screen, and what is different from the computer.",
+          "blurb": "VCM Templates and VCM Services on a touch screen, and what is different from the computer.",
           "audience": "Service planners",
           "length": "about 4:00",
           "available": false
@@ -110,7 +110,7 @@
         {
           "id": "android-runner",
           "title": "Running a service from your phone",
-          "blurb": "The Service Runner setup card, playing items, and reconnecting.",
+          "blurb": "The VCM Runner setup card, playing items, and reconnecting.",
           "audience": "Whoever presses Play",
           "length": "about 3:00",
           "available": false

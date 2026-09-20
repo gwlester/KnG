@@ -19,38 +19,38 @@
   },
   "matrix_apps": {
     "template-editor": {
-      "name": "Template Editor",
+      "name": "VCM Templates",
       "blurb": "Reusable service templates"
     },
     "service-builder": {
-      "name": "Service Builder",
+      "name": "VCM Services",
       "blurb": "Prepare the order of service"
     },
     "service-runner": {
-      "name": "Service Runner",
+      "name": "VCM Runner",
       "blurb": "Run the service live"
     },
     "admin": {
       "name": "Admin",
-      "blurb": "Administration console"
+      "blurb": "VCM Administrator"
     },
     "security": {
       "name": "Security",
-      "blurb": "Mobile companion for the Admin console"
+      "blurb": "Mobile companion for the VCM Administrator"
     },
     "server": {
       "name": "Server",
       "blurb": "Central service for the other apps"
     },
     "midi-player": {
-      "name": "MIDI Player",
+      "name": "VCM MIDI Player",
       "blurb": "Sends MIDI files to your instrument"
     }
   },
   "apps": [
     {
       "id": "template-editor",
-      "name": "Template Editor",
+      "name": "VCM Templates",
       "tier": "free",
       "platforms": [
         {
@@ -101,7 +101,7 @@
     },
     {
       "id": "service-builder",
-      "name": "Service Builder",
+      "name": "VCM Services",
       "tier": "free",
       "platforms": [
         {
@@ -152,7 +152,7 @@
     },
     {
       "id": "service-runner",
-      "name": "Service Runner",
+      "name": "VCM Runner",
       "tier": "free",
       "platforms": [
         {
@@ -203,7 +203,7 @@
     },
     {
       "id": "admin-security",
-      "name": "Admin and Security",
+      "name": "VCM Administrator and VCM Security",
       "tier": "free",
       "platforms": [
         {
@@ -295,7 +295,7 @@
     },
     {
       "id": "midi-player",
-      "name": "MIDI Player",
+      "name": "VCM MIDI Player",
       "tier": "paid",
       "platforms": [
         {
@@ -339,7 +339,7 @@
     {
       "kind": "user-manual",
       "title": "User Manual",
-      "description": "For the people who use the apps day to day: the Template Editor, Service Builder, Service Runner, and Administration Console.",
+      "description": "For the people who use the apps day to day: the VCM Templates, VCM Services, VCM Runner, and VCM Administrator.",
       "formats": [
         "html",
         "pdf"
@@ -349,7 +349,7 @@
     {
       "kind": "system-admin-guide",
       "title": "System Administrator Guide",
-      "description": "For the person who installs and maintains the Server and MIDI Player.",
+      "description": "For the person who installs and maintains the Server and VCM MIDI Player.",
       "formats": [
         "html",
         "pdf"

@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 class VideosPageTests(unittest.TestCase):
     def setUp(self):
         self.data = json.loads((ROOT / "content" / "videos" / "videos.json").read_text(encoding="utf-8"))
-        self.html = (ROOT / "www" / "videos.html").read_text(encoding="utf-8")
+        self.html = (ROOT / "www" / "training.html").read_text(encoding="utf-8")
 
     def all_videos(self):
         return [v for s in self.data["sections"] for v in s["videos"]]
@@ -55,7 +55,7 @@ class VideosPageTests(unittest.TestCase):
 
     def test_support_links_to_the_videos_page(self):
         faq = (ROOT / "www" / "faq.html").read_text(encoding="utf-8")
-        self.assertIn('href="videos.html"', faq)
+        self.assertIn('href="training.html"', faq)
 
     def test_videos_are_not_copied_into_the_release_bucket(self):
         # The page references media/ files; nothing in www/ may be a video file,
