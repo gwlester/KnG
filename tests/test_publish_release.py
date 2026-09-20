@@ -14,10 +14,11 @@ ARTIFACT_MAP = json.loads((ROOT / "content" / "downloads" / "artifact_map.json")
 TAG = "v1.0.1-b.7"
 
 
-def make_release_dir(tmp: Path, tag=TAG, skip=(), corrupt=()):
+def make_release_dir(tmp: Path, tag=TAG, skip=(), corrupt=(), pick=-1):
     """Create every mapped asset (public or not) plus docs and SHA256SUMS."""
-    names = [pr.expand(e["asset"], tag) for e in ARTIFACT_MAP["files"]]
-    names += [pr.expand(d["asset"], tag) for d in ARTIFACT_MAP["documents"] if d["asset"] != "SHA256SUMS.txt"]
+    # pick=-1: a release made with the old (pre-rename) file names; pick=0: the new names
+    names = [pr.asset_names(e, tag)[pick] for e in ARTIFACT_MAP["files"]]
+    names += [pr.asset_names(d, tag)[pick] for d in ARTIFACT_MAP["documents"] if d["asset"] != "SHA256SUMS.txt"]
     sums = []
     for name in names:
         if name in skip:
@@ -46,6 +47,23 @@ class PublishReleaseTests(unittest.TestCase):
                 plan = pr.plan_release(TAG, assets, amap, "2026-09-20")
                 self.assertEqual([f["filename"] for f in plan["release"]["files"]], [present])
                 self.assertEqual(plan["warnings"], [])
+
+    def test_old_and_new_release_file_names_publish_the_same_installers(self):
+        counts = []
+        for pick in (-1, 0):
+            with tempfile.TemporaryDirectory() as d:
+                plan = pr.plan_release(TAG, make_release_dir(Path(d), pick=pick), ARTIFACT_MAP, "2026-09-20")
+                names = {f["filename"] for f in plan["release"]["files"]}
+                counts.append(len(names))
+                self.assertEqual(plan["warnings"], [] if False else plan["warnings"])
+                if pick == 0:
+                    self.assertIn("VCMTemplates.exe", names)
+                    self.assertIn("VCMSecurity.apk", names)
+                    self.assertNotIn("TemplateEditor.exe", names)
+                else:
+                    self.assertIn("TemplateEditor.exe", names)
+        self.assertEqual(counts[0], counts[1])
+        self.assertGreater(counts[0], 10)
 
     def test_version_expansion(self):
         self.assertEqual(pr.expand("A_{base}_x64.msi", TAG), "A_1.0.1_x64.msi")
@@ -82,7 +100,7 @@ class PublishReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             assets = make_release_dir(Path(d), skip=("Security.apk",))
             plan = pr.plan_release(TAG, assets, ARTIFACT_MAP, "2026-09-11")
-        self.assertIn("missing asset: Security.apk", plan["warnings"])
+        self.assertIn("missing asset: VCMSecurity.apk or Security.apk", plan["warnings"])
         self.assertNotIn("security", {f["app"] for f in plan["release"]["files"]})
 
     def test_nothing_publishable_fails(self):

@@ -1,10 +1,13 @@
 {
   "FormatVersion": 1,
-  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published (paid products are delivered by the sales platform). signing: apple = macOS notarization (attested by the workflow input), authenticode = Windows signature (detected), apk = a non-debug signing certificate (detected), none = not required.",
+  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published (paid products are delivered by the sales platform). signing: apple = macOS notarization (attested by the workflow input), authenticode = Windows signature (detected), apk = a non-debug signing certificate (detected), none = not required. An asset can be a list of alternative file names (the first one present in the release is used): the applications were renamed for v1.0.1-b.9 (see APP_RENAME_MAPPING.md in the VCM repo), so releases from before that keep the old name.",
   "checksum_asset": "SHA256SUMS.txt",
   "files": [
     {
-      "asset": "TemplateEditor.dmg",
+      "asset": [
+        "VCMTemplates.dmg",
+        "TemplateEditor.dmg"
+      ],
       "app": "template-editor",
       "platform": "mac",
       "arch": "any",
@@ -14,7 +17,10 @@
       "signing": "apple"
     },
     {
-      "asset": "TemplateEditor.exe",
+      "asset": [
+        "VCMTemplates.exe",
+        "TemplateEditor.exe"
+      ],
       "app": "template-editor",
       "platform": "windows",
       "arch": "any",
@@ -24,7 +30,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "TemplateEditor_{base}_x64.msi",
+      "asset": [
+        "VCMTemplates_{base}_x64.msi",
+        "TemplateEditor_{base}_x64.msi"
+      ],
       "app": "template-editor",
       "platform": "windows",
       "arch": "x64",
@@ -34,7 +43,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-template-desktop_{ver}_amd64.deb",
+      "asset": [
+        "vcm-templates_{ver}_amd64.deb",
+        "virtual-church-musician-template-desktop_{ver}_amd64.deb"
+      ],
       "app": "template-editor",
       "platform": "linux",
       "arch": "amd64",
@@ -44,7 +56,10 @@
       "signing": "none"
     },
     {
-      "asset": "ServiceBuilder.dmg",
+      "asset": [
+        "VCMServices.dmg",
+        "ServiceBuilder.dmg"
+      ],
       "app": "service-builder",
       "platform": "mac",
       "arch": "any",
@@ -54,7 +69,10 @@
       "signing": "apple"
     },
     {
-      "asset": "ServiceBuilder.exe",
+      "asset": [
+        "VCMServices.exe",
+        "ServiceBuilder.exe"
+      ],
       "app": "service-builder",
       "platform": "windows",
       "arch": "any",
@@ -64,7 +82,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "ServiceBuilder_{base}_x64.msi",
+      "asset": [
+        "VCMServices_{base}_x64.msi",
+        "ServiceBuilder_{base}_x64.msi"
+      ],
       "app": "service-builder",
       "platform": "windows",
       "arch": "x64",
@@ -74,7 +95,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-builder-desktop_{ver}_amd64.deb",
+      "asset": [
+        "vcm-services_{ver}_amd64.deb",
+        "virtual-church-musician-builder-desktop_{ver}_amd64.deb"
+      ],
       "app": "service-builder",
       "platform": "linux",
       "arch": "amd64",
@@ -84,7 +108,10 @@
       "signing": "none"
     },
     {
-      "asset": "ServiceRunnerDesktop.dmg",
+      "asset": [
+        "VCMRunner.dmg",
+        "ServiceRunnerDesktop.dmg"
+      ],
       "app": "service-runner",
       "platform": "mac",
       "arch": "any",
@@ -94,7 +121,10 @@
       "signing": "apple"
     },
     {
-      "asset": "ServiceRunnerDesktop.exe",
+      "asset": [
+        "VCMRunner.exe",
+        "ServiceRunnerDesktop.exe"
+      ],
       "app": "service-runner",
       "platform": "windows",
       "arch": "any",
@@ -104,7 +134,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "ServiceRunnerDesktop_{base}_x64.msi",
+      "asset": [
+        "VCMRunner_{base}_x64.msi",
+        "ServiceRunnerDesktop_{base}_x64.msi"
+      ],
       "app": "service-runner",
       "platform": "windows",
       "arch": "x64",
@@ -114,7 +147,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-runner-desktop_{ver}_amd64.deb",
+      "asset": [
+        "vcm-runner_{ver}_amd64.deb",
+        "virtual-church-musician-runner-desktop_{ver}_amd64.deb"
+      ],
       "app": "service-runner",
       "platform": "linux",
       "arch": "amd64",
@@ -124,7 +160,10 @@
       "signing": "none"
     },
     {
-      "asset": "ChurchMusicAdmin.dmg",
+      "asset": [
+        "VCMAdministrator.dmg",
+        "ChurchMusicAdmin.dmg"
+      ],
       "app": "admin",
       "platform": "mac",
       "arch": "any",
@@ -134,7 +173,10 @@
       "signing": "apple"
     },
     {
-      "asset": "ChurchMusicAdmin.exe",
+      "asset": [
+        "VCMAdministrator.exe",
+        "ChurchMusicAdmin.exe"
+      ],
       "app": "admin",
       "platform": "windows",
       "arch": "any",
@@ -144,7 +186,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "ChurchMusicAdmin_{base}_x64.msi",
+      "asset": [
+        "VCMAdministrator_{base}_x64.msi",
+        "ChurchMusicAdmin_{base}_x64.msi"
+      ],
       "app": "admin",
       "platform": "windows",
       "arch": "x64",
@@ -154,7 +199,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-admin_{ver}_amd64.deb",
+      "asset": [
+        "vcm-administrator_{ver}_amd64.deb",
+        "virtual-church-musician-admin_{ver}_amd64.deb"
+      ],
       "app": "admin",
       "platform": "linux",
       "arch": "amd64",
@@ -164,7 +212,10 @@
       "signing": "none"
     },
     {
-      "asset": "ChurchMusicServer.dmg",
+      "asset": [
+        "VCMServer.dmg",
+        "ChurchMusicServer.dmg"
+      ],
       "app": "server",
       "platform": "mac",
       "arch": "any",
@@ -174,7 +225,10 @@
       "signing": "apple"
     },
     {
-      "asset": "ChurchMusicServer.exe",
+      "asset": [
+        "VCMServer.exe",
+        "ChurchMusicServer.exe"
+      ],
       "app": "server",
       "platform": "windows",
       "arch": "any",
@@ -184,7 +238,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "ChurchMusicServer_{base}_x64.msi",
+      "asset": [
+        "VCMServer_{base}_x64.msi",
+        "ChurchMusicServer_{base}_x64.msi"
+      ],
       "app": "server",
       "platform": "windows",
       "arch": "x64",
@@ -194,7 +251,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-server_{ver}_amd64.deb",
+      "asset": [
+        "vcm-server_{ver}_amd64.deb",
+        "virtual-church-musician-server_{ver}_amd64.deb"
+      ],
       "app": "server",
       "platform": "linux",
       "arch": "amd64",
@@ -204,7 +264,10 @@
       "signing": "none"
     },
     {
-      "asset": "ChurchMusicMidiPlayer.dmg",
+      "asset": [
+        "VCMMidiPlayer.dmg",
+        "ChurchMusicMidiPlayer.dmg"
+      ],
       "app": "midi-player",
       "platform": "mac",
       "arch": "any",
@@ -214,7 +277,10 @@
       "signing": "apple"
     },
     {
-      "asset": "ChurchMusicMidiPlayer.exe",
+      "asset": [
+        "VCMMidiPlayer.exe",
+        "ChurchMusicMidiPlayer.exe"
+      ],
       "app": "midi-player",
       "platform": "windows",
       "arch": "any",
@@ -224,7 +290,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "ChurchMusicMidiPlayer_{base}_x64.msi",
+      "asset": [
+        "VCMMidiPlayer_{base}_x64.msi",
+        "ChurchMusicMidiPlayer_{base}_x64.msi"
+      ],
       "app": "midi-player",
       "platform": "windows",
       "arch": "x64",
@@ -234,7 +303,10 @@
       "signing": "authenticode"
     },
     {
-      "asset": "virtual-church-musician-midi-player_{ver}_amd64.deb",
+      "asset": [
+        "vcm-midi-player_{ver}_amd64.deb",
+        "virtual-church-musician-midi-player_{ver}_amd64.deb"
+      ],
       "app": "midi-player",
       "platform": "linux",
       "arch": "amd64",
@@ -244,7 +316,10 @@
       "signing": "none"
     },
     {
-      "asset": "TemplateEditor.apk",
+      "asset": [
+        "VCMTemplates.apk",
+        "TemplateEditor.apk"
+      ],
       "app": "template-editor",
       "platform": "android",
       "arch": "any",
@@ -254,7 +329,10 @@
       "signing": "apk"
     },
     {
-      "asset": "ServiceBuilder.apk",
+      "asset": [
+        "VCMServices.apk",
+        "ServiceBuilder.apk"
+      ],
       "app": "service-builder",
       "platform": "android",
       "arch": "any",
@@ -264,7 +342,10 @@
       "signing": "apk"
     },
     {
-      "asset": "ServiceRunner.apk",
+      "asset": [
+        "VCMRunner.apk",
+        "ServiceRunner.apk"
+      ],
       "app": "service-runner",
       "platform": "android",
       "arch": "any",
@@ -274,7 +355,10 @@
       "signing": "apk"
     },
     {
-      "asset": "Security.apk",
+      "asset": [
+        "VCMSecurity.apk",
+        "Security.apk"
+      ],
       "app": "security",
       "platform": "android",
       "arch": "any",

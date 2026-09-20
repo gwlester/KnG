@@ -94,7 +94,7 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
             continue
         name, path = find_asset(entry, tag, assets)
         if path is None:
-            warnings.append(f"missing asset: {name}")
+            warnings.append("missing asset: " + " or ".join(asset_names(entry, tag)))
             continue
         digest = sha256_of(path)
         if name not in sums:
@@ -116,7 +116,7 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
     for entry in artifact_map["documents"]:
         name, path = find_asset(entry, tag, assets)
         if path is None:
-            warnings.append(f"missing document: {name}")
+            warnings.append("missing document: " + " or ".join(asset_names(entry, tag)))
             continue
         if name in sums and sums[name] != sha256_of(path):
             raise PublishError(f"checksum mismatch for {name}")

@@ -71,7 +71,7 @@ We recommend the Raspberry Pi 4 or Raspberry Pi 5 for both the VCM Server and th
 
 ## What Raspberry Pi hardware do you recommend?
 
-These are our current recommendations. We are checking them on real Raspberry Pi 4 and Raspberry Pi 5 hardware, and we will update this answer as the results come in.
+This is our recommended hardware. It changes as new boards and interfaces appear, and we keep this answer up to date.
 
 - **Board:** the Raspberry Pi 5 (preferred for new builds) or the Raspberry Pi 4. Older Pi models are not supported. The Pi 5 has no 3.5 mm audio jack.
 - **Memory:** 4 GB or more is recommended. 2 GB works for the VCM Server, which is lightweight. 1 GB is not supported.

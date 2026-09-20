@@ -65,8 +65,7 @@ def verify_assets(tag, assets, artifact_map, attest_apple, apksigner, runner=run
         kind = entry.get("signing", "none")
         if kind == "none":
             continue
-        name = pr.expand(entry["asset"], tag)
-        path = assets.get(name)
+        name, path = pr.find_asset(entry, tag, assets)
         if path is None:
             continue
         if kind == "apk":

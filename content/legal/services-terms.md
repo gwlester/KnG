@@ -29,7 +29,7 @@ Consultation is advice and, if the quote says so, help preparing hymnal metadata
 
 ## 6. Hardware buildouts
 
-Hardware work is done in one of two ways, as stated in the quote: a custom build that KnG sells to you, or installation and configuration on hardware that you supply. For a custom build, the quote lists the hardware, configuration, price, and delivery. Hardware carries the manufacturer's warranty, which we pass through to you, and except as stated in the quote KnG gives no other warranty on third-party hardware. For hardware you supply, you are responsible for its condition and its suitability for the software, and any hardware warranty is the manufacturer's. Return terms, if any, are stated in the quote.
+Hardware work is done in one of two ways, as stated in the quote: a custom build that KnG sells to you, or installation and configuration on hardware that you supply. For a custom build, the quote lists the hardware, configuration, price, and delivery. Hardware carries the manufacturer's warranty, which we pass through to you, and except as stated in the quote KnG gives no other warranty on third-party hardware. For hardware you supply, you are responsible for its condition and its suitability for the software, and any hardware warranty is the manufacturer's. A custom build is made to order for you, so hardware orders are non-refundable, except where the law requires otherwise. The refund policy in the License Agreement covers software only.
 
 ## 7. Warranty disclaimer and limit of liability
 

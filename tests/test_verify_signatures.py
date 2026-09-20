@@ -21,8 +21,9 @@ RELEASE_OUTPUT = "Signer #1 certificate DN: CN=KnG Consulting LLC, O=KnG, C=US\n
 
 
 def make_assets(tmp: Path):
-    names = [pr.expand(e["asset"], TAG) for e in ARTIFACT_MAP["files"]]
-    names += [pr.expand(d["asset"], TAG) for d in ARTIFACT_MAP["documents"] if d["asset"] != "SHA256SUMS.txt"]
+    # the old (pre-rename) file names; the new names resolve through the same alias list
+    names = [pr.asset_names(e, TAG)[-1] for e in ARTIFACT_MAP["files"]]
+    names += [pr.asset_names(d, TAG)[-1] for d in ARTIFACT_MAP["documents"] if d["asset"] != "SHA256SUMS.txt"]
     import hashlib
 
     sums = []
@@ -96,7 +97,7 @@ class SignedFlagTests(unittest.TestCase):
     def test_release_is_signed_only_when_every_required_file_is(self):
         with tempfile.TemporaryDirectory() as d:
             assets = make_assets(Path(d))
-            names = {pr.expand(e["asset"], TAG) for e in ARTIFACT_MAP["files"] if e.get("public", True) and e.get("signing", "none") != "none"}
+            names = {pr.asset_names(e, TAG)[-1] for e in ARTIFACT_MAP["files"] if e.get("public", True) and e.get("signing", "none") != "none"}
             everything = {n: True for n in names}
             release = pr.plan_release(TAG, assets, ARTIFACT_MAP, "2026-09-11", everything)["release"]
             self.assertTrue(release["signed"])
