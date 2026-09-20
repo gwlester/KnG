@@ -1,0 +1,119 @@
+{
+  "FormatVersion": 1,
+  "media_base": "media/",
+  "intro": "Short videos that show Virtual Church Musician at work and teach you each app step by step. Every video has captions and a written transcript.",
+  "sections": [
+    {
+      "id": "see-it",
+      "title": "See it in action",
+      "videos": [
+        {
+          "id": "overview",
+          "title": "Virtual Church Musician in about two and a half minutes",
+          "blurb": "A quick tour: how the Server, the apps and your sound system fit together, and what a service looks like from planning to Play.",
+          "audience": "Anyone curious",
+          "length": "about 2:30",
+          "available": false
+        },
+        {
+          "id": "ready-when-you-are",
+          "title": "Ready when you are",
+          "blurb": "A short film about the Sunday the organist could not come. Scenes are dramatized and created with AI.",
+          "audience": "Pastors, musicians and church staff",
+          "length": "about 1:20",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "getting-started",
+      "title": "Getting started",
+      "videos": [
+        {
+          "id": "connecting",
+          "title": "Connecting to your church's Server",
+          "blurb": "Find the Server, request enrollment, and get approved. The same steps for every app.",
+          "audience": "Everyone, first",
+          "length": "about 3:30",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "computer",
+      "title": "On a computer",
+      "videos": [
+        {
+          "id": "admin-console",
+          "title": "The Administration Console",
+          "blurb": "Set up the Server, approve and manage devices, and learn what each screen is for.",
+          "audience": "The church administrator",
+          "length": "about 4:30",
+          "available": false
+        },
+        {
+          "id": "template-editor",
+          "title": "Building a template",
+          "blurb": "Create, edit, clone and version a reusable starting point for your services.",
+          "audience": "Service planners",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "service-builder",
+          "title": "Building and publishing a service",
+          "blurb": "Put together an order of service for a date, fix any red items, and publish it, without losing your work.",
+          "audience": "Service planners",
+          "length": "about 5:00",
+          "available": false
+        },
+        {
+          "id": "service-runner",
+          "title": "Running a service",
+          "blurb": "Load today's service and press Play. What to do if the connection drops.",
+          "audience": "Whoever presses Play",
+          "length": "about 3:30",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "android",
+      "title": "On an Android phone or tablet",
+      "videos": [
+        {
+          "id": "android-install",
+          "title": "Installing and connecting on Android",
+          "blurb": "Install the app from its download file and connect to your church's Server.",
+          "audience": "Everyone on a phone or tablet",
+          "length": "about 3:00",
+          "available": false
+        },
+        {
+          "id": "android-security",
+          "title": "Approving a device from your phone",
+          "blurb": "Use the Security app to approve, reject and suspend devices away from the server computer.",
+          "audience": "The church administrator",
+          "length": "about 2:30",
+          "available": false
+        },
+        {
+          "id": "android-planning",
+          "title": "Templates and services on a phone",
+          "blurb": "The Template Editor and Service Builder on a touch screen, and what is different from the computer.",
+          "audience": "Service planners",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "android-runner",
+          "title": "Running a service from your phone",
+          "blurb": "The Service Runner setup card, playing items, and reconnecting.",
+          "audience": "Whoever presses Play",
+          "length": "about 3:00",
+          "available": false
+        }
+      ]
+    }
+  ]
+}

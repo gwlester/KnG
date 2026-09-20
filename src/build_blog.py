@@ -21,6 +21,7 @@ LEGAL_DIR = REPO_ROOT / "content" / "legal"
 FAQ_SOURCE = REPO_ROOT / "content" / "faq.md"
 DOWNLOAD_OPTIONS = REPO_ROOT / "content" / "downloads" / "options.json"
 DOWNLOAD_PAGE = REPO_ROOT / "www" / "download.html"
+VIDEOS_SOURCE = REPO_ROOT / "content" / "videos" / "videos.json"
 SITE_URL = "https://www.kng-consulting.com"
 # Verify against the Louisiana Secretary of State registration.
 LEGAL_ENTITY = "KnG Consulting, LLC"
@@ -403,6 +404,73 @@ def render_faq_page() -> Path:
     return out
 
 
+def render_videos_page() -> Path:
+    """Render content/videos/videos.json into www/videos.html. A video whose
+    'available' flag is false shows a 'Coming soon' placeholder; when it is
+    true the page shows a captioned player and a transcript. Video files live
+    outside the blue-green site bucket, under the 'media_base' path."""
+    data = json.loads(VIDEOS_SOURCE.read_text(encoding="utf-8"))
+    base = data.get("media_base", "media/")
+
+    def card(v: dict) -> str:
+        meta = f'<p class="video-meta">{_esc(v["audience"])} &middot; {_esc(v["length"])}</p>'
+        if v.get("available"):
+            poster = f' poster="{base}{v["id"]}.jpg"'
+            media = (
+                f'<video controls preload="metadata"{poster}>'
+                f'<source src="{base}{v["id"]}.mp4" type="video/mp4" />'
+                f'<track kind="captions" src="{base}{v["id"]}.vtt" srclang="en" label="English" default />'
+                "Your browser does not play this video.</video>"
+            )
+            transcript = v.get("transcript_html", "")
+            extra = (
+                f'\n            <details class="video-transcript"><summary>Transcript</summary>{transcript}</details>'
+                if transcript
+                else ""
+            )
+        else:
+            media = '<div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>'
+            extra = ""
+        return f"""          <article class="video-card" id="{_esc(v["id"])}">
+            {media}
+            <h3>{_esc(v["title"])}</h3>
+            {meta}
+            <p>{_esc(v["blurb"])}</p>{extra}
+          </article>"""
+
+    sections = "\n".join(
+        f"""        <section class="video-section" id="{_esc(sec["id"])}">
+          <h2>{_esc(sec["title"])}</h2>
+          <div class="video-grid">
+{chr(10).join(card(v) for v in sec["videos"])}
+          </div>
+        </section>"""
+        for sec in data["sections"]
+    )
+    body = f"""
+    <main>
+      <article class="section">
+        <div class="container">
+          <h1>Videos</h1>
+          <p class="lead">{_esc(data["intro"])} Need something else? See <a href="faq.html">Support and FAQ</a> or <a href="contact.html">contact us</a>.</p>
+{sections}
+        </div>
+      </article>
+    </main>"""
+    out = WWW_DIR / "videos.html"
+    out.write_text(
+        page_shell(
+            title="Videos | KnG Consulting",
+            description="Training and demo videos for Virtual Church Musician: connecting to your Server, and using the Template Editor, Service Builder, Service Runner and Administration Console.",
+            prefix="",
+            body=body,
+            current="faq.html",
+        ),
+        encoding="utf-8",
+    )
+    return out
+
+
 def _esc(text: str) -> str:
     return html_lib.escape(text, quote=True)
 
@@ -560,6 +628,7 @@ def main() -> None:
     update_homepage(posts)
     legal = render_legal_pages()
     render_faq_page()
+    render_videos_page()
     refresh_download_page()
     refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")

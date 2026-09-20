@@ -3,7 +3,7 @@ title: Support and FAQ
 slug: faq
 description: Answers to common questions about Virtual Church Musician, plus where to find guides and how to reach us.
 ---
-Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within 5 to 10 business days.
+Answers to common questions about Virtual Church Musician. The [User Manual and System Administrator Guide](download.html#documentation) are on the Download page. There is a page of [training and demo videos](videos.html) too. If you do not find your answer here, [contact us](contact.html). We reply by email, usually within 5 to 10 business days.
 
 ## Which apps are free, and which are paid?
 
@@ -68,3 +68,7 @@ We recommend the Raspberry Pi 4 or Raspberry Pi 5 for both the Server and the MI
 ## How do I get help?
 
 Start with the [User Manual and System Administrator Guide](download.html#documentation). For anything else, use the [contact form](contact.html).
+
+## Are there training videos?
+
+Yes. The [Videos page](videos.html) will have short, captioned videos for each app, on a computer and on an Android phone or tablet, starting with how to connect to your church's Server. Each one has a written transcript. Some are still being made and are marked "Coming soon".
