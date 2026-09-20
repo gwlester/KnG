@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Training | KnG Consulting</title>
-    <meta name="description" content="Training and demo videos for Virtual Church Musician: connecting to your Server, and using the VCM Templates, VCM Services, VCM Runner and VCM Administrator." />
+    <meta name="description" content="Training and demo videos for Virtual Church Musician, by role: connecting to your VCM Server, and using VCM Administrator, VCM Templates, VCM Services and VCM Runner." />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -29,96 +29,231 @@
       <article class="section">
         <div class="container">
           <h1>Training</h1>
-          <p class="lead">Short videos that show Virtual Church Musician at work and teach you each app step by step. Every video has captions and a written transcript. Need something else? See <a href="faq.html">Support and FAQ</a> or <a href="contact.html">contact us</a>.</p>
+          <p class="lead">Short videos that show VCM at work and teach each app step by step. Every video has captions and a written transcript. Need something else? See <a href="faq.html">Support and FAQ</a> or <a href="contact.html">contact us</a>.</p>
+          <div class="finder" id="finder" hidden>
+            <h2>Find your videos</h2>
+            <p>Tell us a little and we will show just the videos that fit. Nothing is saved or sent anywhere.</p>
+            <div class="finder-fields">
+              <p><label for="finder-role">I am the&hellip;</label>
+                <select id="finder-role"><option value="">Choose a role</option><option value="everyone">Everyone</option><option value="admin">Administrator</option><option value="designer">Service template designer</option><option value="planner">Service planner</option><option value="runner">Person who presses Play</option><option value="tech">Technical contact (one-time setup)</option></select></p>
+              <p><label for="finder-platform">I use&hellip;</label>
+                <select id="finder-platform"><option value="both">Any device</option><option value="computer">A computer</option><option value="android">An Android phone or tablet</option></select></p>
+              <p id="finder-task-wrap" hidden><label for="finder-task">I need to&hellip;</label>
+                <select id="finder-task"><option value="">Show all administrator videos</option><option value="approve">Approve or reject a device</option><option value="devices">Manage devices and users</option><option value="load">Load hymnals, chants and music</option><option value="catalog">Browse or export the catalog</option><option value="backup">Back up the VCM Server</option><option value="health">Check that everything is healthy</option><option value="settings">Change VCM Server settings</option><option value="trouble">Something is not working</option></select></p>
+              <p><button type="button" class="button button-secondary" id="finder-reset">Show all videos</button></p>
+            </div>
+            <section id="your-videos" aria-live="polite" hidden>
+              <h3 id="your-videos-title">Your videos</h3>
+              <ol id="your-videos-list"></ol>
+            </section>
+          </div>
         <section class="video-section" id="see-it">
           <h2>See it in action</h2>
           <div class="video-grid">
-          <article class="video-card" id="overview">
+          <article class="video-card" id="overview" data-roles="everyone" data-platforms="computer,android" data-task="" data-always="true" data-use="you want to see what it does" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Virtual Church Musician in about two and a half minutes</h3>
-            <p class="video-meta">Anyone curious &middot; about 2:30</p>
-            <p>A quick tour: how the Server, the apps and your sound system fit together, and what a service looks like from planning to Play.</p>
+            <h3>VCM in about two and a half minutes</h3>
+            <p class="video-meta">Anyone curious &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> you want to see what it does.</p>
+            <p>A quick tour: how the VCM Server, the apps and your sound system fit together, and what a service looks like from planning to Play.</p>
           </article>
-          <article class="video-card" id="ready-when-you-are">
+          <article class="video-card" id="ready-when-you-are" data-roles="everyone" data-platforms="computer,android" data-task="" data-always="true" data-use="you want the story in a minute" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
             <h3>Ready when you are</h3>
-            <p class="video-meta">Pastors, musicians and church staff &middot; about 1:20</p>
+            <p class="video-meta">Pastors, musicians and church staff &middot; about 1:25</p><p class="video-use"><strong>Use it when</strong> you want the story in a minute.</p>
             <p>A short film about the Sunday the organist could not come. Scenes are dramatized and created with AI.</p>
           </article>
           </div>
         </section>
-        <section class="video-section" id="getting-started">
-          <h2>Getting started</h2>
+        <section class="video-section" id="start-here">
+          <h2>Start here (everyone)</h2><p class="video-note">Everyone needs these. Then choose the videos for your job.</p>
           <div class="video-grid">
-          <article class="video-card" id="connecting">
-            <video controls preload="metadata" crossorigin="anonymous" poster="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.jpg"><source src="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.mp4" type="video/mp4" /><track kind="captions" src="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.vtt" srclang="en" label="English" default />Your browser does not play this video.</video>
+          <article class="video-card" id="install-apps" data-roles="everyone" data-platforms="computer" data-task="" data-always="false" data-use="you have downloaded an app and need to install it" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing the apps on your computer</h3>
+            <p class="video-meta">Everyone &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you have downloaded an app and need to install it.</p>
+            <p>One video with a chapter each for Windows, macOS and Linux.</p>
+          </article>
+          <article class="video-card" id="connecting" data-roles="everyone" data-platforms="computer" data-task="" data-always="false" data-use="a device needs to connect to your church&#x27;s VCM Server" data-status="about 1:55">
+            <video controls preload="none" crossorigin="anonymous" poster="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.jpg"><source src="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.mp4" type="video/mp4" /><track kind="captions" src="https://d1ra9wr4fsrl0u.cloudfront.net/connecting-v3.vtt" srclang="en" label="English" default />Your browser does not play this video.</video>
             <h3>Connecting to your church&#x27;s Server</h3>
-            <p class="video-meta">Start here, for everyone &middot; about 1:55</p>
+            <p class="video-meta">Start here, for everyone &middot; about 1:55</p><p class="video-use"><strong>Use it when</strong> a device needs to connect to your church&#x27;s VCM Server.</p>
             <p>Find the Server, request enrollment, and get approved. The same steps for every app.</p>
             <details class="video-transcript"><summary>Transcript</summary><p>This is the video everyone needs first. In this video: connecting to your church&#x27;s Server.</p><p>Everything in Virtual Church Musician lives on one computer at your church: the Church Music Server. Every app talks to it over your church&#x27;s network. All you need is to be on the same Wi-Fi.</p><p>When you open any app, it looks for the Server by itself. This is called Discover. You&#x27;ll see a progress bar while it searches.</p><p>If your church has more than one Server, for example on two campuses, the app asks which to use. It remembers your choice.</p><p>The very first time, a brand-new Server has no administrator yet. If you see a message asking you to finish setup from the Admin app, that&#x27;s what it means. The administrator does that step; it&#x27;s covered in the administrator videos.</p><p>Everyone else sees Enroll This Device. Type your username, add a label such as &#x27;Lobby tablet&#x27; or &#x27;Office PC&#x27; so the administrator can tell devices apart, and choose Request Enrollment.</p><p>A Waiting for Approval window appears. Someone with the VCM Administrator has to approve you. You can leave this window open, or choose Check Now once you know it&#x27;s done.</p><p>Once you&#x27;re approved, you&#x27;ll be asked to choose a password and agree to the license.</p><p>Choose a password, agree to the license, and you&#x27;re in.</p><p>If the app can&#x27;t find the Server: check you&#x27;re on the same Wi-Fi, try Discover a second time, and if it still can&#x27;t, the Server may be off. Ask your technical contact.</p><p>That&#x27;s connecting to your church&#x27;s Server, and everyone needs this one. Next, choose the videos for your job on the Videos page: administrators, service planners and whoever presses Play each have their own.</p></details>
           </article>
-          </div>
-        </section>
-        <section class="video-section" id="computer">
-          <h2>On a computer</h2>
-          <div class="video-grid">
-          <article class="video-card" id="admin-console">
+          <article class="video-card" id="password-and-locking" data-roles="everyone" data-platforms="computer" data-task="" data-always="false" data-use="you want a new password, you are stepping away, or the wrong Server got selected" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Using VCM Administrator</h3>
-            <p class="video-meta">The church administrator &middot; about 4:30</p>
-            <p>Set up the Server, approve and manage devices, and learn what each screen is for.</p>
+            <h3>Your password, locking the app, and saved servers</h3>
+            <p class="video-meta">Everyone &middot; about 1:30</p><p class="video-use"><strong>Use it when</strong> you want a new password, you are stepping away, or the wrong Server got selected.</p>
+            <p>Change your password, lock the app, and see or forget the Servers this device knows.</p>
           </article>
-          <article class="video-card" id="template-editor">
-            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Building a template</h3>
-            <p class="video-meta">Service planners &middot; about 4:00</p>
-            <p>Create, edit, clone and version a reusable starting point for your services.</p>
-          </article>
-          <article class="video-card" id="service-builder">
-            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Building and publishing a service</h3>
-            <p class="video-meta">Service planners &middot; about 5:00</p>
-            <p>Put together an order of service for a date, fix any red items, and publish it, without losing your work.</p>
-          </article>
-          <article class="video-card" id="service-runner">
-            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Running a service</h3>
-            <p class="video-meta">Whoever presses Play &middot; about 3:30</p>
-            <p>Load today&#x27;s service and press Play. What to do if the connection drops.</p>
-          </article>
-          </div>
-        </section>
-        <section class="video-section" id="android">
-          <h2>On an Android phone or tablet</h2>
-          <div class="video-grid">
-          <article class="video-card" id="android-install">
+          <article class="video-card" id="android-install" data-roles="everyone" data-platforms="android" data-task="" data-always="false" data-use="you are using an Android phone or tablet" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
             <h3>Installing and connecting on Android</h3>
-            <p class="video-meta">Everyone on a phone or tablet &middot; about 3:00</p>
-            <p>Install the app from its download file and connect to your church&#x27;s Server.</p>
+            <p class="video-meta">Everyone on a phone or tablet &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you are using an Android phone or tablet.</p>
+            <p>Install the app from its download file and connect to your church&#x27;s VCM Server.</p>
           </article>
-          <article class="video-card" id="android-security">
+          </div>
+        </section>
+        <section class="video-section" id="administrator">
+          <h2>Administrator</h2><p class="video-note">Watch just the task you need, and come back when you have not done it for a while.</p>
+          <div class="video-grid">
+          <article class="video-card" id="admin-approving" data-roles="admin" data-platforms="computer" data-task="approve" data-always="false" data-use="someone asks to connect a device" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Approving a device from your phone</h3>
-            <p class="video-meta">The church administrator &middot; about 2:30</p>
-            <p>Use VCM Security to approve, reject and suspend devices away from the server computer.</p>
+            <h3>Quick start: approving and rejecting enrollments</h3>
+            <p class="video-meta">For administrators &middot; about 2:00</p><p class="video-use"><strong>Use it when</strong> someone asks to connect a device.</p>
+            <p>Approve or reject a device&#x27;s request to connect. The most common administrator task.</p>
           </article>
-          <article class="video-card" id="android-planning">
+          <article class="video-card" id="admin-devices" data-roles="admin" data-platforms="computer" data-task="devices" data-always="false" data-use="a device is lost, or someone leaves" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
-            <h3>Templates and services on a phone</h3>
-            <p class="video-meta">Service planners &middot; about 4:00</p>
-            <p>VCM Templates and VCM Services on a touch screen, and what is different from the computer.</p>
+            <h3>Managing devices and users</h3>
+            <p class="video-meta">For administrators &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> a device is lost, or someone leaves.</p>
+            <p>Revoke, suspend, resume and sign out devices; suspend a person.</p>
           </article>
-          <article class="video-card" id="android-runner">
+          <article class="video-card" id="admin-loading" data-roles="admin" data-platforms="computer" data-task="load" data-always="false" data-use="you are adding or updating content" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Loading hymnals, chants and music</h3>
+            <p class="video-meta">For administrators &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you are adding or updating content.</p>
+            <p>Import a Mega Bundle or a bundle, load music files, and upload a single media file.</p>
+          </article>
+          <article class="video-card" id="admin-catalog" data-roles="admin" data-platforms="computer" data-task="catalog" data-always="false" data-use="you are looking for something or exporting part of the catalog" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Browsing and exporting the catalog</h3>
+            <p class="video-meta">For administrators &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> you are looking for something or exporting part of the catalog.</p>
+            <p>Find hymns, chants, seasons, categories and templates, and export part of the catalog.</p>
+          </article>
+          <article class="video-card" id="admin-backup" data-roles="admin" data-platforms="computer" data-task="backup" data-always="false" data-use="before a change, or for a routine backup" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Backing up your VCM Server</h3>
+            <p class="video-meta">For administrators &middot; about 2:00</p><p class="video-use"><strong>Use it when</strong> before a change, or for a routine backup.</p>
+            <p>Take a snapshot and export a bundle.</p>
+          </article>
+          <article class="video-card" id="admin-health" data-roles="admin" data-platforms="computer" data-task="health" data-always="false" data-use="before a service, or after a change" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Checking that everything is healthy</h3>
+            <p class="video-meta">For administrators &middot; about 1:45</p><p class="video-use"><strong>Use it when</strong> before a service, or after a change.</p>
+            <p>Read the Dashboard and Connection tabs.</p>
+          </article>
+          <article class="video-card" id="admin-settings" data-roles="admin" data-platforms="computer" data-task="settings" data-always="false" data-use="you are changing how the VCM Server behaves" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>VCM Server settings</h3>
+            <p class="video-meta">For administrators &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> you are changing how the VCM Server behaves.</p>
+            <p>Site name, sound or MIDI device, MIDI or MP3 preference, and the idle lock time.</p>
+          </article>
+          <article class="video-card" id="admin-trouble" data-roles="admin" data-platforms="computer" data-task="trouble" data-always="false" data-use="something is not working" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>When something goes wrong</h3>
+            <p class="video-meta">For administrators &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> something is not working.</p>
+            <p>Diagnostics, application log levels and fetching the server log, to share with your technical contact.</p>
+          </article>
+          <article class="video-card" id="android-security" data-roles="admin" data-platforms="android" data-task="approve" data-always="false" data-use="you approve devices from your phone" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Approving a device from your phone with VCM Security</h3>
+            <p class="video-meta">For administrators &middot; about 2:30</p><p class="video-use"><strong>Use it when</strong> you approve devices from your phone.</p>
+            <p>Approve, reject and suspend devices away from the server computer.</p>
+          </article>
+          </div>
+        </section>
+        <section class="video-section" id="designer">
+          <h2>Service template designer</h2>
+          <div class="video-grid">
+          <article class="video-card" id="designer" data-roles="designer" data-platforms="computer" data-task="" data-always="false" data-use="you are building or changing a template" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Designing a service template with VCM Templates</h3>
+            <p class="video-meta">For service template designers &middot; about 4:00</p><p class="video-use"><strong>Use it when</strong> you are building or changing a template.</p>
+            <p>Create, edit, clone and version a reusable starting point for your services.</p>
+          </article>
+          <article class="video-card" id="designer-android" data-roles="designer" data-platforms="android" data-task="" data-always="false" data-use="you design templates on a phone or tablet" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Templates on a phone</h3>
+            <p class="video-meta">For service template designers &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you design templates on a phone or tablet.</p>
+            <p>VCM Templates on a touch screen, and what is different from the computer.</p>
+          </article>
+          </div>
+        </section>
+        <section class="video-section" id="planner">
+          <h2>Service planner</h2>
+          <div class="video-grid">
+          <article class="video-card" id="planner" data-roles="planner" data-platforms="computer" data-task="" data-always="false" data-use="you are planning a service" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Planning a service from a template with VCM Services</h3>
+            <p class="video-meta">For service planners &middot; about 4:00</p><p class="video-use"><strong>Use it when</strong> you are planning a service.</p>
+            <p>Pick a template and a date, plug in this week&#x27;s hymns, fix any red items, and publish without losing your work.</p>
+          </article>
+          <article class="video-card" id="planner-android" data-roles="planner" data-platforms="android" data-task="" data-always="false" data-use="you plan services on a phone or tablet" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Planning a service on a phone</h3>
+            <p class="video-meta">For service planners &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you plan services on a phone or tablet.</p>
+            <p>The same, on a touch screen.</p>
+          </article>
+          </div>
+        </section>
+        <section class="video-section" id="runner">
+          <h2>Person who presses Play</h2>
+          <div class="video-grid">
+          <article class="video-card" id="runner" data-roles="runner" data-platforms="computer" data-task="" data-always="false" data-use="you run the music during a service" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Running a service with VCM Runner</h3>
+            <p class="video-meta">For whoever presses Play &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you run the music during a service.</p>
+            <p>Load today&#x27;s service and press Play, and what to do if the connection drops.</p>
+          </article>
+          <article class="video-card" id="runner-android" data-roles="runner" data-platforms="android" data-task="" data-always="false" data-use="you run the music from a phone or tablet" data-status="Coming soon">
             <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
             <h3>Running a service from your phone</h3>
-            <p class="video-meta">Whoever presses Play &middot; about 3:00</p>
-            <p>The VCM Runner setup card, playing items, and reconnecting.</p>
+            <p class="video-meta">For whoever presses Play &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> you run the music from a phone or tablet.</p>
+            <p>The setup card, playing items and reconnecting.</p>
+          </article>
+          </div>
+        </section>
+        <section class="video-section" id="setup">
+          <h2>One-time setup (technical contact)</h2><p class="video-note">Done once, when a VCM Server or VCM MIDI Player is installed.</p>
+          <div class="video-grid">
+          <article class="video-card" id="install-server-windows" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing the VCM Server on a Windows computer" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing the VCM Server on Windows</h3>
+            <p class="video-meta">For the technical contact &middot; about 4:00</p><p class="video-use"><strong>Use it when</strong> installing the VCM Server on a Windows computer.</p>
+            <p>Step by step, in your own time.</p>
+          </article>
+          <article class="video-card" id="install-server-mac" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing the VCM Server on a Mac" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing the VCM Server on macOS</h3>
+            <p class="video-meta">For the technical contact &middot; about 4:00</p><p class="video-use"><strong>Use it when</strong> installing the VCM Server on a Mac.</p>
+            <p>Step by step, in your own time.</p>
+          </article>
+          <article class="video-card" id="install-server-linux" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing the VCM Server on Linux" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing the VCM Server on Linux</h3>
+            <p class="video-meta">For the technical contact &middot; about 4:00</p><p class="video-use"><strong>Use it when</strong> installing the VCM Server on Linux.</p>
+            <p>Step by step, in your own time.</p>
+          </article>
+          <article class="video-card" id="first-administrator" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="a VCM Server is new" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Setting up the first administrator</h3>
+            <p class="video-meta">For the technical contact &middot; about 2:00</p><p class="video-use"><strong>Use it when</strong> a VCM Server is new.</p>
+            <p>Create the first administrator on a brand-new VCM Server. The same on every system.</p>
+          </article>
+          <article class="video-card" id="install-midi-windows" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing a VCM MIDI Player on Windows" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing a VCM MIDI Player on Windows</h3>
+            <p class="video-meta">For the technical contact &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> installing a VCM MIDI Player on Windows.</p>
+            <p>Step by step, in your own time.</p>
+          </article>
+          <article class="video-card" id="install-midi-mac" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing a VCM MIDI Player on a Mac" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing a VCM MIDI Player on macOS</h3>
+            <p class="video-meta">For the technical contact &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> installing a VCM MIDI Player on a Mac.</p>
+            <p>Step by step, in your own time.</p>
+          </article>
+          <article class="video-card" id="install-midi-linux" data-roles="tech" data-platforms="computer" data-task="setup" data-always="false" data-use="installing a VCM MIDI Player on Linux" data-status="Coming soon">
+            <div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>
+            <h3>Installing a VCM MIDI Player on Linux</h3>
+            <p class="video-meta">For the technical contact &middot; about 3:00</p><p class="video-use"><strong>Use it when</strong> installing a VCM MIDI Player on Linux.</p>
+            <p>Step by step, in your own time.</p>
           </article>
           </div>
         </section>
         </div>
       </article>
+      <script src="training.js" defer></script>
     </main>
 <!-- SITE_FOOTER_START -->
     <footer class="site-footer">

@@ -1,16 +1,96 @@
 {
-  "FormatVersion": 1,
+  "FormatVersion": 2,
   "media_base": "https://d1ra9wr4fsrl0u.cloudfront.net/",
-  "intro": "Short videos that show Virtual Church Musician at work and teach you each app step by step. Every video has captions and a written transcript.",
+  "intro": "Short videos that show VCM at work and teach each app step by step. Every video has captions and a written transcript.",
+  "roles": [
+    {
+      "id": "everyone",
+      "label": "Everyone"
+    },
+    {
+      "id": "admin",
+      "label": "Administrator"
+    },
+    {
+      "id": "designer",
+      "label": "Service template designer"
+    },
+    {
+      "id": "planner",
+      "label": "Service planner"
+    },
+    {
+      "id": "runner",
+      "label": "Person who presses Play"
+    },
+    {
+      "id": "tech",
+      "label": "Technical contact (one-time setup)"
+    }
+  ],
+  "platforms": [
+    {
+      "id": "computer",
+      "label": "A computer"
+    },
+    {
+      "id": "android",
+      "label": "An Android phone or tablet"
+    }
+  ],
+  "admin_tasks": [
+    {
+      "id": "approve",
+      "label": "Approve or reject a device"
+    },
+    {
+      "id": "devices",
+      "label": "Manage devices and users"
+    },
+    {
+      "id": "load",
+      "label": "Load hymnals, chants and music"
+    },
+    {
+      "id": "catalog",
+      "label": "Browse or export the catalog"
+    },
+    {
+      "id": "backup",
+      "label": "Back up the VCM Server"
+    },
+    {
+      "id": "health",
+      "label": "Check that everything is healthy"
+    },
+    {
+      "id": "settings",
+      "label": "Change VCM Server settings"
+    },
+    {
+      "id": "trouble",
+      "label": "Something is not working"
+    }
+  ],
   "sections": [
     {
       "id": "see-it",
       "title": "See it in action",
+      "note": "",
       "videos": [
         {
           "id": "overview",
-          "title": "Virtual Church Musician in about two and a half minutes",
-          "blurb": "A quick tour: how the Server, the apps and your sound system fit together, and what a service looks like from planning to Play.",
+          "title": "VCM in about two and a half minutes",
+          "blurb": "A quick tour: how the VCM Server, the apps and your sound system fit together, and what a service looks like from planning to Play.",
+          "use_when": "you want to see what it does",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer",
+            "android"
+          ],
+          "task": null,
           "audience": "Anyone curious",
           "length": "about 2:30",
           "available": false
@@ -19,16 +99,42 @@
           "id": "ready-when-you-are",
           "title": "Ready when you are",
           "blurb": "A short film about the Sunday the organist could not come. Scenes are dramatized and created with AI.",
+          "use_when": "you want the story in a minute",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer",
+            "android"
+          ],
+          "task": null,
           "audience": "Pastors, musicians and church staff",
-          "length": "about 1:20",
+          "length": "about 1:25",
           "available": false
         }
       ]
     },
     {
-      "id": "getting-started",
-      "title": "Getting started",
+      "id": "start-here",
+      "title": "Start here (everyone)",
+      "note": "Everyone needs these. Then choose the videos for your job.",
       "videos": [
+        {
+          "id": "install-apps",
+          "title": "Installing the apps on your computer",
+          "blurb": "One video with a chapter each for Windows, macOS and Linux.",
+          "use_when": "you have downloaded an app and need to install it",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "Everyone",
+          "length": "about 3:00",
+          "available": false
+        },
         {
           "id": "connecting",
           "title": "Connecting to your church's Server",
@@ -37,81 +143,432 @@
           "length": "about 1:55",
           "available": true,
           "version": 3,
-          "transcript_html": "<p>This is the video everyone needs first. In this video: connecting to your church&#x27;s Server.</p><p>Everything in Virtual Church Musician lives on one computer at your church: the Church Music Server. Every app talks to it over your church&#x27;s network. All you need is to be on the same Wi-Fi.</p><p>When you open any app, it looks for the Server by itself. This is called Discover. You&#x27;ll see a progress bar while it searches.</p><p>If your church has more than one Server, for example on two campuses, the app asks which to use. It remembers your choice.</p><p>The very first time, a brand-new Server has no administrator yet. If you see a message asking you to finish setup from the Admin app, that&#x27;s what it means. The administrator does that step; it&#x27;s covered in the administrator videos.</p><p>Everyone else sees Enroll This Device. Type your username, add a label such as &#x27;Lobby tablet&#x27; or &#x27;Office PC&#x27; so the administrator can tell devices apart, and choose Request Enrollment.</p><p>A Waiting for Approval window appears. Someone with the VCM Administrator has to approve you. You can leave this window open, or choose Check Now once you know it&#x27;s done.</p><p>Once you&#x27;re approved, you&#x27;ll be asked to choose a password and agree to the license.</p><p>Choose a password, agree to the license, and you&#x27;re in.</p><p>If the app can&#x27;t find the Server: check you&#x27;re on the same Wi-Fi, try Discover a second time, and if it still can&#x27;t, the Server may be off. Ask your technical contact.</p><p>That&#x27;s connecting to your church&#x27;s Server, and everyone needs this one. Next, choose the videos for your job on the Videos page: administrators, service planners and whoever presses Play each have their own.</p>"
-        }
-      ]
-    },
-    {
-      "id": "computer",
-      "title": "On a computer",
-      "videos": [
-        {
-          "id": "admin-console",
-          "title": "Using VCM Administrator",
-          "blurb": "Set up the Server, approve and manage devices, and learn what each screen is for.",
-          "audience": "The church administrator",
-          "length": "about 4:30",
-          "available": false
+          "transcript_html": "<p>This is the video everyone needs first. In this video: connecting to your church&#x27;s Server.</p><p>Everything in Virtual Church Musician lives on one computer at your church: the Church Music Server. Every app talks to it over your church&#x27;s network. All you need is to be on the same Wi-Fi.</p><p>When you open any app, it looks for the Server by itself. This is called Discover. You&#x27;ll see a progress bar while it searches.</p><p>If your church has more than one Server, for example on two campuses, the app asks which to use. It remembers your choice.</p><p>The very first time, a brand-new Server has no administrator yet. If you see a message asking you to finish setup from the Admin app, that&#x27;s what it means. The administrator does that step; it&#x27;s covered in the administrator videos.</p><p>Everyone else sees Enroll This Device. Type your username, add a label such as &#x27;Lobby tablet&#x27; or &#x27;Office PC&#x27; so the administrator can tell devices apart, and choose Request Enrollment.</p><p>A Waiting for Approval window appears. Someone with the VCM Administrator has to approve you. You can leave this window open, or choose Check Now once you know it&#x27;s done.</p><p>Once you&#x27;re approved, you&#x27;ll be asked to choose a password and agree to the license.</p><p>Choose a password, agree to the license, and you&#x27;re in.</p><p>If the app can&#x27;t find the Server: check you&#x27;re on the same Wi-Fi, try Discover a second time, and if it still can&#x27;t, the Server may be off. Ask your technical contact.</p><p>That&#x27;s connecting to your church&#x27;s Server, and everyone needs this one. Next, choose the videos for your job on the Videos page: administrators, service planners and whoever presses Play each have their own.</p>",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "use_when": "a device needs to connect to your church's VCM Server"
         },
         {
-          "id": "template-editor",
-          "title": "Building a template",
-          "blurb": "Create, edit, clone and version a reusable starting point for your services.",
-          "audience": "Service planners",
-          "length": "about 4:00",
+          "id": "password-and-locking",
+          "title": "Your password, locking the app, and saved servers",
+          "blurb": "Change your password, lock the app, and see or forget the Servers this device knows.",
+          "use_when": "you want a new password, you are stepping away, or the wrong Server got selected",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "Everyone",
+          "length": "about 1:30",
           "available": false
         },
-        {
-          "id": "service-builder",
-          "title": "Building and publishing a service",
-          "blurb": "Put together an order of service for a date, fix any red items, and publish it, without losing your work.",
-          "audience": "Service planners",
-          "length": "about 5:00",
-          "available": false
-        },
-        {
-          "id": "service-runner",
-          "title": "Running a service",
-          "blurb": "Load today's service and press Play. What to do if the connection drops.",
-          "audience": "Whoever presses Play",
-          "length": "about 3:30",
-          "available": false
-        }
-      ]
-    },
-    {
-      "id": "android",
-      "title": "On an Android phone or tablet",
-      "videos": [
         {
           "id": "android-install",
           "title": "Installing and connecting on Android",
-          "blurb": "Install the app from its download file and connect to your church's Server.",
+          "blurb": "Install the app from its download file and connect to your church's VCM Server.",
+          "use_when": "you are using an Android phone or tablet",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "android"
+          ],
+          "task": null,
           "audience": "Everyone on a phone or tablet",
           "length": "about 3:00",
           "available": false
+        }
+      ]
+    },
+    {
+      "id": "administrator",
+      "title": "Administrator",
+      "note": "Watch just the task you need, and come back when you have not done it for a while.",
+      "videos": [
+        {
+          "id": "admin-approving",
+          "title": "Quick start: approving and rejecting enrollments",
+          "blurb": "Approve or reject a device's request to connect. The most common administrator task.",
+          "use_when": "someone asks to connect a device",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "approve",
+          "audience": "For administrators",
+          "length": "about 2:00",
+          "available": false
         },
         {
-          "id": "android-security",
-          "title": "Approving a device from your phone",
-          "blurb": "Use VCM Security to approve, reject and suspend devices away from the server computer.",
-          "audience": "The church administrator",
+          "id": "admin-devices",
+          "title": "Managing devices and users",
+          "blurb": "Revoke, suspend, resume and sign out devices; suspend a person.",
+          "use_when": "a device is lost, or someone leaves",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "devices",
+          "audience": "For administrators",
           "length": "about 2:30",
           "available": false
         },
         {
-          "id": "android-planning",
-          "title": "Templates and services on a phone",
-          "blurb": "VCM Templates and VCM Services on a touch screen, and what is different from the computer.",
-          "audience": "Service planners",
+          "id": "admin-loading",
+          "title": "Loading hymnals, chants and music",
+          "blurb": "Import a Mega Bundle or a bundle, load music files, and upload a single media file.",
+          "use_when": "you are adding or updating content",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "load",
+          "audience": "For administrators",
+          "length": "about 3:00",
+          "available": false
+        },
+        {
+          "id": "admin-catalog",
+          "title": "Browsing and exporting the catalog",
+          "blurb": "Find hymns, chants, seasons, categories and templates, and export part of the catalog.",
+          "use_when": "you are looking for something or exporting part of the catalog",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "catalog",
+          "audience": "For administrators",
+          "length": "about 2:30",
+          "available": false
+        },
+        {
+          "id": "admin-backup",
+          "title": "Backing up your VCM Server",
+          "blurb": "Take a snapshot and export a bundle.",
+          "use_when": "before a change, or for a routine backup",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "backup",
+          "audience": "For administrators",
+          "length": "about 2:00",
+          "available": false
+        },
+        {
+          "id": "admin-health",
+          "title": "Checking that everything is healthy",
+          "blurb": "Read the Dashboard and Connection tabs.",
+          "use_when": "before a service, or after a change",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "health",
+          "audience": "For administrators",
+          "length": "about 1:45",
+          "available": false
+        },
+        {
+          "id": "admin-settings",
+          "title": "VCM Server settings",
+          "blurb": "Site name, sound or MIDI device, MIDI or MP3 preference, and the idle lock time.",
+          "use_when": "you are changing how the VCM Server behaves",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "settings",
+          "audience": "For administrators",
+          "length": "about 2:30",
+          "available": false
+        },
+        {
+          "id": "admin-trouble",
+          "title": "When something goes wrong",
+          "blurb": "Diagnostics, application log levels and fetching the server log, to share with your technical contact.",
+          "use_when": "something is not working",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "trouble",
+          "audience": "For administrators",
+          "length": "about 2:30",
+          "available": false
+        },
+        {
+          "id": "android-security",
+          "title": "Approving a device from your phone with VCM Security",
+          "blurb": "Approve, reject and suspend devices away from the server computer.",
+          "use_when": "you approve devices from your phone",
+          "roles": [
+            "admin"
+          ],
+          "platforms": [
+            "android"
+          ],
+          "task": "approve",
+          "audience": "For administrators",
+          "length": "about 2:30",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "designer",
+      "title": "Service template designer",
+      "note": "",
+      "videos": [
+        {
+          "id": "designer",
+          "title": "Designing a service template with VCM Templates",
+          "blurb": "Create, edit, clone and version a reusable starting point for your services.",
+          "use_when": "you are building or changing a template",
+          "roles": [
+            "designer"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "For service template designers",
           "length": "about 4:00",
           "available": false
         },
         {
-          "id": "android-runner",
+          "id": "designer-android",
+          "title": "Templates on a phone",
+          "blurb": "VCM Templates on a touch screen, and what is different from the computer.",
+          "use_when": "you design templates on a phone or tablet",
+          "roles": [
+            "designer"
+          ],
+          "platforms": [
+            "android"
+          ],
+          "task": null,
+          "audience": "For service template designers",
+          "length": "about 3:00",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "planner",
+      "title": "Service planner",
+      "note": "",
+      "videos": [
+        {
+          "id": "planner",
+          "title": "Planning a service from a template with VCM Services",
+          "blurb": "Pick a template and a date, plug in this week's hymns, fix any red items, and publish without losing your work.",
+          "use_when": "you are planning a service",
+          "roles": [
+            "planner"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "For service planners",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "planner-android",
+          "title": "Planning a service on a phone",
+          "blurb": "The same, on a touch screen.",
+          "use_when": "you plan services on a phone or tablet",
+          "roles": [
+            "planner"
+          ],
+          "platforms": [
+            "android"
+          ],
+          "task": null,
+          "audience": "For service planners",
+          "length": "about 3:00",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "runner",
+      "title": "Person who presses Play",
+      "note": "",
+      "videos": [
+        {
+          "id": "runner",
+          "title": "Running a service with VCM Runner",
+          "blurb": "Load today's service and press Play, and what to do if the connection drops.",
+          "use_when": "you run the music during a service",
+          "roles": [
+            "runner"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "For whoever presses Play",
+          "length": "about 3:00",
+          "available": false
+        },
+        {
+          "id": "runner-android",
           "title": "Running a service from your phone",
-          "blurb": "The VCM Runner setup card, playing items, and reconnecting.",
-          "audience": "Whoever presses Play",
+          "blurb": "The setup card, playing items and reconnecting.",
+          "use_when": "you run the music from a phone or tablet",
+          "roles": [
+            "runner"
+          ],
+          "platforms": [
+            "android"
+          ],
+          "task": null,
+          "audience": "For whoever presses Play",
+          "length": "about 3:00",
+          "available": false
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "One-time setup (technical contact)",
+      "note": "Done once, when a VCM Server or VCM MIDI Player is installed.",
+      "videos": [
+        {
+          "id": "install-server-windows",
+          "title": "Installing the VCM Server on Windows",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing the VCM Server on a Windows computer",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "install-server-mac",
+          "title": "Installing the VCM Server on macOS",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing the VCM Server on a Mac",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "install-server-linux",
+          "title": "Installing the VCM Server on Linux",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing the VCM Server on Linux",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 4:00",
+          "available": false
+        },
+        {
+          "id": "first-administrator",
+          "title": "Setting up the first administrator",
+          "blurb": "Create the first administrator on a brand-new VCM Server. The same on every system.",
+          "use_when": "a VCM Server is new",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 2:00",
+          "available": false
+        },
+        {
+          "id": "install-midi-windows",
+          "title": "Installing a VCM MIDI Player on Windows",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing a VCM MIDI Player on Windows",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 3:00",
+          "available": false
+        },
+        {
+          "id": "install-midi-mac",
+          "title": "Installing a VCM MIDI Player on macOS",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing a VCM MIDI Player on a Mac",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
+          "length": "about 3:00",
+          "available": false
+        },
+        {
+          "id": "install-midi-linux",
+          "title": "Installing a VCM MIDI Player on Linux",
+          "blurb": "Step by step, in your own time.",
+          "use_when": "installing a VCM MIDI Player on Linux",
+          "roles": [
+            "tech"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": "setup",
+          "audience": "For the technical contact",
           "length": "about 3:00",
           "available": false
         }

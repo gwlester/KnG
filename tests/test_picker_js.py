@@ -15,6 +15,13 @@ class PickerJsTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_training_finder_logic(self):
+        result = subprocess.run(
+            ["node", "--test", str(ROOT / "tests" / "training.test.js")],
+            capture_output=True, text=True, cwd=ROOT,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

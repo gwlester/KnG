@@ -406,21 +406,24 @@ def render_faq_page() -> Path:
 
 
 def render_videos_page() -> Path:
-    """Render content/videos/videos.json into www/videos.html. A video whose
-    'available' flag is false shows a 'Coming soon' placeholder; when it is
-    true the page shows a captioned player and a transcript. Video files live
-    outside the blue-green site bucket, under the 'media_base' path."""
+    """Render content/videos/videos.json into www/training.html: a finder (role, platform, administrator task) that
+    fills a "Your videos" panel, then every video grouped by role. A video whose 'available' flag is false shows a
+    'Coming soon' placeholder; when it is true the card has a captioned player and a transcript. Video files live
+    outside the blue-green site bucket, under the 'media_base' URL. Without scripts the page is simply the grouped list."""
     data = json.loads(VIDEOS_SOURCE.read_text(encoding="utf-8"))
     base = data.get("media_base", "media/")
 
-    def card(v: dict) -> str:
-        meta = f'<p class="video-meta">{_esc(v["audience"])} &middot; {_esc(v["length"])}</p>'
+    def card(v: dict, always: bool) -> str:
+        meta_bits = [b for b in (v.get("audience"), v.get("length")) if b]
+        meta = f'<p class="video-meta">{" &middot; ".join(_esc(b) for b in meta_bits)}</p>' if meta_bits else ""
+        use = f'<p class="video-use"><strong>Use it when</strong> {_esc(v["use_when"])}.</p>' if v.get("use_when") else ""
+        status = v["length"] if v.get("available") else "Coming soon"
         if v.get("available"):
             # Versioned file names (id-v<n>) so a re-recorded video is never served stale from the CDN.
             stem = f'{v["id"]}-v{v.get("version", 1)}'
             poster = f' poster="{base}{stem}.jpg"'
             media = (
-                f'<video controls preload="metadata" crossorigin="anonymous"{poster}>'
+                f'<video controls preload="none" crossorigin="anonymous"{poster}>'
                 f'<source src="{base}{stem}.mp4" type="video/mp4" />'
                 f'<track kind="captions" src="{base}{stem}.vtt" srclang="en" label="English" default />'
                 "Your browser does not play this video.</video>"
@@ -434,37 +437,65 @@ def render_videos_page() -> Path:
         else:
             media = '<div class="video-placeholder" role="img" aria-label="Video coming soon"><span>Coming soon</span></div>'
             extra = ""
-        return f"""          <article class="video-card" id="{_esc(v["id"])}">
+        attrs = (
+            f'data-roles="{_esc(",".join(v.get("roles", [])))}" data-platforms="{_esc(",".join(v.get("platforms", [])))}" '
+            f'data-task="{_esc(v.get("task") or "")}" data-always="{"true" if always else "false"}" '
+            f'data-use="{_esc(v.get("use_when", ""))}" data-status="{_esc(status)}"'
+        )
+        return f"""          <article class="video-card" id="{_esc(v["id"])}" {attrs}>
             {media}
             <h3>{_esc(v["title"])}</h3>
-            {meta}
+            {meta}{use}
             <p>{_esc(v["blurb"])}</p>{extra}
           </article>"""
 
     sections = "\n".join(
         f"""        <section class="video-section" id="{_esc(sec["id"])}">
-          <h2>{_esc(sec["title"])}</h2>
+          <h2>{_esc(sec["title"])}</h2>{f'<p class="video-note">{_esc(sec["note"])}</p>' if sec.get("note") else ""}
           <div class="video-grid">
-{chr(10).join(card(v) for v in sec["videos"])}
+{chr(10).join(card(v, sec["id"] == "see-it") for v in sec["videos"])}
           </div>
         </section>"""
         for sec in data["sections"]
     )
+
+    def options(items, first):
+        return f'<option value="">{_esc(first)}</option>' + "".join(f'<option value="{_esc(i["id"])}">{_esc(i["label"])}</option>' for i in items)
+
+    finder = f"""          <div class="finder" id="finder" hidden>
+            <h2>Find your videos</h2>
+            <p>Tell us a little and we will show just the videos that fit. Nothing is saved or sent anywhere.</p>
+            <div class="finder-fields">
+              <p><label for="finder-role">I am the&hellip;</label>
+                <select id="finder-role">{options(data["roles"], "Choose a role")}</select></p>
+              <p><label for="finder-platform">I use&hellip;</label>
+                <select id="finder-platform"><option value="both">Any device</option>{"".join(f'<option value="{_esc(p["id"])}">{_esc(p["label"])}</option>' for p in data["platforms"])}</select></p>
+              <p id="finder-task-wrap" hidden><label for="finder-task">I need to&hellip;</label>
+                <select id="finder-task">{options(data["admin_tasks"], "Show all administrator videos")}</select></p>
+              <p><button type="button" class="button button-secondary" id="finder-reset">Show all videos</button></p>
+            </div>
+            <section id="your-videos" aria-live="polite" hidden>
+              <h3 id="your-videos-title">Your videos</h3>
+              <ol id="your-videos-list"></ol>
+            </section>
+          </div>"""
     body = f"""
     <main>
       <article class="section">
         <div class="container">
           <h1>Training</h1>
           <p class="lead">{_esc(data["intro"])} Need something else? See <a href="faq.html">Support and FAQ</a> or <a href="contact.html">contact us</a>.</p>
+{finder}
 {sections}
         </div>
       </article>
+      <script src="training.js" defer></script>
     </main>"""
     out = WWW_DIR / "training.html"
     out.write_text(
         page_shell(
             title="Training | KnG Consulting",
-            description="Training and demo videos for Virtual Church Musician: connecting to your Server, and using the VCM Templates, VCM Services, VCM Runner and VCM Administrator.",
+            description="Training and demo videos for Virtual Church Musician, by role: connecting to your VCM Server, and using VCM Administrator, VCM Templates, VCM Services and VCM Runner.",
             prefix="",
             body=body,
             current="training.html",
@@ -472,6 +503,76 @@ def render_videos_page() -> Path:
         encoding="utf-8",
     )
     return out
+
+
+COMMERCIAL_ID = "ready-when-you-are"
+
+
+def _commercial(data: dict) -> dict | None:
+    for sec in data["sections"]:
+        for v in sec["videos"]:
+            if v["id"] == COMMERCIAL_ID and v.get("available"):
+                return v
+    return None
+
+
+def _player(v: dict, base: str, extra_class: str = "") -> str:
+    stem = f'{v["id"]}-v{v.get("version", 1)}'
+    return (
+        f'<video class="{extra_class}" controls preload="none" crossorigin="anonymous" poster="{base}{stem}.jpg">'
+        f'<source src="{base}{stem}.mp4" type="video/mp4" />'
+        f'<track kind="captions" src="{base}{stem}.vtt" srclang="en" label="English" default />'
+        "Your browser does not play this video.</video>"
+    )
+
+
+def refresh_commercial_hooks(www_dir: Path | None = None, data: dict | None = None) -> None:
+    """The commercial appears on the home page (a button that opens a watch page in a new tab), on the product page
+    (an embedded player, no autoplay) and on its own watch page, but only once its 'available' flag is true in
+    content/videos/videos.json. Until then all three are empty and no watch page is written."""
+    www = www_dir or WWW_DIR
+    data = data or json.loads(VIDEOS_SOURCE.read_text(encoding="utf-8"))
+    v = _commercial(data)
+    base = data.get("media_base", "media/")
+    button = ""
+    player = ""
+    watch = www / "watch.html"
+    if v:
+        button = (
+            f'            <a class="button button-secondary" href="watch.html" target="_blank" rel="noopener">'
+            f'Watch the story ({_esc(v["length"].replace("about ", ""))}) <span class="new-tab-icon" aria-hidden="true">&#8599;</span></a>'
+        )
+        player = (
+            '        <div class="hero-video">\n          ' + _player(v, base) + "\n"
+            '          <p class="video-disclosure">Dramatization. Scenes created with AI.</p>\n        </div>'
+        )
+        transcript = v.get("transcript_html", "")
+        body = f"""
+    <main>
+      <article class="section">
+        <div class="container watch">
+          <h1>{_esc(v["title"])}</h1>
+          <p class="lead">{_esc(v["blurb"])}</p>
+          {_player(v, base, "watch-video")}
+          <p class="video-disclosure">Dramatization. Scenes created with AI.</p>{f'<details class="video-transcript"><summary>Transcript</summary>{transcript}</details>' if transcript else ""}
+          <p class="hero-actions"><a class="button button-primary" href="download.html">Download</a>
+            <a class="button button-secondary" href="training.html">Training videos</a></p>
+        </div>
+      </article>
+    </main>"""
+        watch.write_text(
+            page_shell(title=f'{v["title"]} | KnG Consulting', description=v["blurb"], prefix="", body=body),
+            encoding="utf-8",
+        )
+    elif watch.exists():
+        watch.unlink()
+    for name, start, end, text in (
+        ("index.html", "<!-- COMMERCIAL_BUTTON_START -->", "<!-- COMMERCIAL_BUTTON_END -->", button),
+        ("virtual-church-musician.html", "<!-- COMMERCIAL_PLAYER_START -->", "<!-- COMMERCIAL_PLAYER_END -->", player),
+    ):
+        path = www / name
+        html = path.read_text(encoding="utf-8")
+        path.write_text(_replace_between(html, start, end, text, path), encoding="utf-8")
 
 
 def _esc(text: str) -> str:
@@ -632,6 +733,7 @@ def main() -> None:
     legal = render_legal_pages()
     render_faq_page()
     render_videos_page()
+    refresh_commercial_hooks()
     refresh_download_page()
     refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
