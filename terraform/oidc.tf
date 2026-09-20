@@ -121,6 +121,13 @@ data "aws_iam_policy_document" "github_actions_deploy" {
   }
 
   statement {
+    sid       = "MediaBucket"
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.media.arn, "${aws_s3_bucket.media.arn}/*"]
+  }
+
+  statement {
     sid       = "Acm"
     effect    = "Allow"
     actions   = ["acm:*"]

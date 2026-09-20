@@ -91,3 +91,9 @@ variable "downloads_bucket_name" {
   type        = string
   default     = "kng-consulting-downloads"
 }
+
+variable "media_bucket_name" {
+  description = "Private S3 bucket holding the training and demo videos (served by their own CloudFront distribution). Must be globally unique."
+  type        = string
+  default     = "kng-consulting-media"
+}

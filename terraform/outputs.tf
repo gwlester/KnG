@@ -80,3 +80,12 @@ output "downloads_function_url" {
   description = "The download service's URL -- set as \"endpoint\" in content/downloads/options.json."
   value       = aws_lambda_function_url.downloads.function_url
 }
+
+output "media_bucket_name" {
+  value = aws_s3_bucket.media.bucket
+}
+
+output "media_cloudfront_domain_name" {
+  description = "Base host for the Videos page (https://<this>/media/...)."
+  value       = aws_cloudfront_distribution.media.domain_name
+}
