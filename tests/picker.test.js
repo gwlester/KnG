@@ -121,3 +121,16 @@ test("an unsigned release is labelled as such", () => {
   const signed = P.versionLabels({ FormatVersion: 1, current: { version: "v1.1.0", channel: "stable", signed: true }, previous: null }, "Beta");
   assert.equal(signed.current, "Current release (v1.1.0)");
 });
+
+test("the VCM Server and VCM MIDI Player offer a Raspberry Pi package, not yet available", () => {
+  for (const id of ["server", "midi-player"]) {
+    const plat = P.findPlatform(P.findApp(options, id), "raspberry-pi");
+    assert.ok(plat, id);
+    assert.equal(plat.type, "purchase");
+    assert.equal(plat.available, false);
+    assert.deepEqual(plat.arches, ["arm64"]);
+  }
+  assert.ok(options.platforms["raspberry-pi"].label.includes("Raspberry Pi"));
+  assert.ok(P.ORDER.indexOf("raspberry-pi") > P.ORDER.indexOf("linux"));
+  assert.equal(P.findPlatform(P.findApp(options, "template-editor"), "raspberry-pi"), null);
+});

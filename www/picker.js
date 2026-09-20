@@ -3,7 +3,7 @@
 (function (root) {
   "use strict";
 
-  var ORDER = ["android", "windows", "mac", "linux"];
+  var ORDER = ["android", "windows", "mac", "linux", "raspberry-pi"];
 
   function detectPlatform(nav) {
     if (!nav) return null;

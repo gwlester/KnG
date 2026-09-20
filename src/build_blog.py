@@ -351,7 +351,7 @@ def render_faq_page() -> Path:
         raise ValueError(f"{FAQ_SOURCE}: no '## Question' entries found")
 
     items = "\n".join(
-        f"""          <details class="faq-item">
+        f"""          <details class="faq-item" id="{slugify(q)}">
             <summary>{q}</summary>
             <div class="faq-answer">{a}</div>
           </details>"""
@@ -621,7 +621,7 @@ def render_picker(options: dict) -> str:
 
 
 def render_availability(options: dict) -> str:
-    cols = [("mac", "macOS"), ("windows", "Windows"), ("linux", "Linux"), ("android", "Android")]
+    cols = [("mac", "macOS"), ("windows", "Windows"), ("linux", "Linux"), ("raspberry-pi", "Raspberry Pi"), ("android", "Android")]
     supported = {}
     for app in options["apps"]:
         for plat in app["platforms"]:

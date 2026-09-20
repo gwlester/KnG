@@ -15,6 +15,10 @@
     },
     "linux": {
       "label": "Linux (.deb)"
+    },
+    "raspberry-pi": {
+      "label": "Raspberry Pi (64-bit .deb)",
+      "note": "For a Raspberry Pi 4 or Raspberry Pi 5 running 64-bit Raspberry Pi OS. See the recommended hardware in Support and FAQ."
     }
   },
   "matrix_apps": {
@@ -39,7 +43,7 @@
       "blurb": "Mobile companion for the VCM Administrator"
     },
     "server": {
-      "name": "Server",
+      "name": "VCM Server",
       "blurb": "Central service for the other apps"
     },
     "midi-player": {
@@ -254,7 +258,7 @@
     },
     {
       "id": "server",
-      "name": "Server",
+      "name": "VCM Server",
       "tier": "paid",
       "platforms": [
         {
@@ -290,6 +294,19 @@
             "dmg"
           ],
           "default_format": "dmg"
+        },
+        {
+          "id": "raspberry-pi",
+          "matrix_app": "server",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "arm64"
+          ]
         }
       ]
     },
@@ -331,6 +348,19 @@
             "dmg"
           ],
           "default_format": "dmg"
+        },
+        {
+          "id": "raspberry-pi",
+          "matrix_app": "midi-player",
+          "type": "purchase",
+          "available": false,
+          "formats": [
+            "deb"
+          ],
+          "default_format": "deb",
+          "arches": [
+            "arm64"
+          ]
         }
       ]
     }
