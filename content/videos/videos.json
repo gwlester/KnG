@@ -410,8 +410,10 @@
           ],
           "task": null,
           "audience": "For service template designers",
-          "length": "about 4:00",
-          "available": false
+          "length": "about 1:45",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: designing a service template with VCM Templates.</p><p>A template is a reusable starting point for a service. It holds the order of the service, and if you like, the actual hymns and chants. Then VCM Services can build a new service from it, instead of starting from scratch each week.</p><p>Choose Create to start a new template. Give it a name, and if you like, a description and a category.</p><p>Choose Add to put in an item. Type its name, choose whether it&#x27;s a hymn or a chant, and choose Save. Do that for each item, in the order they&#x27;ll be sung.</p><p>Select an item to move it with Up and Down, change it with Edit, or take it out with Remove.</p><p>When the order looks right, choose Save. Every save here goes straight to the Server. There&#x27;s no local draft to lose.</p><p>To start a new template from an existing one without changing the original, select it and choose Clone. That&#x27;s ideal for a service that&#x27;s almost, but not quite, the same.</p><p>Every save creates a new version, and the older ones are kept. Rebase renumbers the newest one back to version 1 once you don&#x27;t need the old ones. And on a computer, you can Export a template to a file, or Import one someone shared with you.</p><p>That&#x27;s designing a service template. To plan a service from a template, watch &#x27;Planning a service from a template with VCM Services&#x27;.</p>"
         },
         {
           "id": "designer-android",
@@ -449,8 +451,10 @@
           ],
           "task": null,
           "audience": "For service planners",
-          "length": "about 4:00",
-          "available": false
+          "length": "about 1:45",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: planning a service from a template with VCM Services.</p><p>VCM Services is where you put together the actual order of service for a specific date: the hymns, chants and other items, in order.</p><p>Choose Create, and pick a template to start from. That saves time, because the order of the service is already there. Then choose Select.</p><p>Give the service a title. Choose Pick to set the date and time, and the liturgical season fills in for you.</p><p>Items in red still need this week&#x27;s hymn. Select one and choose Edit, then Pick hymn. Choose the hymn from the list, choose Apply, and then Save. Do that for each red item.</p><p>The Publish button stays off until every red item is fixed. When the last one is done, it comes on.</p><p>Save Local keeps your work on this device only, and an unpublished draft is lost when the app closes. So when you&#x27;re ready, and now that we have addressed all of the issues, we press Publish to save our work on the Server and make it available to others, including VCM Runner.</p><p>That&#x27;s planning a service from a template. To play it during the service, watch &#x27;Running a service with VCM Runner&#x27;.</p>"
         },
         {
           "id": "planner-android",
@@ -488,8 +492,10 @@
           ],
           "task": null,
           "audience": "For whoever presses Play",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:40",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: running a service with VCM Runner.</p><p>VCM Runner is the app you use during a live service. It&#x27;s deliberately simple: find today&#x27;s service, which the app calls a script, and press Play.</p><p>When it opens, choose the hymnal, the date and, if you have more than one service that day, the time. Then choose Continue. If exactly one published service matches, it loads by itself.</p><p>Each item in the service is a row. It&#x27;s pending, next to play, playing, or already played.</p><p>Select an item and press Play to start it, or Stop to end it early.</p><p>Items set to auto-advance move on by themselves. Others wait for you to start the next one.</p><p>If the connection drops, choose Reconnect. You&#x27;ll pick up where you were, without choosing the service again.</p><p>Only one VCM Runner, on a computer or a phone, should be in control of playback at a time. And this app never locks itself when idle, so it&#x27;s ready right through a sermon. If the music doesn&#x27;t play, or plays through the wrong device, tell your technical contact which item it was.</p><p>That&#x27;s running a service with VCM Runner. If you also plan services, watch &#x27;Planning a service from a template with VCM Services&#x27;.</p>"
         },
         {
           "id": "runner-android",
