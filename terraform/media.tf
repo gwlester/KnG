@@ -55,22 +55,32 @@ resource "aws_cloudfront_origin_access_control" "media" {
 # The AWS managed "SimpleCORS" policy only added Access-Control-Allow-Origin for some
 # requests: a request carrying the "Priority" header (every Chrome request does) got a
 # cached response without it, so browsers refused the video and caption tracks
-# ("0 seconds", nothing plays). Plain custom headers are added to every response.
+# ("0 seconds", nothing plays). The CORS config below has origin_override on, so it always sets them.
 resource "aws_cloudfront_response_headers_policy" "media_cors" {
   name    = "kng-consulting-media-cors"
   comment = "Always send the CORS headers for the training and demo videos"
 
-  custom_headers_config {
-    items {
-      header   = "Access-Control-Allow-Origin"
-      value    = "*"
-      override = true
+  cors_config {
+    access_control_allow_credentials = false
+    origin_override                  = true
+
+    access_control_allow_headers {
+      items = ["*"]
     }
-    items {
-      header   = "Access-Control-Expose-Headers"
-      value    = "Content-Length, Content-Range, Accept-Ranges"
-      override = true
+
+    access_control_allow_methods {
+      items = ["GET", "HEAD", "OPTIONS"]
     }
+
+    access_control_allow_origins {
+      items = ["*"]
+    }
+
+    access_control_expose_headers {
+      items = ["Content-Length", "Content-Range", "Accept-Ranges"]
+    }
+
+    access_control_max_age_sec = 86400
   }
 }
 
