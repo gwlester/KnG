@@ -436,8 +436,10 @@
           ],
           "task": null,
           "audience": "For service template designers",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:15",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: VCM Templates on a phone.</p><p>VCM Templates on a phone or tablet does the same job as on a computer. The list shows each template, with buttons to Clone, Rebase or Delete it.</p><p>Touch Create to start a new template. Type a name, and if you like, a description. Touch one of the categories, or type a new one.</p><p>Touch Add Item. Type the item&#x27;s name, choose Hymn or Chant, and touch Save. Add each item in the order it will be sung.</p><p>When it&#x27;s ready, touch Save. Every save goes straight to the Server. The Cancel button leaves without saving.</p><p>Import and Export are only on the computer version. Everything else works the same way.</p><p>That&#x27;s VCM Templates on a phone. To design templates on a computer, watch &#x27;Designing a service template with VCM Templates&#x27;.</p>"
         }
       ]
     },
@@ -477,8 +479,10 @@
           ],
           "task": null,
           "audience": "For service planners",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:15",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: VCM Services on a phone.</p><p>VCM Services on a phone or tablet works like the computer version. The list shows your services, and whether each one is published.</p><p>Touch Create, and choose a template to start from. Starting from a template saves time, because the order of the service is already there.</p><p>Give the service a name. Touch Pick to set the date and time, and Choose season to set the season.</p><p>Items in red are unresolved. They still need this week&#x27;s hymn. Touch an item to fix it. The arrows move it up or down.</p><p>Publish stays off until every item is fixed. Save Local keeps your work on this device only, and it&#x27;s lost if the app closes. So when you&#x27;re ready, publish.</p><p>That&#x27;s planning a service on a phone. To plan on a computer, watch &#x27;Planning a service from a template with VCM Services&#x27;.</p>"
         }
       ]
     },
@@ -518,8 +522,10 @@
           ],
           "task": null,
           "audience": "For whoever presses Play",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:10",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: VCM Runner on a phone.</p><p>VCM Runner on a phone works like the computer version. At the top is the Setup card. It connects to your Server, and asks which service you want.</p><p>Choose the hymnal, and the date, and the time if you have more than one service that day. Then touch Load Script.</p><p>The service loads under Playback, and the status shows Ready. Each item is a row. Touch one to select it.</p><p>Touch Play to start the selected item. The status changes to Playing.</p><p>Items set to auto-advance move on by themselves. Others wait for you. If the connection drops, touch Reconnect. This app never locks itself, so it stays ready through the whole service.</p><p>That&#x27;s VCM Runner on a phone. Only one VCM Runner, on a computer or a phone, should be in control at a time.</p>"
         }
       ]
     },
