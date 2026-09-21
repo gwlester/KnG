@@ -206,8 +206,10 @@
           ],
           "task": null,
           "audience": "Everyone",
-          "length": "about 1:30",
-          "available": false
+          "length": "about 1:15",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: your password, locking the app, and saved servers.</p><p>To change your password, open the File menu and choose Change Password. Every app has it.</p><p>Type your current password, then your new one twice, and confirm. Use something you&#x27;ll remember, and keep it to yourself.</p><p>To step away, lock the app with Control-L, or Command-L on a Mac. It asks for your password when you come back. Most apps also lock themselves after sitting idle.</p><p>Type your password to unlock. VCM Runner is the exception: it never locks itself, so it stays ready through a whole service.</p><p>Under File, Saved Servers, you can see every Server this device has enrolled with, and forget the ones you no longer need.</p><p>If the wrong Server got selected, forget it here. The next time you connect, the app asks you to choose again.</p><p>That&#x27;s your password, locking the app, and saved servers. Now choose the videos for your job on the Training page.</p>"
         },
         {
           "id": "android-install",
@@ -265,8 +267,10 @@
           ],
           "task": "devices",
           "audience": "For administrators",
-          "length": "about 2:30",
-          "available": false
+          "length": "about 1:25",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: managing devices and users.</p><p>Open the Security tab and choose Devices. This lists every device that has ever been approved, with its app, its label and its status.</p><p>To block a device for a while, select it and choose Suspend. The device can&#x27;t connect until you say so. Use this when you&#x27;re not sure yet what happened.</p><p>To let it back in, select it and choose Resume. Nothing is lost.</p><p>Sign Out ends the device&#x27;s current session without taking away its access. It simply has to log in again next time.</p><p>For a device that is lost or stolen, choose Revoke. That takes its access away for good, and the device has to enroll from the beginning. You&#x27;ll be asked to confirm, so it&#x27;s safe to look.</p><p>The Users tab lists everyone with an account. Choose Suspend here to block a person on every one of their devices at once, and Resume to let them back. Add User creates a new account.</p><p>That&#x27;s managing devices and users. To approve new devices, watch &#x27;Quick start: approving and rejecting enrollments&#x27;. To find out whether everything is healthy, watch &#x27;Checking that everything is healthy&#x27;.</p>"
         },
         {
           "id": "admin-loading",
@@ -329,8 +333,10 @@
           ],
           "task": "health",
           "audience": "For administrators",
-          "length": "about 1:45",
-          "available": false
+          "length": "about 1:00",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: checking that everything is healthy.</p><p>Open the Dashboard tab. It shows how much content your Server holds: hymnals, hymns, chants, seasons, categories and templates. If those numbers look right, your music is there.</p><p>The Diagnostics tab shows which Server you&#x27;re connected to, its status, and how many warnings and errors it has reported. You want to see Connected, with zero warnings and zero errors.</p><p>The Connection tab shows the Server&#x27;s address and port, and below it, a log of what has happened recently. Check that the address is the one you expect.</p><p>If you&#x27;ve changed something, choose Refresh at the top to bring the numbers up to date.</p><p>That&#x27;s checking that everything is healthy. If something isn&#x27;t, watch &#x27;When something goes wrong&#x27;.</p>"
         },
         {
           "id": "admin-settings",
@@ -345,8 +351,10 @@
           ],
           "task": "settings",
           "audience": "For administrators",
-          "length": "about 2:30",
-          "available": false
+          "length": "about 1:00",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: VCM Server settings.</p><p>Open the Settings tab. The top part shows how this app connects to the Server. The part below, Server Configuration, is the Server&#x27;s own settings, and it applies to the whole church.</p><p>Here you can set the site or campus name, the sound output device, the MIDI device, and whether the Server prefers to play M I D I or M P 3 when both are available.</p><p>You can also set how long an app sits idle before it locks itself. Zero turns that off. The Runner never locks either way.</p><p>After you change a setting, choose Apply. Leave the rest alone unless you know what you&#x27;re changing, or ask your technical contact.</p><p>That&#x27;s VCM Server settings. If something isn&#x27;t working after a change, watch &#x27;When something goes wrong&#x27;.</p>"
         },
         {
           "id": "admin-trouble",
@@ -361,8 +369,10 @@
           ],
           "task": "trouble",
           "audience": "For administrators",
-          "length": "about 2:30",
-          "available": false
+          "length": "about 1:00",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: what to do when something goes wrong.</p><p>Start with the Diagnostics tab. It shows the Server&#x27;s status and how many warnings and errors it has reported. Anything above zero is worth telling your technical contact about.</p><p>The Snapshot button saves a diagnostic report to a file. You can send that file along to your technical contact. It&#x27;s also under the File menu.</p><p>On the Connection tab, choose Fetch Server Log to load the Server&#x27;s own log of what it has been doing. The Filter button narrows it down.</p><p>Your technical contact may ask you to raise the logging detail. That&#x27;s under the Security tab, in Application Log Levels. Only change it when you&#x27;re asked to.</p><p>That&#x27;s what to do when something goes wrong. Send what you gathered to your technical contact.</p>"
         },
         {
           "id": "android-security",
