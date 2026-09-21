@@ -110,7 +110,9 @@
           "task": null,
           "audience": "Pastors, musicians and church staff",
           "length": "about 1:25",
-          "available": false
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>Consider, if you will, a Sunday morning.</p><p>Good morning. I&#x27;m afraid Ruth is sick this morning, so we&#x27;ll be singing a cappella today.</p><p>Let&#x27;s begin with our opening hymn.</p><p>[The congregation sings, unevenly, without the organ.]</p><p>Don&#x27;t be that congregation. Be this one.</p><p>Oh no. Don&#x27;t you worry about a thing, Ruth. You rest up.</p><p>Everything all right?</p><p>Ruth&#x27;s sick. No organist. And the Divine Service is in an hour.</p><p>The Kyrie, the hymns, a cappella today?</p><p>Give me a minute, Pastor.</p><p>A little while later ...</p><p>Can it really carry the whole Divine Service?</p><p>It&#x27;s all in there, in order.</p><p>It runs on our own server, right there in the closet.</p><p>Let&#x27;s begin with our opening hymn.</p><p>[Organ music. The title: Virtual Church Musician. Music for worship, ready when you are. kng-consulting.com]</p>"
         }
       ]
     },
