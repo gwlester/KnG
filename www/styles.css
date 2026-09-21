@@ -1008,3 +1008,48 @@ a:focus-visible,
 #your-videos .your-use {
   display: block;
 }
+
+/* Blog page ------------------------------------------------------- */
+
+.blog-latest h2 {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.blog-older-heading {
+  margin: 2.5rem 0 0.5rem;
+  font-size: 1.4rem;
+}
+
+.blog-item .post-meta {
+  display: inline-block;
+  min-width: 10rem;
+  margin: 0 0.75rem 0 0;
+  font-family: var(--sans, inherit);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.blog-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: end;
+  margin: 0.5rem 0 1rem;
+}
+
+.blog-filter[hidden],
+.blog-item[hidden] {
+  display: none;
+}
+
+.blog-filter label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.blog-count {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+}
