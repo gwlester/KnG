@@ -207,8 +207,10 @@
           ],
           "task": "approve",
           "audience": "For administrators",
-          "length": "about 2:00",
-          "available": false
+          "length": "about 1:30",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: approving and rejecting enrollments, the most common administrator task.</p><p>Your church&#x27;s Server only lets in devices you approve, and this is the task you&#x27;ll do most often. Open VCM Administrator, choose the Security tab, then Pending Enrollments.</p><p>Each row is a device asking to connect. You can see who asked, which app it is, and the label they gave the device, such as Office PC or Lobby tablet. Make sure you recognize the request before you go on.</p><p>If it&#x27;s someone you expect, select the row and choose Approve. The device is let in, and the person is asked to choose a password and agree to the license.</p><p>If you don&#x27;t recognize a request, select it and choose Reject. You&#x27;ll be asked for a reason. The person sees your reason, and they&#x27;re welcome to try again.</p><p>Handled requests leave this list. To see everyone you&#x27;ve approved, or to remove a device later, look under Devices. That&#x27;s covered in the video on managing devices and users.</p><p>That&#x27;s approving and rejecting enrollments. To manage devices you&#x27;ve already approved, watch &#x27;Managing devices and users&#x27;. If you approve devices from your phone, watch &#x27;Approving a device from your phone&#x27;.</p>"
         },
         {
           "id": "admin-devices",
