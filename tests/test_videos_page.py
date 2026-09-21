@@ -90,6 +90,15 @@ class CommercialHooksTests(unittest.TestCase):
         self.build_blog = build_blog
         self.data = json.loads((ROOT / "content" / "videos" / "videos.json").read_text(encoding="utf-8"))
 
+    def with_commercial(self, available):
+        import copy
+        data = copy.deepcopy(self.data)
+        for sec in data["sections"]:
+            for v in sec["videos"]:
+                if v["id"] == "ready-when-you-are":
+                    v["available"] = available
+        return data
+
     def make_www(self, tmp):
         import shutil
         for name in ("index.html", "virtual-church-musician.html"):
@@ -100,18 +109,14 @@ class CommercialHooksTests(unittest.TestCase):
         import tempfile
         with tempfile.TemporaryDirectory() as d:
             tmp = self.make_www(Path(d))
-            self.build_blog.refresh_commercial_hooks(tmp, self.data)
+            self.build_blog.refresh_commercial_hooks(tmp, self.with_commercial(False))
             self.assertFalse((tmp / "watch.html").exists())
             self.assertNotIn("watch.html", (tmp / "index.html").read_text(encoding="utf-8"))
             self.assertNotIn("<video", (tmp / "virtual-church-musician.html").read_text(encoding="utf-8"))
 
     def test_button_player_and_watch_page_appear_when_available(self):
-        import copy, tempfile
-        data = copy.deepcopy(self.data)
-        for sec in data["sections"]:
-            for v in sec["videos"]:
-                if v["id"] == "ready-when-you-are":
-                    v["available"] = True
+        import tempfile
+        data = self.with_commercial(True)
         with tempfile.TemporaryDirectory() as d:
             tmp = self.make_www(Path(d))
             self.build_blog.refresh_commercial_hooks(tmp, data)
