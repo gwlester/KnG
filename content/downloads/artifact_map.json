@@ -366,6 +366,26 @@
       "default": true,
       "public": true,
       "signing": "apk"
+    },
+    {
+      "asset": "vcm-server_{ver}_arm64.deb",
+      "app": "server",
+      "platform": "raspberry-pi",
+      "arch": "arm64",
+      "format": "deb",
+      "default": true,
+      "public": false,
+      "signing": "none"
+    },
+    {
+      "asset": "vcm-midi-player_{ver}_arm64.deb",
+      "app": "midi-player",
+      "platform": "raspberry-pi",
+      "arch": "arm64",
+      "format": "deb",
+      "default": true,
+      "public": false,
+      "signing": "none"
     }
   ],
   "documents": [
