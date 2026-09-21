@@ -81,6 +81,11 @@ def find_asset(entry: dict, tag: str, assets: dict):
     return names[0], None
 
 
+def version_key(tag: str) -> tuple:
+    """Numeric order of a tag such as v1.0.1-b.10 (plain string order would put b.9 after b.10)."""
+    return tuple(int(n) for n in re.findall(r"\d+", tag))
+
+
 def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, signatures: dict = None) -> dict:
     """assets: filename -> Path of every downloaded release asset.
     signatures: filename -> bool from verify_signatures.py; None means nothing was verified."""
@@ -140,7 +145,7 @@ def merge_matrix(matrix: dict, release: dict, keep: int = KEEP_PER_CHANNEL):
     matrix = json.loads(json.dumps(matrix)) if matrix else {}
     matrix.setdefault("FormatVersion", 1)
     releases = [r for r in matrix.get("releases", []) if r["version"] != release["version"]] + [release]
-    releases.sort(key=lambda r: (r.get("published", ""), r["version"]), reverse=True)
+    releases.sort(key=lambda r: (r.get("published", ""), version_key(r["version"])), reverse=True)
     kept, dropped, seen = [], [], {}
     for r in releases:
         channel = r.get("channel", "beta")
