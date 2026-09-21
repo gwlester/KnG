@@ -555,8 +555,10 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 4:00",
-          "available": false
+          "length": "about 1:35",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to install the VCM Server on a Mac. Your screens may look a little different from these. The steps are the same. In this video: installing the VCM Server on macOS.</p><p>The VCM Server is the one computer at your church that holds everything. Choose a computer that stays on, is on your church network, and can reach your sound system.</p><p>Get the VCM Server disk image for macOS from the Download page, and double-click it to open it.</p><p>Open a terminal, go to the mounted disk image, and run sudo dot slash Install dot command. Enter your password when it asks.</p><p>The installer asks you a few questions. Each one shows its current value in brackets, so press Enter to accept it. The M I D I question lists the devices your Mac can see, so choose yours from the list.</p><p>The installer copies the Server to your computer, allows it to open, and starts it as a service. Run the installer again any time to change a setting, or to upgrade.</p><p>One thing to know: if you run another VCM app on the same Mac as the Server, macOS may need you to allow that app to use the local network. You&#x27;ll find it in the Privacy and Security settings, under Local Network.</p><p>That&#x27;s installing the VCM Server on macOS. Next, watch &#x27;Setting up the first administrator&#x27;.</p>"
         },
         {
           "id": "install-server-linux",
@@ -571,8 +573,10 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 4:00",
-          "available": false
+          "length": "about 1:30",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to install the VCM Server on a Linux computer. Your screens may look a little different from these. The steps are the same. In this video: installing the VCM Server on Linux.</p><p>The VCM Server is the one computer at your church that holds everything. Choose a computer that stays on, is on your church network, and can reach your sound system.</p><p>Get the VCM Server package for Linux from the Download page. It&#x27;s one file, ending in dot deb.</p><p>Open a terminal in the folder where the file was saved, and type sudo apt install, then dot slash and the file name. Enter your password when it asks. The installer adds what the Server needs and starts it for you.</p><p>To change the settings, open the file server dot env, in the Virtual Church Musician server folder, with a text editor, as an administrator. The comments in the file explain each setting.</p><p>After you save your changes, restart the Server, and then ask for its status. You want to see that it&#x27;s active, and running.</p><p>That&#x27;s all there is to it. The Server starts by itself whenever the computer starts. Next, set up the first administrator.</p><p>That&#x27;s installing the VCM Server on Linux. Next, watch &#x27;Setting up the first administrator&#x27;.</p>"
         },
         {
           "id": "first-administrator",
@@ -619,8 +623,10 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:20",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to install a VCM MIDI Player on a Mac. Your screens may look a little different from these. The steps are the same. In this video: installing a VCM MIDI Player on macOS.</p><p>A VCM MIDI Player sends the music as M I D I to your organ or sound module. Put it on a computer near that instrument, on the same network as the Server.</p><p>Get the VCM MIDI Player disk image for macOS from the Download page, and double-click it to open it.</p><p>Open a terminal, go to the mounted disk image, and run sudo dot slash Install dot command. Enter your password when it asks.</p><p>Answer the prompts. Press Enter to accept a value shown in brackets. Type the username and password of a device that&#x27;s enrolled on your Server, and choose your M I D I device from the list.</p><p>The username and password have to match a device you&#x27;ve already enrolled and approved on the Server. Run the installer again any time to change a setting, or to upgrade.</p><p>That&#x27;s installing a VCM MIDI Player on macOS. To set up the Server it connects to, watch &#x27;Installing the VCM Server on macOS&#x27;.</p>"
         },
         {
           "id": "install-midi-linux",
@@ -635,8 +641,10 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:25",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to install a VCM MIDI Player on a Linux computer. Your screens may look a little different from these. The steps are the same. In this video: installing a VCM MIDI Player on Linux.</p><p>A VCM MIDI Player sends the music as M I D I to your organ or sound module. Put it on a computer near that instrument, on the same network as the Server.</p><p>Get the package from the Download page and install it with sudo apt install, then dot slash and the file name. It starts by itself, using placeholder details for now.</p><p>Next, open the file midi player dot env, in the Virtual Church Musician M I D I player folder. Set the username and password of a device that&#x27;s enrolled on your Server, and choose your M I D I device.</p><p>Save the file, restart the MIDI Player, and ask for its status. You want to see that it&#x27;s active, and running.</p><p>The username and password have to match a device you&#x27;ve already enrolled and approved on the Server. Enrolling is covered in &#x27;Connecting to your church&#x27;s Server&#x27;.</p><p>That&#x27;s installing a VCM MIDI Player on Linux. To set up the Server it connects to, watch &#x27;Installing the VCM Server on Linux&#x27;.</p>"
         }
       ]
     }
