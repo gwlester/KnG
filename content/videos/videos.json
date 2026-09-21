@@ -591,8 +591,10 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 2:00",
-          "available": false
+          "length": "about 1:20",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to set up the first administrator on a brand-new VCM Server. The steps are the same on every system. In this video: setting up the first administrator.</p><p>The first administrator is set up from VCM Administrator, on a brand-new Server. Open it on any computer on your church&#x27;s network. On a brand-new Server, the first person to enroll becomes the administrator, so make sure it&#x27;s the right person.</p><p>Type the username you want, and a label for this computer, such as Church office PC. Then choose Request Enrollment. On a brand-new Server, you&#x27;re approved on the spot.</p><p>Choose a password, and type it again to confirm. Then choose OK. Keep this password safe. It&#x27;s the key to the whole system.</p><p>Read the license. Tick the box to say your congregation has purchased a copy, tick the box to agree, and choose I Agree.</p><p>That&#x27;s it. You&#x27;re the first administrator. From now on, everyone else asks to connect, and you approve them.</p><p>That&#x27;s setting up the first administrator. Next, watch &#x27;Quick start: approving and rejecting enrollments&#x27;.</p>"
         },
         {
           "id": "install-midi-windows",
