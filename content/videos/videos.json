@@ -393,8 +393,10 @@
           ],
           "task": "approve",
           "audience": "For administrators",
-          "length": "about 2:30",
-          "available": false
+          "length": "about 1:30",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: approving a device from your phone with VCM Security.</p><p>VCM Security is a phone and tablet app that does just one job: approving devices, away from the Server computer. Open it, and the Pending Enrollments tab shows everyone waiting to connect.</p><p>Each card shows who asked, which app it is, and the label they gave the device. Make sure you recognize the request before you go on.</p><p>If it&#x27;s someone you expect, choose Approve. The device is let in, and the person is asked to choose a password and agree to the license.</p><p>If you don&#x27;t recognize a request, choose Reject. You&#x27;ll be asked for a reason, which the person sees. They&#x27;re welcome to try again.</p><p>Under Devices, you can suspend a device, resume it, sign it out, or revoke it, just as on the computer.</p><p>And under Users, you can suspend a person on all of their devices at once.</p><p>Everything else, like the Dashboard, the Catalog and loading music, is only in VCM Administrator on the computer.</p><p>That&#x27;s approving a device from your phone. For everything else an administrator does, watch the videos for VCM Administrator on the computer.</p>"
         }
       ]
     },
