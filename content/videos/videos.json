@@ -285,8 +285,10 @@
           ],
           "task": "load",
           "audience": "For administrators",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:15",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: loading hymnals, chants and music.</p><p>Everything the Server plays comes in through the buttons at the top of the Catalog tab: Import Bundle, Load Music Files, Import Mega Bundle, and Upload Single Media.</p><p>Import Mega Bundle brings in hymnals, chants, templates and the music files themselves, all from one package, in a single step. It&#x27;s the easiest way to set up a large catalog.</p><p>Import Bundle brings in new content from a file someone else prepared, such as hymnals, hymns, chants, seasons, categories and templates.</p><p>Load Music Files brings in just the music, the M P 3 and MIDI files, from a package.</p><p>Upload Single Media adds one music file.</p><p>After you load something, choose Refresh and look at the Dashboard. The counts for hymnals, hymns and chants should have gone up.</p><p>That&#x27;s loading hymnals, chants and music. To see what your Server now holds, watch &#x27;Browsing and exporting the catalog&#x27;.</p>"
         },
         {
           "id": "admin-catalog",
@@ -301,8 +303,10 @@
           ],
           "task": "catalog",
           "audience": "For administrators",
-          "length": "about 2:30",
-          "available": false
+          "length": "about 1:05",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: browsing and exporting the catalog.</p><p>The Catalog tab lets you look through everything on your Server. There&#x27;s a tab for hymnals, hymns, chants, seasons, categories and templates.</p><p>Choose a tab to see its entries. Here are the hymns.</p><p>And here are the chants, and the templates.</p><p>Select the rows you want, or choose Select All to pick every row on that tab. Deselect All clears your choice.</p><p>Export Selected saves your choice to a file. That&#x27;s useful as a backup, or to move content to another system.</p><p>This screen is only for looking. To change content, import an updated file, or use VCM Templates and VCM Services.</p><p>That&#x27;s browsing and exporting the catalog. To load more content, watch &#x27;Loading hymnals, chants and music&#x27;.</p>"
         },
         {
           "id": "admin-backup",
@@ -317,8 +321,10 @@
           ],
           "task": "backup",
           "audience": "For administrators",
-          "length": "about 2:00",
-          "available": false
+          "length": "about 0:55",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video assumes your device is already connected. If it isn&#x27;t, watch &#x27;Connecting to your church&#x27;s Server&#x27; first. In this video: backing up your VCM Server.</p><p>Before you make a big change, and every so often besides, save a copy of your Server&#x27;s content. You do that from the Catalog tab.</p><p>Choose Export Bundle. It saves any part of your catalog to a single file. Keep that file somewhere safe, away from the Server computer.</p><p>Snapshot, in the File menu, is different. It saves a report on how the Server is doing, to send to your technical contact. It&#x27;s not a copy of your content.</p><p>To bring a saved copy back, use Import Bundle.</p><p>That&#x27;s backing up your VCM Server. To bring content back in, watch &#x27;Loading hymnals, chants and music&#x27;.</p>"
         },
         {
           "id": "admin-health",
