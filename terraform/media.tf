@@ -8,7 +8,7 @@
 # can be added later with a certificate SAN and a DNS record).
 #
 # Files are uploaded by hand (aws s3 sync) with versioned names, so they can be
-# cached for a long time. The SimpleCORS response-headers policy is needed so
+# cached for a long time. The CORS response-headers policy below is needed so
 # the caption tracks (.vtt), which browsers fetch cross-origin, can be read.
 
 resource "aws_s3_bucket" "media" {
@@ -52,6 +52,28 @@ resource "aws_cloudfront_origin_access_control" "media" {
   signing_protocol                  = "sigv4"
 }
 
+# The AWS managed "SimpleCORS" policy only added Access-Control-Allow-Origin for some
+# requests: a request carrying the "Priority" header (every Chrome request does) got a
+# cached response without it, so browsers refused the video and caption tracks
+# ("0 seconds", nothing plays). Plain custom headers are added to every response.
+resource "aws_cloudfront_response_headers_policy" "media_cors" {
+  name    = "kng-consulting-media-cors"
+  comment = "Always send the CORS headers for the training and demo videos"
+
+  custom_headers_config {
+    items {
+      header   = "Access-Control-Allow-Origin"
+      value    = "*"
+      override = true
+    }
+    items {
+      header   = "Access-Control-Expose-Headers"
+      value    = "Content-Length, Content-Range, Accept-Ranges"
+      override = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "media" {
   enabled     = true
   price_class = var.cloudfront_price_class
@@ -72,8 +94,8 @@ resource "aws_cloudfront_distribution" "media" {
 
     # AWS managed "CachingOptimized" policy.
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    # AWS managed "SimpleCORS" response headers policy (Access-Control-Allow-Origin: *).
-    response_headers_policy_id = "60669652-455b-4ae9-85a4-c4c02393f86c"
+    # Own policy that always adds the CORS headers (see the resource below).
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.media_cors.id
   }
 
   restrictions {

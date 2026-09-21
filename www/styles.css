@@ -167,6 +167,12 @@ a:focus-visible,
   padding-block: 4.5rem 5.5rem;
 }
 
+.hero-visual {
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
+}
+
 .hero h1 {
   color: #fff;
 }
