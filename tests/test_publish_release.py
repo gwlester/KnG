@@ -117,6 +117,12 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual([r["version"] for r in matrix["releases"]], ["v1.0.1-b.7", "v1.0.1-b.6"])
         self.assertEqual(dropped, ["v1.0.1-b.5"])
 
+    def test_two_releases_on_the_same_day_are_ordered_numerically(self):
+        matrix = {}
+        for tag in ["v1.0.1-b.9", "v1.0.1-b.10"]:
+            matrix, _ = pr.merge_matrix(matrix, {"version": tag, "channel": "beta", "published": "2026-09-21"})
+        self.assertEqual([r["version"] for r in matrix["releases"]], ["v1.0.1-b.10", "v1.0.1-b.9"])
+
     def test_merge_is_idempotent_and_keeps_stable_and_beta_separately(self):
         matrix = {"releases": [], "links": {"x:android": {"type": "store", "url": "https://p"}}}
         for tag, channel, published in (("v1.1.0", "stable", "2026-10-01"), ("v1.1.1-b.1", "beta", "2026-10-05"), ("v1.1.0", "stable", "2026-10-01")):
