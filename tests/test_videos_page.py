@@ -131,7 +131,7 @@ class CommercialHooksTests(unittest.TestCase):
             self.assertIn('kind="captions"', watch)
             self.assertNotIn("autoplay", watch)
             # turning it back off removes the watch page again
-            self.build_blog.refresh_commercial_hooks(tmp, self.data)
+            self.build_blog.refresh_commercial_hooks(tmp, self.with_commercial(False))
             self.assertFalse((tmp / "watch.html").exists())
 
 
