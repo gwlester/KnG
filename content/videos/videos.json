@@ -122,10 +122,6 @@
       "note": "Everyone needs these. Then choose the videos for your job.",
       "videos": [
         {
-          "id": "install-apps",
-          "title": "Installing the apps on your computer",
-          "blurb": "One video with a chapter each for Windows, macOS and Linux.",
-          "use_when": "you have downloaded an app and need to install it",
           "roles": [
             "everyone"
           ],
@@ -134,8 +130,50 @@
           ],
           "task": null,
           "audience": "Everyone",
-          "length": "about 3:00",
-          "available": false
+          "available": true,
+          "version": 1,
+          "id": "install-windows",
+          "title": "Installing the apps on Windows",
+          "blurb": "Download an app, run the installer, and find it in the Start menu.",
+          "use_when": "you have downloaded an app and need to install it on Windows",
+          "length": "about 1:45",
+          "transcript_html": "<p>This video shows how to install a VCM app on a Windows computer. Your screens may look a little different from these. The steps are the same. In this video: installing the apps on Windows.</p><p>There are four apps for your computer: VCM Administrator, VCM Templates, VCM Services and VCM Runner. You install each one the same way, and you only need the ones for your job.</p><p>Open the download link from your church&#x27;s technical contact, or go to the Download page on our website. Choose the app you need, then choose Windows. You&#x27;ll get one installer file for each app.</p><p>When the download finishes, find the file in your Downloads folder and double-click it. Some apps come as an installer with the ending dot E X E, and some with the ending dot M S I. Either one works.</p><p>Windows may warn you that it doesn&#x27;t recognize the app. That&#x27;s expected for now. Choose the option to see more details, and then the option to run it anyway.</p><p>Then follow the installer. Choose the button that continues, and again, until it finishes. You don&#x27;t need to change any of the settings.</p><p>When it&#x27;s done, open the Start menu and type the name of the app, for example, V C M Administrator. Choose it from the list, and it opens.</p><p>To install another app, repeat these steps with that app&#x27;s file. You only do this once for each app on each computer.</p><p>That&#x27;s installing the apps on Windows. Next, watch &#x27;Connecting to your church&#x27;s Server&#x27;.</p>"
+        },
+        {
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "Everyone",
+          "available": true,
+          "version": 1,
+          "id": "install-macos",
+          "title": "Installing the apps on macOS",
+          "blurb": "Open the disk image, drag the app to Applications, and the one-time fix for the first launch.",
+          "use_when": "you have downloaded an app and need to install it on a Mac",
+          "length": "about 1:45",
+          "transcript_html": "<p>This video shows how to install a VCM app on a Mac. Your screens may look a little different from these. The steps are the same. In this video: installing the apps on macOS.</p><p>There are four apps for your computer: VCM Administrator, VCM Templates, VCM Services and VCM Runner. You install each one the same way, and you only need the ones for your job.</p><p>Open the download link from your church&#x27;s technical contact, or go to the Download page on our website. Choose the app you need, then choose macOS. You&#x27;ll get one disk image file for each app.</p><p>When the download finishes, double-click the file in your Downloads folder. A window opens showing the app, and next to it, the Applications folder.</p><p>Drag the app onto the Applications folder. That copies it to your computer. When it&#x27;s done, you can close the window, and eject the disk image.</p><p>The first time you open the app, your Mac may say it can&#x27;t be opened, or that it&#x27;s damaged. Nothing is wrong. It just means Apple hasn&#x27;t reviewed the app yet.</p><p>To fix it, open the disk image again, and double-click the file named fix app permissions. You only do this once for each app. Then open the app from your Applications folder.</p><p>From now on, the app opens like any other program. To install another app, repeat these steps with that app&#x27;s file.</p><p>That&#x27;s installing the apps on macOS. Next, watch &#x27;Connecting to your church&#x27;s Server&#x27;.</p>"
+        },
+        {
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer"
+          ],
+          "task": null,
+          "audience": "Everyone",
+          "available": true,
+          "version": 1,
+          "id": "install-linux",
+          "title": "Installing the apps on Linux",
+          "blurb": "Install the package with one command and find the app in your applications menu.",
+          "use_when": "you have downloaded an app and need to install it on Linux",
+          "length": "about 1:30",
+          "transcript_html": "<p>This video shows how to install a VCM app on a Linux computer. Your screens may look a little different from these. The steps are the same. In this video: installing the apps on Linux.</p><p>There are four apps for your computer: VCM Administrator, VCM Templates, VCM Services and VCM Runner. You install each one the same way, and you only need the ones for your job.</p><p>Open the download link from your church&#x27;s technical contact, or go to the Download page on our website. Choose the app you need, then choose Linux. You&#x27;ll get one package file for each app.</p><p>Open a terminal in the folder where the file was saved. Then type the command sudo apt install, followed by dot slash and the name of the file.</p><p>Your computer asks for your password. Type it, and press Enter. You won&#x27;t see the letters as you type. The installer then does the rest.</p><p>When it&#x27;s done, the app is in your applications menu, with its own icon, like any other program. Search for its name, for example, V C M Administrator, and open it.</p><p>To install another app, repeat these steps with that app&#x27;s file. You only do this once for each app on each computer.</p><p>That&#x27;s installing the apps on Linux. Next, watch &#x27;Connecting to your church&#x27;s Server&#x27;.</p>"
         },
         {
           "id": "connecting",
@@ -184,8 +222,10 @@
           ],
           "task": null,
           "audience": "Everyone on a phone or tablet",
-          "length": "about 3:00",
-          "available": false
+          "length": "about 1:40",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>This video shows how to put a VCM app on an Android phone or tablet. Your screens may look a little different from these. The steps are the same. In this video: installing the apps on Android.</p><p>There are four apps for Android: VCM Templates, VCM Services, VCM Runner and VCM Security. You install each one the same way, and you only need the ones for your job.</p><p>Open the download link from your church&#x27;s technical contact, or go to the Download page on our website. Choose the app you need, and choose the Android file.</p><p>Android will ask whether you want to allow installs from this source. Choose to allow it, just this once.</p><p>Android may also scan the app before it installs. That&#x27;s normal. When the scan finishes, choose Install.</p><p>When it&#x27;s done, choose Open. The app looks for your church&#x27;s Server by itself. Your phone has to be on the same Wi-Fi as the Server.</p><p>The first time, type your username, add a label for this device, such as Lobby tablet, and choose Request Enrollment.</p><p>Then wait for your administrator to approve you. Once you&#x27;re approved, agree to the license and choose a password.</p><p>From now on, the app finds the Server and reconnects by itself. To install another app, repeat these steps.</p><p>That&#x27;s installing the apps on Android. Now choose the videos for your job on the Training page.</p>"
         }
       ]
     },

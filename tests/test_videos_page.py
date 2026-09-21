@@ -16,7 +16,7 @@ class VideosPageTests(unittest.TestCase):
         return [v for s in self.data["sections"] for v in s["videos"]]
 
     def test_every_video_is_on_the_page_with_its_anchor(self):
-        self.assertEqual(len(self.all_videos()), 28)
+        self.assertEqual(len(self.all_videos()), 30)
         for v in self.all_videos():
             with self.subTest(video=v["id"]):
                 self.assertIn(f'id="{v["id"]}"', self.html)
@@ -69,7 +69,7 @@ class VideosPageTests(unittest.TestCase):
         self.assertIn('id="finder"', self.html)
         self.assertIn("hidden>", self.html.split('id="finder"', 1)[1][:80] + ">")
         self.assertIn('src="training.js"', self.html)
-        self.assertEqual(self.html.count("class=\"video-card\""), 28)
+        self.assertEqual(self.html.count("class=\"video-card\""), 30)
         for role in self.data["roles"]:
             self.assertIn(f'<option value="{role["id"]}">', self.html)
 

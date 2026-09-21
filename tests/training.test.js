@@ -15,13 +15,13 @@ test("no role chosen shows everything", () => {
 
 test("everyone sees only the Start here videos for their platform", () => {
   const desktop = ids({ role: "everyone", platform: "computer" });
-  assert.deepEqual(desktop, ["install-apps", "connecting", "password-and-locking"]);
+  assert.deepEqual(desktop, ["install-windows", "install-macos", "install-linux", "connecting", "password-and-locking"]);
   const phone = ids({ role: "everyone", platform: "android" });
   assert.deepEqual(phone, ["android-install"]);
 });
 
 test("a planner on a computer gets Start here plus the planner video, nothing for other roles", () => {
-  assert.deepEqual(ids({ role: "planner", platform: "computer" }), ["install-apps", "connecting", "password-and-locking", "planner"]);
+  assert.deepEqual(ids({ role: "planner", platform: "computer" }), ["install-windows", "install-macos", "install-linux", "connecting", "password-and-locking", "planner"]);
 });
 
 test("a planner on Android gets the Android videos only", () => {
@@ -35,7 +35,7 @@ test("any device shows both platforms", () => {
 
 test("an administrator can narrow to one task, keeping Start here", () => {
   const list = ids({ role: "admin", platform: "computer", task: "approve" });
-  assert.deepEqual(list, ["install-apps", "connecting", "password-and-locking", "admin-approving"]);
+  assert.deepEqual(list, ["install-windows", "install-macos", "install-linux", "connecting", "password-and-locking", "admin-approving"]);
   const phone = ids({ role: "admin", platform: "android", task: "approve" });
   assert.deepEqual(phone, ["android-install", "android-security"]);
 });
