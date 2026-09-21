@@ -64,6 +64,18 @@ class Post:
     body_html: str
 
     @property
+    def plain_text(self) -> str:
+        return re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", " ", self.body_html))).strip()
+
+    @property
+    def month_key(self) -> str:
+        return self.date.strftime("%Y-%m")
+
+    @property
+    def month_label(self) -> str:
+        return self.date.strftime("%B %Y")
+
+    @property
     def date_display(self) -> str:
         return self.date.strftime("%B %-d, %Y")
 
@@ -228,15 +240,51 @@ def render_post_page(post: Post) -> str:
     )
 
 
+BLOG_FILTER_MIN_POSTS = 10  # the filter is in the page but hidden until there are MORE than this many posts
+
+
 def render_archive_page(posts: list[Post]) -> str:
-    cards = "\n".join(
-        f"""          <article class="card">
-            <p class="post-meta">{post.date_display}</p>
-            <h3><a href="{post.slug}.html">{post.title}</a></h3>
-            <p>{post.summary}</p>
-            <a class="button button-secondary" href="{post.slug}.html">Read more</a>
+    latest, older = posts[0], posts[1:]
+    esc = html_lib.escape
+    latest_html = f"""          <article class="card blog-latest" id="{latest.slug}">
+            <p class="post-meta">Latest · {latest.date_display}</p>
+            <h2><a href="{latest.slug}.html">{latest.title}</a></h2>
+            <p>{latest.summary}</p>
+            <a class="button button-secondary" href="{latest.slug}.html">Read the full post</a>
           </article>"""
-        for post in posts
+    show_filter = len(posts) > BLOG_FILTER_MIN_POSTS
+    months = []
+    for post in posts:
+        if (post.month_key, post.month_label) not in months:
+            months.append((post.month_key, post.month_label))
+    options = "\n".join(f'                <option value="{k}">{lbl}</option>' for k, lbl in months)
+    filter_html = f"""          <form class="blog-filter" id="blog-filter" role="search" aria-label="Filter posts"{'' if show_filter else ' hidden'}>
+            <label>Search <input type="search" id="blog-text" placeholder="Words in a post" /></label>
+            <label>Month
+              <select id="blog-month">
+                <option value="">All dates</option>
+{options}
+              </select>
+            </label>
+            <button type="button" class="button button-secondary" id="blog-clear">Clear</button>
+            <p class="blog-count" id="blog-count" aria-live="polite"></p>
+          </form>"""
+    items = "\n".join(
+        f"""            <details class="faq-item blog-item" id="{p.slug}" data-month="{p.month_key}" data-search="{esc((p.title + ' ' + p.summary + ' ' + p.plain_text).lower(), quote=True)}">
+              <summary><span class="post-meta">{p.date_display}</span> {p.title}</summary>
+              <div class="faq-answer">
+                <p>{p.summary}</p>
+                <p><a href="{p.slug}.html">Read the full post</a></p>
+              </div>
+            </details>"""
+        for p in older
+    )
+    older_html = (
+        f"""          <h2 class="blog-older-heading">Earlier posts</h2>
+{filter_html}
+          <div class="faq-list blog-list" id="blog-list">
+{items}
+          </div>""" if older else ""
     )
     body = f"""
     <main>
@@ -246,11 +294,11 @@ def render_archive_page(posts: list[Post]) -> str:
             <p class="eyebrow">Blog</p>
             <h1>Notes from Gerald Lester</h1>
           </div>
-          <div class="card-grid">
-{cards}
-          </div>
+{latest_html}
+{older_html}
         </div>
       </section>
+      <script src="../blog.js" defer></script>
     </main>"""
     return page_shell(
         title="Blog | KnG Consulting",
