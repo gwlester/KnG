@@ -44,16 +44,18 @@ service planning, ministry tools
 
 ## Suggested "alternative to" targets
 
-List against **HymnSoft (Player)**, its official successor **Christian
-Worship: Service Builder** (with the **Playlist** add-on), and **MyMIDI
-Worship Resources** -- all are accompaniment-playback tools for churches,
-the same category VCM is actually in. Do not list against ProPresenter,
-EasyWorship, or WorshipTools -- those are lyric/slide projection software,
-a different category VCM doesn't compete in.
+List against **HymnSoft (Player)**, its official WELS successor
+**Christian Worship: Service Builder** (with the **Playlist** add-on), the
+LCMS equivalent **Lutheran Service Builder** (with the **Concordia
+Organist** add-on), and **MyMIDI Worship Resources** -- all are
+accompaniment-playback tools for churches, the same category VCM is
+actually in. Do not list against ProPresenter, EasyWorship, or
+WorshipTools -- those are lyric/slide projection software, a different
+category VCM doesn't compete in.
 
 One factual differentiator worth including in the listing's own
-description if the format allows it: Service Builder's Playlist module
-plays back encoded audio recordings (MP3/M4A) rather than MIDI, by its
-publisher's own design choice; VCM sends MIDI directly to a real
+description if the format allows it: both Playlist and Concordia
+Organist play back encoded audio recordings (MP3/M4A) rather than MIDI,
+by each publisher's own design choice; VCM sends MIDI directly to a real
 instrument during the live service. State it plainly as a capability
-difference, not a knock on the other product.
+difference, not a knock on either product.

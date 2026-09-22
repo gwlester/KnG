@@ -37,11 +37,11 @@ Worship technology
 
 ## Similar projects
 
-HymnSoft, Christian Worship: Service Builder / Playlist, MyMIDI Worship
-Resources. Unlike Service Builder's Playlist add-on, which plays back
-encoded audio recordings (MP3/M4A) instead of MIDI by its publisher's own
-design, VCM sends MIDI directly to a real instrument during the live
-service.
+HymnSoft, Christian Worship: Service Builder / Playlist (WELS), Lutheran
+Service Builder / Concordia Organist (LCMS), MyMIDI Worship Resources.
+Unlike either Service Builder's playlist add-on, which plays back encoded
+audio recordings (MP3/M4A) instead of MIDI by its publisher's own design,
+VCM sends MIDI directly to a real instrument during the live service.
 
 ## License
 
