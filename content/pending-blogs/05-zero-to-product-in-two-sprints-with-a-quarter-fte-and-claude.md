@@ -12,7 +12,16 @@ boilerplate, first-draft tests, repetitive documentation, and the general
 overhead of getting from "I know what I want" to "there's code for it."
 
 That's the part an AI pair is good at, and handing it over is what made
-the quarter FTE arithmetic work at all.
+the quarter FTE arithmetic work at all -- especially given the actual
+scope: by the end of those two sprints, Virtual Church Musician wasn't one
+app, it was ten. Four desktop apps (Admin, Services, Templates, Runner),
+four React Native companions covering the same four roles on phones, and
+the two servers behind all of them (the Church Music Server and the MIDI
+Player) -- and every one of the desktop apps and both servers built for
+Windows, macOS, and Linux from day one, not one platform first and the
+rest deferred. At a quarter FTE, across two sprints, that's not a number
+that works if the human is also the one typing, and retyping, every
+platform-specific line.
 
 **Spend the human time on product decisions, not typing.** What Virtual
 Church Musician needed to do, for whom, in what order -- that's domain
@@ -45,9 +54,12 @@ also exactly the situation where a regression is most expensive, because
 there's no slack later in the week to catch it. Running the full suite
 before closing a work item stayed non-negotiable the entire time.
 
-**Ship narrow, ship real.** Two sprints produced something a real church
-could actually use, not a demo. Narrow scope, done properly, beat broad
-scope done halfway -- especially with this little room for rework.
+**Ship narrow, ship real -- narrow in features, not in platforms.** Two
+sprints produced something a real church could actually use, not a demo,
+across every OS a church's own hardware was likely to already be running.
+Narrow feature scope, done properly and cross-platform from the start,
+beat broad feature scope done halfway on one platform -- especially with
+this little room for rework.
 
 None of this is a claim that AI assistance replaces product thinking. It's
 closer to the opposite: constraining the human time to almost nothing
