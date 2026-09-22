@@ -28,6 +28,13 @@ running silently un-versioned, with no way to tell them apart later.
 
 A few points worth building around those two:
 
+- **Broadcast to loopback as well as the network.** When the client and
+  server happen to be running on the same machine, a broadcast sent only
+  to the network interface can miss it -- not every OS treats loopback as
+  part of the broadcast domain by default. Send the same discovery packet
+  to `127.0.0.1` (or the loopback broadcast address) in addition to the
+  network broadcast address so "server and client on one machine" isn't a
+  special case that quietly fails.
 - **Time-box the listen window and retry a couple of times**, rather than
   waiting indefinitely for a reply that never arrives on a network where
   nothing is actually running the server.
