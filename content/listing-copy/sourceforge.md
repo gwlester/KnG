@@ -35,6 +35,14 @@ Spanish, and German.
 Religion, Multimedia :: Sound/Audio :: Players, MIDI, Church software,
 Worship technology
 
+## Similar projects
+
+HymnSoft, Christian Worship: Service Builder / Playlist, MyMIDI Worship
+Resources. Unlike Service Builder's Playlist add-on, which plays back
+encoded audio recordings (MP3/M4A) instead of MIDI by its publisher's own
+design, VCM sends MIDI directly to a real instrument during the live
+service.
+
 ## License
 
 Freemium -- Admin/Security, Templates, Services, and Runner client apps

@@ -44,8 +44,16 @@ service planning, ministry tools
 
 ## Suggested "alternative to" targets
 
-List against **HymnSoft (Player)** and **MyMIDI Worship Resources** --
-both are MIDI/MP3 accompaniment-playback tools for churches, the same
-category VCM is actually in. Do not list against ProPresenter,
+List against **HymnSoft (Player)**, its official successor **Christian
+Worship: Service Builder** (with the **Playlist** add-on), and **MyMIDI
+Worship Resources** -- all are accompaniment-playback tools for churches,
+the same category VCM is actually in. Do not list against ProPresenter,
 EasyWorship, or WorshipTools -- those are lyric/slide projection software,
 a different category VCM doesn't compete in.
+
+One factual differentiator worth including in the listing's own
+description if the format allows it: Service Builder's Playlist module
+plays back encoded audio recordings (MP3/M4A) rather than MIDI, by its
+publisher's own design choice; VCM sends MIDI directly to a real
+instrument during the live service. State it plainly as a capability
+difference, not a knock on the other product.

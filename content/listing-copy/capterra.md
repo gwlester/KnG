@@ -47,6 +47,15 @@ on Android. The apps ship in English, Spanish, and German.
 - Cross-platform desktop (Windows/macOS/Linux) and Android mobile apps
 - Localized UI (English, Spanish, German)
 
+## Similar tools
+
+In the same general category: **HymnSoft**, **Christian Worship: Service
+Builder** (with its **Playlist** add-on), and **MyMIDI Worship
+Resources**. The clearest capability difference from Service Builder +
+Playlist: Playlist plays back encoded audio recordings (MP3/M4A) instead
+of MIDI, by its publisher's own stated design; VCM sends MIDI directly to
+a real instrument during the live service.
+
 ## Pricing model
 
 Freemium: Admin/Security, Templates, Services, and Runner client apps are
