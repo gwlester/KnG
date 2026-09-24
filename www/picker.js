@@ -46,6 +46,9 @@
     if (!platform.available) return { enabled: false, label: "Coming soon", note: "This download is not available yet." };
     if (platform.type === "store") return { enabled: true, label: "Get it on Google Play", note: "" };
     if (platform.type === "purchase") return { enabled: true, label: "Buy", note: "" };
+    if (platform.type === "gated") {
+      return { enabled: true, label: "Download", note: "Enter the access code you were given, then click Download." };
+    }
     return { enabled: true, label: "Download", note: "" };
   }
 
@@ -86,7 +89,9 @@
         if (!p.available) return;
         if (formats.indexOf("store") >= 0) { p.type = "store"; return; }
         if (formats.indexOf("purchase") >= 0) { p.type = "purchase"; return; }
-        p.type = "download";
+        // A real file is published for a paid app on a non-stable release:
+        // that's the alpha/beta password-gated flow, not a plain download.
+        p.type = (app.tier === "paid" && release && release.channel !== "stable") ? "gated" : "download";
         if (p.formats) {
           p.formats = p.formats.filter(function (f) { return formats.indexOf(f) >= 0; });
           if (p.formats.indexOf(p.default_format) < 0) p.default_format = p.formats[0];
@@ -157,6 +162,8 @@
     var note = document.getElementById("pick-note");
     var go = document.getElementById("pick-go");
     var alt = document.getElementById("pick-alt");
+    var passwordWrap = document.getElementById("pick-password-wrap");
+    var passwordInput = document.getElementById("pick-password");
     var detected = detectPlatform(root.navigator);
     var selected = null;
 
@@ -220,6 +227,7 @@
         text = "There is no iPhone or iPad version yet. Choose a platform for another device.";
       }
       note.textContent = text;
+      if (passwordWrap) passwordWrap.hidden = !(platform && platform.type === "gated");
       var other = otherFormat(platform);
       if (other && info.enabled) {
         alt.hidden = false;
@@ -247,11 +255,53 @@
         .catch(function () { /* keep the built-in "coming soon" state */ });
     }
 
+    // Never sent as a query string: that would land in browser history and
+    // any request logging. The picker POSTs it in a JSON body instead, and
+    // never computes or checks the checksum itself -- only the Lambda does.
+    function requestGatedDownload(platform) {
+      var pw = (passwordInput && passwordInput.value ? passwordInput.value : "").trim();
+      if (!pw) {
+        note.textContent = "Enter the access code you were given.";
+        return;
+      }
+      var priorLabel = go.textContent;
+      go.disabled = true;
+      go.textContent = "Checking...";
+      root.fetch(buildUrl(endpoint, platform, { version: versionSelect.value }), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw })
+      })
+        .then(function (r) {
+          return r.json().catch(function () { return {}; }).then(function (json) {
+            return { ok: r.ok, json: json };
+          });
+        })
+        .then(function (result) {
+          go.disabled = false;
+          go.textContent = priorLabel;
+          if (result.ok && result.json && result.json.ok && result.json.url) {
+            root.location.assign(result.json.url);
+          } else {
+            note.textContent = (result.json && result.json.error) || "That access code didn't work.";
+          }
+        })
+        .catch(function () {
+          go.disabled = false;
+          go.textContent = priorLabel;
+          note.textContent = "Could not reach the download service. Try again.";
+        });
+    }
+
     appSelect.addEventListener("change", render);
     versionSelect.addEventListener("change", render);
     go.addEventListener("click", function () {
       var platform = currentPlatform();
       if (!platform || !describe(platform).enabled || !endpoint) return;
+      if (platform.type === "gated") {
+        requestGatedDownload(platform);
+        return;
+      }
       root.location.assign(buildUrl(endpoint, platform, { version: versionSelect.value }));
     });
     render();

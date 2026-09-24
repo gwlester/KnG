@@ -72,14 +72,22 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(pr.channel_for("v1.0.1-a.16"), "beta")
         self.assertEqual(pr.channel_for("v1.0.1"), "stable")
 
-    def test_plan_publishes_free_apps_and_skips_paid_ones(self):
+    def test_plan_publishes_every_public_app_including_server_and_midi_player(self):
+        # server/midi-player are "public" (uploaded and hashed into the matrix)
+        # so alpha/beta testers can reach them through download_handler's
+        # password gate; the Lambda still blocks them once a release is
+        # "stable", not the publish step -- see PASSWORD_REQUIRED_APPS.
         with tempfile.TemporaryDirectory() as d:
             plan = pr.plan_release(TAG, make_release_dir(Path(d)), ARTIFACT_MAP, "2026-09-11")
         apps = {f["app"] for f in plan["release"]["files"]}
-        self.assertEqual(apps, {"template-editor", "service-builder", "service-runner", "admin", "security"})
+        self.assertEqual(
+            apps,
+            {"template-editor", "service-builder", "service-runner", "admin", "security", "server", "midi-player"},
+        )
         keys = [k for _, k, _ in plan["uploads"]]
         self.assertTrue(all(k.startswith(f"releases/{TAG}/") for k in keys))
-        self.assertFalse(any("Server" in k or "MidiPlayer" in k or "server" in k for k in keys))
+        self.assertTrue(any("Server" in k or "server" in k for k in keys))
+        self.assertTrue(any("MidiPlayer" in k or "midi-player" in k for k in keys))
         kinds = {d["kind"] for d in plan["release"]["documents"]}
         self.assertEqual(kinds, {"user-manual", "system-admin-guide", "sha256sums", "release-notes"})
         self.assertEqual(plan["release"]["channel"], "beta")

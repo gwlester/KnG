@@ -122,6 +122,37 @@ test("an unsigned release is labelled as such", () => {
   assert.equal(signed.current, "Current release (v1.1.0)");
 });
 
+test("a paid app becomes gated once a real file is published on a non-stable release", () => {
+  const betaStatus = {
+    FormatVersion: 1,
+    current: { version: "v1.0.1-b.7", channel: "beta", available: { "server:linux": ["deb"] }, documents: {} },
+    previous: { version: "v1.0.1-b.6", channel: "beta", available: {}, documents: {} }
+  };
+  const o = P.applyStatus(options, betaStatus, "current");
+  const plat = P.findPlatform(P.findApp(o, "server"), "linux");
+  assert.equal(plat.type, "gated");
+  assert.equal(plat.available, true);
+  assert.equal(P.describe(plat).label, "Download");
+  assert.equal(P.describe(plat).enabled, true);
+});
+
+test("a paid app stays a plain download once the release is stable", () => {
+  const stableStatus = {
+    FormatVersion: 1,
+    current: { version: "v1.1.0", channel: "stable", available: { "server:linux": ["deb"] }, documents: {} },
+    previous: null
+  };
+  const o = P.applyStatus(options, stableStatus, "current");
+  const plat = P.findPlatform(P.findApp(o, "server"), "linux");
+  assert.equal(plat.type, "download");
+});
+
+test("a free app is never gated, even on a non-stable release", () => {
+  const o = P.applyStatus(options, status, "current");
+  const plat = P.findPlatform(P.findApp(o, "template-editor"), "windows");
+  assert.equal(plat.type, "download");
+});
+
 test("the VCM Server and VCM MIDI Player offer a Raspberry Pi package, not yet available", () => {
   for (const id of ["server", "midi-player"]) {
     const plat = P.findPlatform(P.findApp(options, id), "raspberry-pi");

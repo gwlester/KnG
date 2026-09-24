@@ -1,6 +1,6 @@
 {
   "FormatVersion": 1,
-  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published (paid products are delivered by the sales platform). signing: apple = macOS notarization (attested by the workflow input), authenticode = Windows signature (detected), apk = a non-debug signing certificate (detected), none = not required. An asset can be a list of alternative file names (the first one present in the release is used): the applications were renamed for v1.0.1-b.9 (see APP_RENAME_MAPPING.md in the VCM repo), so releases from before that keep the old name.",
+  "comment": "Maps Virtual Church Musician GitHub release assets to matrix entries. {tag}=v1.0.1-b.7, {ver}=1.0.1-b.7, {base}=1.0.1. public:false entries are never published; server and midi-player are public (uploaded and hashed into matrix.json) so alpha/beta testers can fetch them through the password-gated flow in download_handler, but the Lambda still blocks them outright once a release's channel is 'stable' -- see PASSWORD_REQUIRED_APPS in src/download_handler/handler.py. signing: apple = macOS notarization (attested by the workflow input), authenticode = Windows signature (detected), apk = a non-debug signing certificate (detected), none = not required. An asset can be a list of alternative file names (the first one present in the release is used): the applications were renamed for v1.0.1-b.9 (see APP_RENAME_MAPPING.md in the VCM repo), so releases from before that keep the old name.",
   "checksum_asset": "SHA256SUMS.txt",
   "files": [
     {
@@ -221,7 +221,7 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "apple"
     },
     {
@@ -234,7 +234,7 @@
       "arch": "any",
       "format": "exe",
       "default": false,
-      "public": false,
+      "public": true,
       "signing": "authenticode"
     },
     {
@@ -247,7 +247,7 @@
       "arch": "x64",
       "format": "msi",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "authenticode"
     },
     {
@@ -260,7 +260,7 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "none"
     },
     {
@@ -273,7 +273,7 @@
       "arch": "any",
       "format": "dmg",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "apple"
     },
     {
@@ -286,7 +286,7 @@
       "arch": "any",
       "format": "exe",
       "default": false,
-      "public": false,
+      "public": true,
       "signing": "authenticode"
     },
     {
@@ -299,7 +299,7 @@
       "arch": "x64",
       "format": "msi",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "authenticode"
     },
     {
@@ -312,7 +312,7 @@
       "arch": "amd64",
       "format": "deb",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "none"
     },
     {
@@ -374,7 +374,7 @@
       "arch": "arm64",
       "format": "deb",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "none"
     },
     {
@@ -384,7 +384,7 @@
       "arch": "arm64",
       "format": "deb",
       "default": true,
-      "public": false,
+      "public": true,
       "signing": "none"
     }
   ],

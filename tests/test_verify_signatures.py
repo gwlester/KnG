@@ -72,8 +72,24 @@ class VerifyAssetsTests(unittest.TestCase):
         self.assertIn("TemplateEditor.exe", results)
         self.assertIn("TemplateEditor.dmg", results)
         self.assertNotIn("virtual-church-musician-template-desktop_1.0.1-b.7_amd64.deb", results)
-        self.assertNotIn("ChurchMusicServer.exe", results, "paid apps are not published")
+        # server/midi-player are public now (alpha/beta password-gated
+        # downloads), so they get signature-checked like any other installer.
+        self.assertIn("ChurchMusicServer.exe", results)
         self.assertTrue(all(v is False for v in results.values()))
+
+    def test_a_non_public_entry_is_never_checked(self):
+        amap = {
+            "files": [
+                {"asset": "hidden.exe", "app": "x", "platform": "windows", "arch": "any",
+                 "format": "exe", "public": False, "signing": "authenticode"},
+            ],
+            "documents": [],
+        }
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "hidden.exe").write_bytes(b"data")
+            assets = {"hidden.exe": Path(d) / "hidden.exe"}
+            results = vs.verify_assets(TAG, assets, amap, False, "apksigner", self.runner_for(DEBUG_OUTPUT, (0, "ok")))
+        self.assertNotIn("hidden.exe", results)
 
     def test_signed_installers_and_attested_apple(self):
         with tempfile.TemporaryDirectory() as d:

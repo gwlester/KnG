@@ -2,6 +2,11 @@
 # (Function URL) that redirects to 5-minute signed URLs. Code:
 # src/download_handler/handler.py. The publish-downloads workflow fills the
 # bucket and writes matrix.json.
+#
+# Server and MIDI Player are alpha/beta-tester downloads gated by a password
+# that must equal the file's own SHA-256, hashed fresh from S3 on every
+# request (see the handler's docstring) -- the downloads_rate_limit table
+# below exists only to cap that per-IP before it costs a file read.
 
 locals {
   downloads_allowed_origins = [
@@ -61,6 +66,25 @@ resource "aws_s3_bucket_lifecycle_configuration" "downloads" {
   depends_on = [aws_s3_bucket_versioning.downloads]
 }
 
+# Per-IP counter for password attempts on the alpha/beta-gated downloads.
+# Fixed 60-second buckets keyed by "{ip}#{minute}"; the TTL attribute just
+# cleans up old buckets, it isn't load-bearing for correctness.
+resource "aws_dynamodb_table" "downloads_rate_limit" {
+  name         = "kng-downloads-ratelimit"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "pk"
+
+  attribute {
+    name = "pk"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "ttl"
+    enabled        = true
+  }
+}
+
 data "archive_file" "downloads_handler" {
   type        = "zip"
   source_dir  = "${path.module}/../src/download_handler"
@@ -105,6 +129,14 @@ data "aws_iam_policy_document" "downloads" {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.downloads.arn}:*"]
   }
+
+  # The password-attempt rate limiter's atomic conditional counter.
+  statement {
+    sid       = "RateLimitCounter"
+    effect    = "Allow"
+    actions   = ["dynamodb:UpdateItem"]
+    resources = [aws_dynamodb_table.downloads_rate_limit.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "downloads" {
@@ -120,14 +152,20 @@ resource "aws_lambda_function" "downloads" {
   handler          = "handler.handler"
   filename         = data.archive_file.downloads_handler.output_path
   source_code_hash = data.archive_file.downloads_handler.output_base64sha256
-  timeout          = 10
-  memory_size      = 128
+  # 10s/128MB was sized for "read matrix.json and presign," not "stream and
+  # hash an installer" -- the password-gated path needs headroom for both
+  # memory (Lambda's network throughput scales with it) and time (proportional
+  # to file size). Revisit once real Server/MIDI Player file sizes are known.
+  timeout     = 60
+  memory_size = 512
 
   environment {
     variables = {
-      DOWNLOADS_BUCKET = aws_s3_bucket.downloads.bucket
-      PRESIGN_SECONDS  = "300"
-      BLOCKED_APPS     = "server,midi-player"
+      DOWNLOADS_BUCKET       = aws_s3_bucket.downloads.bucket
+      PRESIGN_SECONDS        = "300"
+      PASSWORD_REQUIRED_APPS = "server,midi-player"
+      RATE_LIMIT_TABLE       = aws_dynamodb_table.downloads_rate_limit.name
+      RATE_LIMIT_PER_MINUTE  = "2"
     }
   }
 
@@ -138,10 +176,14 @@ resource "aws_lambda_function_url" "downloads" {
   function_name      = aws_lambda_function.downloads.function_name
   authorization_type = "NONE"
 
-  # Downloads are plain navigation; CORS is only for the picker's status fetch.
+  # Free downloads and the picker's status check are plain GETs. POST exists
+  # only so the picker can submit a password in a JSON body instead of a
+  # query string (see the handler's docstring) -- needs the content-type
+  # header allowed for the preflight to succeed.
   cors {
     allow_origins = local.downloads_allowed_origins
-    allow_methods = ["GET"]
+    allow_methods = ["GET", "POST"]
+    allow_headers = ["content-type"]
     max_age       = 3600
   }
 }

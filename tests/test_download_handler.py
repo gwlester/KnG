@@ -1,3 +1,5 @@
+import hashlib
+import io
 import json
 import os
 import sys
@@ -40,13 +42,34 @@ def release(version, channel="beta", published="2026-09-11", files=None, documen
     }
 
 
-def event(**qs):
-    return {"requestContext": {"http": {"method": "GET"}}, "queryStringParameters": qs or None}
+def event(method="GET", body=None, source_ip="203.0.113.5", **qs):
+    ev = {
+        "requestContext": {"http": {"method": method, "sourceIp": source_ip}},
+        "queryStringParameters": qs or None,
+    }
+    if body is not None:
+        ev["body"] = json.dumps(body)
+    return ev
+
+
+class _ConditionalCheckFailed(Exception):
+    """Stands in for botocore's ClientError shape without needing botocore
+    installed -- handler._rate_limited() duck-types on `.response`."""
+
+    def __init__(self):
+        super().__init__("conditional check failed")
+        self.response = {"Error": {"Code": "ConditionalCheckFailedException"}}
+
+
+SERVER_FILE_BYTES = b"pretend-server-installer-bytes"
+SERVER_FILE_SHA256 = hashlib.sha256(SERVER_FILE_BYTES).hexdigest()
 
 
 class DownloadHandlerTests(unittest.TestCase):
     def setUp(self):
-        patcher = mock.patch.dict(os.environ, {"DOWNLOADS_BUCKET": "test-bucket"})
+        patcher = mock.patch.dict(
+            os.environ, {"DOWNLOADS_BUCKET": "test-bucket", "RATE_LIMIT_TABLE": "test-ratelimit"}
+        )
         patcher.start()
         self.addCleanup(patcher.stop)
         self.s3 = mock.Mock()
@@ -56,6 +79,11 @@ class DownloadHandlerTests(unittest.TestCase):
         client = mock.patch.object(handler, "_s3", return_value=self.s3)
         client.start()
         self.addCleanup(client.stop)
+        self.dynamo = mock.Mock()
+        self.dynamo.update_item.return_value = {}
+        dynamo_client = mock.patch.object(handler, "_dynamodb", return_value=self.dynamo)
+        dynamo_client.start()
+        self.addCleanup(dynamo_client.stop)
         self.matrix = {"FormatVersion": 1, "releases": [release("v1.0.1-b.7"), release("v1.0.1-b.6")]}
         loader = mock.patch.object(handler, "_load_matrix", side_effect=lambda: self.matrix)
         loader.start()
@@ -64,6 +92,24 @@ class DownloadHandlerTests(unittest.TestCase):
     def call(self, **qs):
         result = handler.handler(event(**qs), None)
         return result["statusCode"], result
+
+    def post(self, password=None, **qs):
+        body = {} if password is None else {"password": password}
+        result = handler.handler(event(method="POST", body=body, **qs), None)
+        return result["statusCode"], result
+
+    def add_server_file(self, release_index=0, sha256=None):
+        rel = self.matrix["releases"][release_index]
+        entry = {
+            "app": "server", "platform": "linux", "arch": "amd64", "format": "deb",
+            "key": f"releases/{rel['version']}/server.deb", "filename": "server.deb",
+        }
+        if sha256 is not None:
+            entry["sha256"] = sha256
+        rel["files"].append(entry)
+
+    def mock_server_file_body(self):
+        self.s3.get_object.return_value = {"Body": io.BytesIO(SERVER_FILE_BYTES)}
 
     def test_download_redirects_to_a_five_minute_signed_url(self):
         status, result = self.call(app="template-editor", platform="windows", v="1")
@@ -113,14 +159,71 @@ class DownloadHandlerTests(unittest.TestCase):
         _, result = self.call(app="template-editor", platform="android")
         self.assertIn("releases/v1.0.1-b.7/TemplateEditor.apk", result["headers"]["Location"])
 
-    def test_paid_apps_are_never_served_even_if_present_in_the_matrix(self):
-        self.matrix["releases"][0]["files"].append(
-            {"app": "server", "platform": "linux", "arch": "amd64", "format": "deb",
-             "key": "releases/v1.0.1-b.7/server.deb", "filename": "server.deb"}
-        )
+    def test_paid_app_is_blocked_and_hidden_once_a_stable_release_exists(self):
+        self.matrix["releases"].insert(0, release("v1.1.0", channel="stable"))
+        self.add_server_file(release_index=0)
         self.assertEqual(self.call(app="server", platform="linux")[0], 404)
+        # Even a correct-looking attempt never gets as far as checking one --
+        # stable-channel server/midi-player still isn't sold from here at all.
+        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
+        self.assertEqual(status, 404)
+        self.s3.get_object.assert_not_called()
         body = json.loads(self.call(status="1")[1]["body"])
         self.assertNotIn("server:linux", body["current"]["available"])
+
+    def test_paid_app_appears_in_status_once_a_file_exists_on_a_beta_release(self):
+        self.add_server_file()
+        body = json.loads(self.call(status="1")[1]["body"])
+        self.assertEqual(body["current"]["available"]["server:linux"], ["deb"])
+
+    def test_paid_app_download_without_a_password_is_rejected_before_touching_s3(self):
+        self.add_server_file()
+        status, _ = self.call(app="server", platform="linux")  # GET: no body at all
+        self.assertEqual(status, 401)
+        self.s3.get_object.assert_not_called()
+
+    def test_paid_app_wrong_password_is_rejected(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        status, result = self.post(password="0" * 64, app="server", platform="linux")
+        self.assertEqual(status, 403)
+        self.assertNotIn(SERVER_FILE_SHA256, result["body"])
+
+    def test_paid_app_correct_password_returns_json_not_a_redirect(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        status, result = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
+        self.assertEqual(status, 200)
+        body = json.loads(result["body"])
+        self.assertTrue(body["ok"])
+        self.assertIn("releases/v1.0.1-b.7/server.deb", body["url"])
+        self.s3.get_object.assert_called_once_with(Bucket="test-bucket", Key="releases/v1.0.1-b.7/server.deb")
+
+    def test_paid_app_password_is_case_and_whitespace_insensitive(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        status, _ = self.post(password=f"  {SERVER_FILE_SHA256.upper()}  ", app="server", platform="linux")
+        self.assertEqual(status, 200)
+
+    def test_paid_app_hashes_fresh_every_time_ignoring_any_stored_checksum(self):
+        # A stored (wrong) sha256 on the matrix entry must never be consulted --
+        # the whole point is that nothing but a fresh hash of the bytes counts.
+        self.add_server_file(sha256="0" * 64)
+        self.mock_server_file_body()
+        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
+        self.assertEqual(status, 200)
+        self.s3.get_object.assert_called_once()
+
+    def test_paid_app_rate_limits_before_touching_s3(self):
+        self.add_server_file()
+        self.dynamo.update_item.side_effect = _ConditionalCheckFailed()
+        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
+        self.assertEqual(status, 429)
+        self.s3.get_object.assert_not_called()
+
+    def test_free_apps_are_unaffected_by_the_password_flow(self):
+        self.assertEqual(self.call(app="template-editor", platform="windows")[0], 302)
+        self.dynamo.update_item.assert_not_called()
 
     def test_documents(self):
         _, html = self.call(doc="user-manual", format="html")
@@ -148,8 +251,17 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertIsNone(body["current"])
         self.assertEqual(self.call(app="template-editor", platform="windows")[0], 404)
 
-    def test_only_get_and_head_are_allowed(self):
-        result = handler.handler({"requestContext": {"http": {"method": "POST"}}}, None)
+    def test_post_is_allowed_but_other_verbs_are_not(self):
+        # POST exists only to carry a password (see the module docstring); a
+        # bare POST with nothing requested behaves like a bare GET.
+        self.assertEqual(self.call(app="template-editor", platform="windows")[0], 302)
+        status, _ = self.post(app="template-editor", platform="windows")
+        self.assertEqual(status, 302)  # free apps ignore the body entirely
+        result = handler.handler(event(method="POST"), None)
+        self.assertEqual(result["statusCode"], 400)
+        result = handler.handler(event(method="PUT"), None)
+        self.assertEqual(result["statusCode"], 405)
+        result = handler.handler(event(method="DELETE"), None)
         self.assertEqual(result["statusCode"], 405)
 
 
