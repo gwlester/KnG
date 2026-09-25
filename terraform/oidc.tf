@@ -130,6 +130,10 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "dynamodb:CreateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable",
       "dynamodb:UpdateTable", "dynamodb:DescribeTimeToLive", "dynamodb:UpdateTimeToLive",
       "dynamodb:TagResource", "dynamodb:UntagResource", "dynamodb:ListTagsOfResource",
+      # The provider's read also checks PITR and Kinesis streaming-destination
+      # status on every plan/apply, even though this table uses neither.
+      "dynamodb:DescribeContinuousBackups", "dynamodb:UpdateContinuousBackups",
+      "dynamodb:DescribeKinesisStreamingDestination",
     ]
     resources = [aws_dynamodb_table.downloads_rate_limit.arn]
   }
