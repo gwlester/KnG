@@ -227,6 +227,7 @@
         text = "There is no iPhone or iPad version yet. Choose a platform for another device.";
       }
       note.textContent = text;
+      note.classList.remove("is-error");
       if (passwordWrap) passwordWrap.hidden = !(platform && platform.type === "gated");
       var other = otherFormat(platform);
       if (other && info.enabled) {
@@ -262,6 +263,7 @@
       var pw = (passwordInput && passwordInput.value ? passwordInput.value : "").trim();
       if (!pw) {
         note.textContent = "Enter the access code you were given.";
+        note.classList.add("is-error");
         return;
       }
       var priorLabel = go.textContent;
@@ -284,12 +286,14 @@
             root.location.assign(result.json.url);
           } else {
             note.textContent = (result.json && result.json.error) || "That access code didn't work.";
+            note.classList.add("is-error");
           }
         })
         .catch(function () {
           go.disabled = false;
           go.textContent = priorLabel;
           note.textContent = "Could not reach the download service. Try again.";
+          note.classList.add("is-error");
         });
     }
 

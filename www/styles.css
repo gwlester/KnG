@@ -571,6 +571,11 @@ a:focus-visible,
   color: var(--muted);
 }
 
+.picker-note.is-error {
+  color: #a3261d;
+  font-weight: 600;
+}
+
 .picker-actions {
   display: flex;
   flex-wrap: wrap;
