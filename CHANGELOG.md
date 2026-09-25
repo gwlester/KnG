@@ -20,3 +20,12 @@ per-tag release notes once releases begin.
   request (never stored, never read from a checksums file), rate-limited
   per source IP. Stable-channel releases of those two apps are unaffected --
   still sold through whatever sales platform is eventually chosen.
+
+### Fixed
+
+- Deploy pipeline: the GitHub Actions deploy role was missing DynamoDB
+  permissions for the new password-attempt rate-limit table, so
+  `terraform apply` failed and the password-gated downloads feature never
+  actually reached the site (the picker still showed the old ungated
+  behavior and download requests errored instead of prompting for a
+  password).

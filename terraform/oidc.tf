@@ -120,6 +120,20 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_s3_bucket.downloads.arn, "${aws_s3_bucket.downloads.arn}/*"]
   }
 
+  # Lets `terraform apply` itself manage the password-attempt rate-limit
+  # table (create/describe/update/tag/delete). Separate from the Lambda
+  # execution role's runtime-only UpdateItem grant in downloads.tf.
+  statement {
+    sid    = "DownloadsRateLimitTable"
+    effect = "Allow"
+    actions = [
+      "dynamodb:CreateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable",
+      "dynamodb:UpdateTable", "dynamodb:DescribeTimeToLive", "dynamodb:UpdateTimeToLive",
+      "dynamodb:TagResource", "dynamodb:UntagResource", "dynamodb:ListTagsOfResource",
+    ]
+    resources = [aws_dynamodb_table.downloads_rate_limit.arn]
+  }
+
   statement {
     sid       = "MediaBucket"
     effect    = "Allow"
