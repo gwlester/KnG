@@ -31,11 +31,15 @@ The apps send nothing to us. See the [Privacy Policy](privacy.html) for the deta
 
 ## Which computers and devices are supported?
 
-The desktop apps run on Windows, macOS, and Linux. The VCM Server and VCM MIDI Player also run on the Raspberry Pi 4 and Raspberry Pi 5 (64-bit). The Android apps for on-the-go use are provided as APK files you download from this site, and Google Play listings are planned. There is no iPhone or iPad version yet.
+The desktop apps run on Windows, macOS, and Linux. The VCM Server and VCM MIDI Player also run on the Raspberry Pi 4 and Raspberry Pi 5 (64-bit). The Android apps for on-the-go use are provided as APK files you download from this site, and Google Play listings are planned. A Chromebook can run either the Android or Linux version -- see [Can I use VCM on a Chromebook?](#can-i-use-vcm-on-a-chromebook). There is no iPhone or iPad version yet.
 
 ## How do I install an Android app from an APK?
 
 Open the downloaded file. If Android asks, allow your browser or Files app to install unknown apps, and choose to install anyway if Android shows a Play Protect notice. The [Download page](download.html#installing) has the details.
+
+## Can I use VCM on a Chromebook?
+
+There are two ways, and both use the same downloads as everywhere else on this site. If your Chromebook supports Android apps (most models from 2019 onward do), turn on installing apps from outside the Play Store and sideload the same APK you would put on a phone -- see [How do I install an Android app from an APK?](#how-do-i-install-an-android-app-from-an-apk) above. If your Chromebook has Linux (Crostini) turned on, install the Linux `.deb` the same way you would on an Ubuntu or Debian computer, with `sudo apt install ./file.deb`. Neither path has been tried on real Chromebook hardware yet, so treat this as a starting point rather than a guarantee, and [let us know](contact.html) what you find.
 
 ## How do I get my hymnals into the system?
 
