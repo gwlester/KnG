@@ -653,9 +653,9 @@
           ],
           "task": "setup",
           "audience": "For the technical contact",
-          "length": "about 1:25",
+          "length": "about 1:45",
           "available": true,
-          "version": 1,
+          "version": 2,
           "transcript_html": "<p>This video is for your church&#x27;s technical contact. It shows how to install a VCM MIDI Player on a Linux computer. Your screens may look a little different from these. The steps are the same. In this video: installing a VCM MIDI Player on Linux.</p><p>A VCM MIDI Player sends the music as M I D I to your organ or sound module. Put it on a computer near that instrument, on the same network as the Server.</p><p>Get the package from the Download page and install it with sudo apt install, then dot slash and the file name. It starts by itself, using placeholder details for now.</p><p>Next, open the file midi player dot env, in the Virtual Church Musician M I D I player folder, and set the username and password of a device that&#x27;s enrolled on your Server. Save the file and restart the M I D I Player to pick them up.</p><p>To choose your M I D I device, run sudo dot slash configure underscore midi underscore device dot s h instead. It lists the M I D I devices this computer can see, and restarts the M I D I Player automatically once you pick one. Run it again any time to change the device later.</p><p>Ask for the MIDI Player&#x27;s status. You want to see that it&#x27;s active, and running.</p><p>The username and password have to match a device you&#x27;ve already enrolled and approved on the Server. Enrolling is covered in &#x27;Connecting to your church&#x27;s Server&#x27;.</p><p>That&#x27;s installing a VCM MIDI Player on Linux. To set up the Server it connects to, watch &#x27;Installing the VCM Server on Linux&#x27;.</p>"
         }
       ]
