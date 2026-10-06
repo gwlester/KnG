@@ -9,7 +9,7 @@ description: How KnG Consulting handles information on this website and in Virtu
 
 ## Who we are
 
-This website and Virtual Church Musician are provided by {{legal_entity}}. You can reach us at inquiries@kng-consulting.com.
+This website is published by {{legal_entity}}, which also provides our other services. Virtual Church Musician itself is developed and licensed by Gerald Lester individually. You can reach either of us at inquiries@kng-consulting.com.
 
 ## Virtual Church Musician apps
 
