@@ -23,8 +23,18 @@ DOWNLOAD_OPTIONS = REPO_ROOT / "content" / "downloads" / "options.json"
 DOWNLOAD_PAGE = REPO_ROOT / "www" / "download.html"
 VIDEOS_SOURCE = REPO_ROOT / "content" / "videos" / "videos.json"
 SITE_URL = "https://www.kng-consulting.com"
-# Verify against the Louisiana Secretary of State registration.
-LEGAL_ENTITY = "KnG Consulting, LLC"
+# Site-wide brand attribution (footer copyright, the privacy policy's
+# "who runs this website" line) -- Virtual Church Musician itself is sold
+# by Gerald Lester individually, not through the LLC, so this is
+# deliberately just the trade name, no entity-type suffix. The LLC is
+# still the real contracting party for KnG Consulting's other services
+# (custom development, hymnal consultation, hardware buildouts) -- see
+# SERVICES_LEGAL_ENTITY below, used only on those pages.
+LEGAL_ENTITY = "KnG Consulting"
+# Verify against the Louisiana Secretary of State registration. Used only
+# for services.html/services-terms.html, which describe KnG Consulting's
+# professional-services offerings -- not Virtual Church Musician itself.
+SERVICES_LEGAL_ENTITY = "KnG Consulting, LLC"
 
 NAV_ITEMS = [
     ("virtual-church-musician.html", "Virtual Church Musician"),
@@ -211,12 +221,16 @@ def refresh_chrome() -> None:
 
 
 def render_tokens(text: str) -> str:
-    """Fill {{legal_entity}} and {{refund_days}} in Markdown content."""
+    """Fill {{legal_entity}}, {{services_entity}}, and {{refund_days}} in Markdown content."""
     license_text = (LEGAL_DIR / "license-agreement.md").read_text(encoding="utf-8")
     refund = re.search(r"refund within \*\*(\d+) days\*\*", license_text)
     if not refund:
         raise ValueError("license-agreement.md: could not find the refund period")
-    return text.replace("{{legal_entity}}", LEGAL_ENTITY).replace("{{refund_days}}", refund.group(1))
+    return (
+        text.replace("{{legal_entity}}", LEGAL_ENTITY)
+        .replace("{{services_entity}}", SERVICES_LEGAL_ENTITY)
+        .replace("{{refund_days}}", refund.group(1))
+    )
 
 
 def render_post_page(post: Post) -> str:
