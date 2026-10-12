@@ -49,8 +49,18 @@ terraform.rc
 # Built by terraform (archive_file)
 *.zip
 
+# Vendored Lambda dependencies built by terraform/build_license_signing.sh
+/terraform/build/
+
 # Planning notes live in the private repo gwlester/KnG-Prompts, cloned here
 /Prompts/
 
 # Per-machine Claude Code permission rules
 /.claude/settings.local.json
+
+# Local-dev-only secrets (the real production license-signing private key
+# belongs in AWS Secrets Manager once deployed -- see
+# Prompts/FastSpring_implementation.md section 4d). Never commit key
+# material here.
+/secrets/*.pem
+/secrets/*.key

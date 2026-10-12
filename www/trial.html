@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Try Virtual Church Musician</title>
+    <meta
+      name="description"
+      content="Request a 90-day trial license for the Virtual Church Musician Server or MIDI Player."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- SITE_HEADER_START -->
+    <header class="site-header">
+      <nav class="top-nav" aria-label="Primary">
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
+        <ul class="nav-links">
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li><a href="training.html">Training</a></li>
+          <li><a href="faq.html">Support</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+<!-- SITE_HEADER_END -->
+
+    <section class="hero page-hero">
+      <div class="container">
+        <p class="eyebrow">Try it free</p>
+        <h1>Request a 90-day trial</h1>
+        <p class="hero-copy">
+          One trial per email address, per product. You'll get a reference and an activation key
+          here -- download the installer from the <a href="download.html">Download</a> page, then
+          enter both in the Admin app on first connection to license it.
+        </p>
+      </div>
+    </section>
+
+    <main>
+      <section class="section">
+        <div class="container split split-top">
+          <div>
+            <h2>What happens next</h2>
+            <p class="lead">
+              This page issues your trial's reference and activation key -- it does not download
+              anything itself. Keep both; the order/trial confirmation shown here is the only
+              place you'll see them.
+            </p>
+          </div>
+          <form
+            class="contact-form"
+            id="trial-form"
+            data-endpoint="https://y6jeydlmgjizxovrq47hqlkw3m0ulyzl.lambda-url.us-east-1.on.aws/"
+            novalidate
+          >
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required />
+            </div>
+            <div class="field">
+              <label for="kind">Product</label>
+              <select id="kind" name="kind">
+                <option value="server">Server</option>
+                <option value="midi_player">MIDI Player</option>
+              </select>
+            </div>
+            <button class="button button-primary" type="submit">Request trial</button>
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            <div id="trial-result"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var form = document.getElementById("trial-form");
+        var status = document.getElementById("form-status");
+        var result = document.getElementById("trial-result");
+        var button = form.querySelector("button[type=submit]");
+
+        function show(message, isError) {
+          status.textContent = message;
+          status.className = "form-status " + (isError ? "is-error" : "is-ok");
+        }
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          result.innerHTML = "";
+          var endpoint = form.getAttribute("data-endpoint");
+          if (!endpoint) {
+            show("Trials are not available yet. Please check back soon.", true);
+            return;
+          }
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          button.disabled = true;
+          show("Requesting...", false);
+          fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: form.email.value.trim(), kind: form.kind.value })
+          })
+            .then(function (response) {
+              return response.json().then(function (body) {
+                return { ok: response.ok && body.ok, body: body };
+              });
+            })
+            .then(function (res) {
+              if (res.ok) {
+                form.reset();
+                show("Trial issued. Keep this reference and key -- you won't see them again.", false);
+                var box = document.createElement("div");
+                box.className = "code-box";
+                box.innerHTML =
+                  "<p><strong>Reference:</strong> " +
+                  res.body.reference +
+                  "</p><p><strong>Activation key:</strong> " +
+                  res.body.short_key +
+                  "</p><p><strong>Valid until:</strong> " +
+                  res.body.valid_to +
+                  "</p>";
+                result.appendChild(box);
+              } else {
+                show(res.body.error || "Something went wrong. Please try again.", true);
+              }
+            })
+            .catch(function () {
+              show("Could not reach the trial service. Please try again later.", true);
+            })
+            .then(function () {
+              button.disabled = false;
+            });
+        });
+      })();
+    </script>
+
+    <!-- SITE_FOOTER_START -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>© 2026 KnG Consulting</p>
+        <ul class="footer-links">
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li><a href="training.html">Training</a></li>
+          <li><a href="faq.html">Support</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="license.html">License</a></li>
+          <li><a href="services-terms.html">Services Terms</a></li>
+        </ul>
+      </div>
+    </footer>
+<!-- SITE_FOOTER_END -->
+  </body>
+</html>

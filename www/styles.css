@@ -505,6 +505,19 @@ a:focus-visible,
   color: #a3261d;
 }
 
+.code-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  background: #f7f7f7;
+  font-family: monospace;
+}
+
+.code-box p {
+  margin: 0.25rem 0;
+}
+
 /* Download picker ------------------------------------------------ */
 
 .picker {
