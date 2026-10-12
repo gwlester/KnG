@@ -61,9 +61,22 @@ _private_key = None
 def _private_key_obj():
     global _private_key
     if _private_key is None:
-        path = os.environ.get("LICENSE_SIGNING_PRIVATE_KEY_PATH", "secrets/license_signing_private_key.pem")
-        with open(path, "rb") as handle:
-            _private_key = serialization.load_pem_private_key(handle.read(), password=None)
+        secret_arn = os.environ.get("LICENSE_SIGNING_PRIVATE_KEY_SECRET_ARN")
+        if secret_arn:
+            # Deployed Lambda path -- the real production key lives only in
+            # Secrets Manager, never on local disk or in Terraform state.
+            import boto3  # bundled in the Lambda runtime; imported lazily so tests need no boto3
+
+            pem_bytes = (
+                boto3.client("secretsmanager")
+                .get_secret_value(SecretId=secret_arn)["SecretString"]
+                .encode("utf-8")
+            )
+        else:
+            path = os.environ.get("LICENSE_SIGNING_PRIVATE_KEY_PATH", "secrets/license_signing_private_key.pem")
+            with open(path, "rb") as handle:
+                pem_bytes = handle.read()
+        _private_key = serialization.load_pem_private_key(pem_bytes, password=None)
     return _private_key
 
 

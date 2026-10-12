@@ -89,3 +89,13 @@ output "media_cloudfront_domain_name" {
   description = "Base host for the Videos page (https://<this>/media/...)."
   value       = aws_cloudfront_distribution.media.domain_name
 }
+
+output "license_activate_function_url" {
+  description = "License File: set as the data-endpoint attribute on www/activate.html's form."
+  value       = aws_lambda_function_url.license_activate.function_url
+}
+
+output "trial_request_function_url" {
+  description = "License File: set as the data-endpoint attribute on www/trial.html's form."
+  value       = aws_lambda_function_url.trial_request.function_url
+}

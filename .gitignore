@@ -49,6 +49,9 @@ terraform.rc
 # Built by terraform (archive_file)
 *.zip
 
+# Vendored Lambda dependencies built by terraform/build_license_signing.sh
+/terraform/build/
+
 # Planning notes live in the private repo gwlester/KnG-Prompts, cloned here
 /Prompts/
 
