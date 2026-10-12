@@ -103,7 +103,7 @@ def handler(event, context):
             "reference": {"S": reference},
             "source": {"S": "trial"},
             "email": {"S": email},
-            "kind": {"S": kind},
+            "kinds": {"SS": ["midi-player" if kind == "midi_player" else kind]},
             "short_key_hash": {"S": hash_short_key(short_key)},
             "valid_to": {"S": valid_to},
             "created_at": {"S": now.isoformat()},
