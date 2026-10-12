@@ -81,6 +81,16 @@ jobs:
         shell: bash
         run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" validate
 
+      # License File's signing Lambda vendors a compiled dependency
+      # (cryptography) that isn't bundled in the Lambda runtime the way
+      # boto3 is -- terraform/license_signing.tf's archive_file reads this
+      # directory, which build_license_signing.sh builds and which is
+      # gitignored (never committed), so it must be rebuilt here on every
+      # run rather than checked out with the rest of the repo.
+      - name: Build license-signing Lambda package
+        shell: bash
+        run: "${TERRAFORM_WORKING_DIRECTORY}/build_license_signing.sh"
+
       - name: Apply Terraform
         shell: bash
         run: terraform -chdir="${TERRAFORM_WORKING_DIRECTORY}" apply -auto-approve

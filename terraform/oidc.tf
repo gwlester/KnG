@@ -113,6 +113,54 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_iam_role.contact.arn, aws_iam_role.downloads.arn]
   }
 
+  # License File (license_signing.tf/trial_request.tf): same pattern as
+  # ContactFormRole above, for the three new execution roles.
+  statement {
+    sid    = "LicenseFileRoles"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:GetRolePolicy",
+      "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
+    ]
+    resources = [
+      aws_iam_role.license_activate.arn,
+      aws_iam_role.license_generate_test.arn,
+      aws_iam_role.trial_request.arn,
+    ]
+  }
+
+  # License File: the two new DynamoDB tables -- same actions as
+  # DownloadsRateLimitTable below, for the same reason (full lifecycle
+  # management plus everything the provider's own read checks on every
+  # plan/apply even though these tables use none of it).
+  statement {
+    sid    = "LicenseFileTables"
+    effect = "Allow"
+    actions = [
+      "dynamodb:CreateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable",
+      "dynamodb:UpdateTable", "dynamodb:DescribeTimeToLive", "dynamodb:UpdateTimeToLive",
+      "dynamodb:TagResource", "dynamodb:UntagResource", "dynamodb:ListTagsOfResource",
+      "dynamodb:DescribeContinuousBackups", "dynamodb:UpdateContinuousBackups",
+      "dynamodb:DescribeKinesisStreamingDestination",
+    ]
+    resources = [aws_dynamodb_table.license_issuance.arn, aws_dynamodb_table.trial_by_email.arn]
+  }
+
+  # License File: the signing key's secret container only -- its value is
+  # deliberately set out of band (aws secretsmanager put-secret-value),
+  # never through Terraform, so PutSecretValue/GetSecretValue are not
+  # granted here.
+  statement {
+    sid    = "LicenseFileSecret"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret", "secretsmanager:DescribeSecret",
+      "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource",
+    ]
+    resources = [aws_secretsmanager_secret.license_signing_key.arn]
+  }
+
   statement {
     sid       = "DownloadsBucket"
     effect    = "Allow"
