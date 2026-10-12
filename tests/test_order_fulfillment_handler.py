@@ -57,7 +57,6 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
             os.environ,
             {
                 "LICENSE_ISSUANCE_TABLE": "test-issuance",
-                "DOWNLOADS_BUCKET": "test-bucket",
                 "FASTSPRING_WEBHOOK_SECRET_ARN": "arn:fake:webhook-secret",
                 "FASTSPRING_API_CREDENTIALS_SECRET_ARN": "arn:fake:api-credentials",
             },
@@ -166,7 +165,7 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
 
         self.assertEqual(result["statusCode"], 409)
 
-    def test_fulfill_returns_the_short_key_and_download_links_for_a_completed_order(self):
+    def test_fulfill_returns_the_short_key_and_kinds_for_a_completed_order(self):
         order_body = {
             "completed": True,
             "reference": "order-123",
@@ -177,33 +176,13 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         response.read.return_value = json.dumps(order_body).encode("utf-8")
         response.__enter__ = mock.Mock(return_value=response)
         response.__exit__ = mock.Mock(return_value=False)
-        matrix = {
-            "releases": [
-                {
-                    "version": "v1.0.0",
-                    "channel": "stable",
-                    "files": [
-                        {
-                            "app": "server",
-                            "platform": "linux",
-                            "format": "deb",
-                            "default": True,
-                            "key": "releases/v1.0.0/server.deb",
-                            "filename": "server.deb",
-                        }
-                    ],
-                }
-            ]
-        }
-        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response), mock.patch.object(
-            handler, "_load_matrix", return_value=matrix
-        ), mock.patch.object(handler, "_presign", return_value="https://signed.example/server.deb"):
+        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response):
             result = handler.handler({"queryStringParameters": {"fulfill": "1", "order": "order-123"}}, None)
 
         self.assertEqual(result["statusCode"], 200)
         body = json.loads(result["body"])
         self.assertTrue(body["short_key"])
-        self.assertEqual(body["downloads"], [{"app": "server", "platform": "linux", "format": "deb", "url": "https://signed.example/server.deb"}])
+        self.assertEqual(body["kinds"], ["server"])
 
     def test_fulfill_reuses_the_short_key_from_an_existing_row(self):
         self.dynamo.get_item.return_value = {
@@ -214,9 +193,7 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         response.read.return_value = json.dumps(order_body).encode("utf-8")
         response.__enter__ = mock.Mock(return_value=response)
         response.__exit__ = mock.Mock(return_value=False)
-        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response), mock.patch.object(
-            handler, "_load_matrix", return_value={"releases": []}
-        ):
+        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response):
             result = handler.handler({"queryStringParameters": {"fulfill": "1", "order": "order-123"}}, None)
 
         body = json.loads(result["body"])
@@ -244,9 +221,7 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         response.read.return_value = json.dumps(order_body).encode("utf-8")
         response.__enter__ = mock.Mock(return_value=response)
         response.__exit__ = mock.Mock(return_value=False)
-        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response), mock.patch.object(
-            handler, "_load_matrix", return_value={"releases": []}
-        ):
+        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response):
             result = handler.handler(
                 {"queryStringParameters": {"fulfill": "1", "order": "Yfc6mX_BR7--uHahfYnFVg"}}, None
             )

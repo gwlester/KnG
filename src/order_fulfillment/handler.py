@@ -21,9 +21,14 @@ src/download_handler/handler.py):
                                     against FastSpring's Orders API
                                     (never trusts the query param alone,
                                     per FastSpring's own documented
-                                    guidance), then returns download
-                                    links plus the order's
-                                    reference/short_key.
+                                    guidance), then returns the order's
+                                    reference/short_key/kinds for the
+                                    main download picker (picker.js) to
+                                    fill itself in with -- the actual
+                                    download happens through the same
+                                    access-code-gated flow as any other
+                                    beta download, not a separate link
+                                    list here.
 
 The webhook and the fulfillment call commonly race (both fire around
 the same moment); _upsert_issuance_row is idempotent either way, and
@@ -58,7 +63,6 @@ import json
 import os
 import secrets
 import string
-import time
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 
@@ -94,81 +98,6 @@ def _dynamodb():
 
 def _issuance_table() -> str:
     return os.environ["LICENSE_ISSUANCE_TABLE"]
-
-
-_s3_client = None
-
-
-def _s3():
-    global _s3_client
-    if _s3_client is None:
-        import boto3
-        from botocore.config import Config
-
-        _s3_client = boto3.client("s3", config=Config(signature_version="s3v4"))
-    return _s3_client
-
-
-def _bucket() -> str:
-    return os.environ["DOWNLOADS_BUCKET"]
-
-
-_matrix_cache = {"at": 0.0, "matrix": None}
-
-
-def _load_matrix() -> dict:
-    now = time.time()
-    if _matrix_cache["matrix"] is not None and now - _matrix_cache["at"] < 60:
-        return _matrix_cache["matrix"]
-    try:
-        body = _s3().get_object(Bucket=_bucket(), Key=os.environ.get("MATRIX_KEY", "matrix.json"))["Body"].read()
-        matrix = json.loads(body)
-    except Exception:
-        matrix = {"releases": []}
-    _matrix_cache["at"], _matrix_cache["matrix"] = now, matrix
-    return matrix
-
-
-def _visible_releases(matrix: dict) -> list:
-    releases = matrix.get("releases", [])
-    stable = [r for r in releases if r.get("channel") == "stable"]
-    return stable or releases
-
-
-def _current_release(matrix: dict) -> dict | None:
-    visible = _visible_releases(matrix)
-    return visible[0] if visible else None
-
-
-def _presign(key: str, filename: str) -> str:
-    if not key.startswith("releases/"):
-        raise ValueError("unexpected key")
-    params = {
-        "Bucket": _bucket(),
-        "Key": key,
-        "ResponseContentDisposition": f'attachment; filename="{filename}"',
-    }
-    presign_seconds = int(os.environ.get("PRESIGN_SECONDS", "300"))
-    return _s3().generate_presigned_url("get_object", Params=params, ExpiresIn=presign_seconds)
-
-
-def _download_links_for(app_ids: list[str]) -> list[dict]:
-    matrix = _load_matrix()
-    release = _current_release(matrix)
-    if release is None:
-        return []
-    links = []
-    for file in release.get("files", []):
-        if file.get("app") in app_ids and file.get("default"):
-            links.append(
-                {
-                    "app": file["app"],
-                    "platform": file.get("platform"),
-                    "format": file.get("format"),
-                    "url": _presign(file["key"], file["filename"]),
-                }
-            )
-    return links
 
 
 _secrets_client = None
@@ -346,7 +275,7 @@ def fulfill(event, context):
             "ok": True,
             "reference": reference,
             "short_key": row.get("short_key", {}).get("S"),
-            "downloads": _download_links_for(app_ids),
+            "kinds": app_ids or row.get("kinds", {}).get("SS", []),
         },
     )
 
