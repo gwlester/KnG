@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Try Virtual Church Musician</title>
+    <title>Test Drive Virtual Church Musician</title>
     <meta
       name="description"
-      content="Request a 90-day trial license for the Virtual Church Musician Server or MIDI Player."
+      content="Request a free 90-day Test Drive of the Virtual Church Musician Server or MIDI Player."
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -19,6 +19,7 @@
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
           <li><a href="services.html">Services</a></li>
           <li><a href="download.html">Download</a></li>
+          <li><a href="trial.html" aria-current="page">Test Drive</a></li>
           <li><a href="training.html">Training</a></li>
           <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>
@@ -31,11 +32,11 @@
     <section class="hero page-hero">
       <div class="container">
         <p class="eyebrow">Try it free</p>
-        <h1>Request a 90-day trial</h1>
+        <h1>Request a 90-day Test Drive</h1>
         <p class="hero-copy">
-          One trial per email address, per product. You'll get a reference and an activation key
-          here -- download the installer from the <a href="download.html">Download</a> page, then
-          enter both in the Admin app on first connection to license it.
+          One Test Drive per email address, per product. Once it's issued, we'll take you straight
+          to the <a href="download.html">Download</a> page with your platform and access code
+          already filled in -- just pick your platform and click Download.
         </p>
       </div>
     </section>
@@ -46,9 +47,9 @@
           <div>
             <h2>What happens next</h2>
             <p class="lead">
-              This page issues your trial's reference and activation key -- it does not download
-              anything itself. Keep both; the order/trial confirmation shown here is the only
-              place you'll see them.
+              This page issues your Test Drive's reference and activation key, then sends you on
+              to the Download page with both already filled in. Keep them anyway -- you'll also
+              enter them in the Admin app on first connection to license your Server/MIDI Player.
             </p>
           </div>
           <form
@@ -68,7 +69,7 @@
                 <option value="midi_player">MIDI Player</option>
               </select>
             </div>
-            <button class="button button-primary" type="submit">Request trial</button>
+            <button class="button button-primary" type="submit">Request Test Drive</button>
             <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
             <div id="trial-result"></div>
           </form>
@@ -88,12 +89,19 @@
           status.className = "form-status " + (isError ? "is-error" : "is-ok");
         }
 
+        // Maps the form's "kind" value to the app id picker.js/download.html
+        // use (matrix_app / options.json apps[].id) -- "midi_player" is this
+        // form's own value, "midi-player" is everyone else's.
+        function appIdForKind(kind) {
+          return kind === "midi_player" ? "midi-player" : kind;
+        }
+
         form.addEventListener("submit", function (event) {
           event.preventDefault();
           result.innerHTML = "";
           var endpoint = form.getAttribute("data-endpoint");
           if (!endpoint) {
-            show("Trials are not available yet. Please check back soon.", true);
+            show("Test Drives are not available yet. Please check back soon.", true);
             return;
           }
           if (!form.checkValidity()) {
@@ -102,10 +110,11 @@
           }
           button.disabled = true;
           show("Requesting...", false);
+          var kind = form.kind.value;
           fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: form.email.value.trim(), kind: form.kind.value })
+            body: JSON.stringify({ email: form.email.value.trim(), kind: kind })
           })
             .then(function (response) {
               return response.json().then(function (body) {
@@ -115,24 +124,20 @@
             .then(function (res) {
               if (res.ok) {
                 form.reset();
-                show("Trial issued. Keep this reference and key -- you won't see them again.", false);
-                var box = document.createElement("div");
-                box.className = "code-box";
-                box.innerHTML =
-                  "<p><strong>Reference:</strong> " +
-                  res.body.reference +
-                  "</p><p><strong>Activation key:</strong> " +
-                  res.body.short_key +
-                  "</p><p><strong>Valid until:</strong> " +
-                  res.body.valid_to +
-                  "</p>";
-                result.appendChild(box);
+                show("Test Drive issued. Taking you to the Download page...", false);
+                var params = new URLSearchParams({
+                  app: appIdForKind(kind),
+                  ref: res.body.reference,
+                  key: res.body.short_key,
+                  until: res.body.valid_to || ""
+                });
+                location.assign("download.html?" + params.toString());
               } else {
                 show(res.body.error || "Something went wrong. Please try again.", true);
               }
             })
             .catch(function () {
-              show("Could not reach the trial service. Please try again later.", true);
+              show("Could not reach the Test Drive service. Please try again later.", true);
             })
             .then(function () {
               button.disabled = false;
@@ -149,6 +154,7 @@
           <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
           <li><a href="services.html">Services</a></li>
           <li><a href="download.html">Download</a></li>
+          <li><a href="trial.html">Test Drive</a></li>
           <li><a href="training.html">Training</a></li>
           <li><a href="faq.html">Support</a></li>
           <li><a href="blog/index.html">Blog</a></li>

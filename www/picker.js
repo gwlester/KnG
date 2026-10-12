@@ -415,6 +415,13 @@
       var key = params.get("key");
       if (ref && key) {
         applyAccessCode(params.get("app"), ref, key);
+        if (purchaseResult && root.KnGOrderResult) {
+          root.KnGOrderResult.renderOrderResult(purchaseResult, {
+            reference: ref,
+            short_key: key,
+            valid_to: params.get("until") || null
+          });
+        }
         if (root.history && root.history.replaceState) {
           root.history.replaceState(null, "", root.location.pathname);
         }
