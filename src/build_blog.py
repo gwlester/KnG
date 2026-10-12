@@ -40,6 +40,7 @@ NAV_ITEMS = [
     ("virtual-church-musician.html", "Virtual Church Musician"),
     ("services.html", "Services"),
     ("download.html", "Download"),
+    ("trial.html", "Test Drive"),
     ("training.html", "Training"),
     ("faq.html", "Support"),
     ("blog/index.html", "Blog"),

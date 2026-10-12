@@ -68,7 +68,12 @@ SERVER_FILE_SHA256 = hashlib.sha256(SERVER_FILE_BYTES).hexdigest()
 class DownloadHandlerTests(unittest.TestCase):
     def setUp(self):
         patcher = mock.patch.dict(
-            os.environ, {"DOWNLOADS_BUCKET": "test-bucket", "RATE_LIMIT_TABLE": "test-ratelimit"}
+            os.environ,
+            {
+                "DOWNLOADS_BUCKET": "test-bucket",
+                "RATE_LIMIT_TABLE": "test-ratelimit",
+                "LICENSE_ISSUANCE_TABLE": "test-issuance",
+            },
         )
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -97,6 +102,21 @@ class DownloadHandlerTests(unittest.TestCase):
         body = {} if password is None else {"password": password}
         result = handler.handler(event(method="POST", body=body, **qs), None)
         return result["statusCode"], result
+
+    def post_order(self, reference=None, short_key=None, **qs):
+        body = {}
+        if reference is not None:
+            body["reference"] = reference
+        if short_key is not None:
+            body["short_key"] = short_key
+        result = handler.handler(event(method="POST", body=body, **qs), None)
+        return result["statusCode"], result
+
+    def issuance_item(self, kinds, short_key):
+        return {
+            "kinds": {"SS": kinds},
+            "short_key_hash": {"S": hashlib.sha256(short_key.strip().upper().encode("utf-8")).hexdigest()},
+        }
 
     def add_server_file(self, release_index=0, sha256=None):
         rel = self.matrix["releases"][release_index]
@@ -220,6 +240,66 @@ class DownloadHandlerTests(unittest.TestCase):
         status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
         self.assertEqual(status, 429)
         self.s3.get_object.assert_not_called()
+
+    def test_paid_app_order_code_unknown_reference_is_rejected(self):
+        self.add_server_file()
+        self.dynamo.get_item.return_value = {}
+        status, _ = self.post_order(reference="no-such-order", short_key="AAAA-AAAA-AAAA-AAAA",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 403)
+        self.s3.get_object.assert_not_called()
+
+    def test_paid_app_order_code_wrong_short_key_is_rejected(self):
+        self.add_server_file()
+        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "RIGHT-KEY1-AAAA-AAAA")}
+        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="WRONG-KEY1-AAAA-AAAA",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 403)
+        self.s3.get_object.assert_not_called()
+
+    def test_paid_app_order_code_not_covering_this_app_is_rejected(self):
+        self.add_server_file()
+        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["midi-player"], "AAAA-BBBB-CCCC-DDDD")}
+        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 403)
+        self.s3.get_object.assert_not_called()
+
+    def test_paid_app_order_code_success_returns_json_not_a_redirect(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
+        status, result = self.post_order(reference="KNGCONSULTING1-1", short_key="AAAA-BBBB-CCCC-DDDD",
+                                          app="server", platform="linux")
+        self.assertEqual(status, 200)
+        body = json.loads(result["body"])
+        self.assertTrue(body["ok"])
+        self.assertIn("releases/v1.0.1-b.7/server.deb", body["url"])
+
+    def test_paid_app_order_code_is_case_and_whitespace_insensitive(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
+        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="  aaaa-bbbb-cccc-dddd  ",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 200)
+
+    def test_paid_app_order_code_for_a_trial_reference_works_the_same_way(self):
+        # Trial rows (source: "trial") share the same table/shape as
+        # purchase rows -- this is what closes the "how do I download"
+        # gap for the Test Drive flow.
+        self.add_server_file()
+        self.mock_server_file_body()
+        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
+        status, _ = self.post_order(reference="trial-f14c889e89d42925", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 200)
+
+    def test_paid_app_order_code_missing_short_key_is_rejected_before_touching_dynamo(self):
+        self.add_server_file()
+        status, _ = self.post_order(reference="KNGCONSULTING1-1", app="server", platform="linux")
+        self.assertEqual(status, 401)
+        self.dynamo.get_item.assert_not_called()
 
     def test_free_apps_are_unaffected_by_the_password_flow(self):
         self.assertEqual(self.call(app="template-editor", platform="windows")[0], 302)

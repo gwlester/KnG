@@ -1,7 +1,7 @@
 # FastSpring order fulfillment: the order.completed webhook receiver,
-# plus the order-verification + download-link route the "thank you"
-# redirect page calls. See src/order_fulfillment/handler.py's own
-# docstring and Prompts/FastSpring_implementation.md section 4.
+# plus the order-verification route picker.js calls after the Popup
+# Checkout closes. See src/order_fulfillment/handler.py's own docstring
+# and Prompts/FastSpring_implementation.md section 4.
 #
 # Writes into the same kng-license-issuance table license_signing.tf's
 # Lambda already reads from -- no separate "orders" table.
@@ -61,13 +61,6 @@ data "aws_iam_policy_document" "order_fulfillment" {
     actions   = ["secretsmanager:GetSecretValue"]
     resources = [aws_secretsmanager_secret.fastspring_api_credentials.arn, aws_secretsmanager_secret.fastspring_webhook_secret.arn]
   }
-
-  statement {
-    sid       = "ReadMatrix"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.downloads.arn}/*"]
-  }
 }
 
 resource "aws_iam_role_policy" "order_fulfillment" {
@@ -89,10 +82,8 @@ resource "aws_lambda_function" "order_fulfillment" {
   environment {
     variables = {
       LICENSE_ISSUANCE_TABLE                = aws_dynamodb_table.license_issuance.name
-      DOWNLOADS_BUCKET                      = aws_s3_bucket.downloads.bucket
       FASTSPRING_API_CREDENTIALS_SECRET_ARN = aws_secretsmanager_secret.fastspring_api_credentials.arn
       FASTSPRING_WEBHOOK_SECRET_ARN         = aws_secretsmanager_secret.fastspring_webhook_secret.arn
-      PRESIGN_SECONDS                       = "300"
     }
   }
 

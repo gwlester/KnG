@@ -22,6 +22,14 @@ per source IP via DynamoDB before any S3 read happens. On a stable release
 they are blocked outright, same as before this existed -- those two apps are
 still sold through whatever sales platform is eventually chosen, not from
 here.
+
+The same POST body may instead carry {reference, short_key} -- a purchase or
+Test Drive (trial) credential from src/order_fulfillment or
+src/trial_request, pasted (or pre-filled by www/picker.js) into the picker's
+existing "Access code" field -- in which case it's checked against the
+kng-license-issuance DynamoDB table instead of the file's own SHA-256. One
+field, two meanings: a legacy beta-tester password, or a real purchase/trial
+credential. See _order_gated_download.
 """
 
 import hashlib
@@ -81,6 +89,17 @@ def _dynamodb():
 
 def _rate_limit_table() -> str:
     return os.environ["RATE_LIMIT_TABLE"]
+
+
+def _issuance_table() -> str:
+    return os.environ["LICENSE_ISSUANCE_TABLE"]
+
+
+def _hash_short_key(short_key: str) -> str:
+    # Duplicated from src/license_signing/handler.py rather than imported:
+    # each Lambda here deploys as its own standalone zip, so a
+    # cross-directory import would only work at test time.
+    return hashlib.sha256(short_key.strip().upper().encode("utf-8")).hexdigest()
 
 
 def _client_ip(event: dict) -> str:
@@ -257,6 +276,36 @@ def _password_gated_download(chosen: dict, body: dict, ip: str) -> dict:
     return _json(200, {"ok": True, "url": url, "filename": chosen["filename"]})
 
 
+def _order_gated_download(chosen: dict, body: dict) -> dict:
+    """chosen's access is governed by a kng-license-issuance row -- the
+    reference+short_key pair a purchase or Test Drive (trial) response
+    gave the customer, pasted (or pre-filled by picker.js) into the same
+    Access code field the beta-tester password flow uses."""
+    reference = str(body.get("reference") or "").strip() if isinstance(body, dict) else ""
+    short_key = str(body.get("short_key") or "").strip() if isinstance(body, dict) else ""
+    if not reference or not short_key:
+        return _error(401, "A valid access code is required for this download.")
+
+    item = _dynamodb().get_item(
+        TableName=_issuance_table(), Key={"reference": {"S": reference}}
+    ).get("Item")
+    if item is None or item.get("short_key_hash", {}).get("S") != _hash_short_key(short_key):
+        _log(app=chosen["app"], platform=chosen["platform"], order_check="failed")
+        return _error(403, "That access code doesn't match an order.")
+
+    kinds = item.get("kinds", {}).get("SS", [])
+    if chosen["app"] not in kinds:
+        return _error(403, "That access code doesn't cover this product.")
+
+    try:
+        url = _presign(chosen["key"], chosen["filename"], chosen["format"])
+    except ValueError:
+        return _error(404, "That download is not available yet.")
+    _log(app=chosen["app"], platform=chosen["platform"], format=chosen["format"],
+         order_check=True)
+    return _json(200, {"ok": True, "url": url, "filename": chosen["filename"]})
+
+
 def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
     app, platform = qs.get("app", ""), qs.get("platform", "")
     fmt, arch = qs.get("format", ""), qs.get("arch", "")
@@ -292,6 +341,8 @@ def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
     chosen = next((f for f in candidates if f.get("default")), candidates[0])
 
     if password_required:
+        if isinstance(body, dict) and body.get("reference") and body.get("short_key"):
+            return _order_gated_download(chosen, body)
         return _password_gated_download(chosen, body, ip)
 
     try:

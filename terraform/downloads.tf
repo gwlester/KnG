@@ -137,6 +137,15 @@ data "aws_iam_policy_document" "downloads" {
     actions   = ["dynamodb:UpdateItem"]
     resources = [aws_dynamodb_table.downloads_rate_limit.arn]
   }
+
+  # Looks up a reference+short_key access code against the same table
+  # order_fulfillment.tf and trial_request.tf write into -- read-only here.
+  statement {
+    sid       = "ReadLicenseIssuance"
+    effect    = "Allow"
+    actions   = ["dynamodb:GetItem"]
+    resources = [aws_dynamodb_table.license_issuance.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "downloads" {
@@ -166,6 +175,7 @@ resource "aws_lambda_function" "downloads" {
       PASSWORD_REQUIRED_APPS = "server,midi-player"
       RATE_LIMIT_TABLE       = aws_dynamodb_table.downloads_rate_limit.name
       RATE_LIMIT_PER_MINUTE  = "2"
+      LICENSE_ISSUANCE_TABLE = aws_dynamodb_table.license_issuance.name
     }
   }
 

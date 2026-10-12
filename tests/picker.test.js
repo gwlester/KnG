@@ -172,3 +172,28 @@ test("fastspringProductPathFor maps the two paid apps and nothing else", () => {
   assert.equal(P.fastspringProductPathFor("template-editor"), null);
   assert.equal(P.fastspringProductPathFor("unknown"), null);
 });
+
+test("parseAccessCode splits a reference:short_key credential", () => {
+  assert.deepEqual(P.parseAccessCode("KNGCONSULTING1-1:AAAA-BBBB-CCCC-DDDD"),
+    { reference: "KNGCONSULTING1-1", short_key: "AAAA-BBBB-CCCC-DDDD" });
+});
+
+test("parseAccessCode treats a plain value as the legacy password", () => {
+  assert.deepEqual(P.parseAccessCode("abc123"), { password: "abc123" });
+});
+
+test("parseAccessCode trims whitespace around both halves and the whole value", () => {
+  assert.deepEqual(P.parseAccessCode("  trial-abc : AAAA-BBBB-CCCC-DDDD  "),
+    { reference: "trial-abc", short_key: "AAAA-BBBB-CCCC-DDDD" });
+});
+
+test("parseAccessCode returns null for an empty or whitespace-only value", () => {
+  assert.equal(P.parseAccessCode(""), null);
+  assert.equal(P.parseAccessCode("   "), null);
+  assert.equal(P.parseAccessCode(undefined), null);
+});
+
+test("parseAccessCode treats a leading or trailing colon as a literal password, not a credential", () => {
+  assert.deepEqual(P.parseAccessCode(":onlykey"), { password: ":onlykey" });
+  assert.deepEqual(P.parseAccessCode("onlyref:"), { password: "onlyref:" });
+});
