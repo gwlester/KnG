@@ -142,6 +142,22 @@
       "&version=" + encodeURIComponent(version || "current") + "&v=1";
   }
 
+  // The Access code field doubles as a purchase/Test Drive credential: a
+  // "reference:short_key" pair (what onFSPopupClosed/the Test Drive
+  // hand-off pre-fills it with) instead of the legacy beta-tester
+  // password. A bare colon with nothing on one side is treated as a
+  // literal password, not a malformed credential -- passwords are never
+  // expected to contain one, so this only matters for a copy/paste slip.
+  function parseAccessCode(raw) {
+    var value = (raw || "").trim();
+    if (!value) return null;
+    var idx = value.indexOf(":");
+    if (idx > 0 && idx < value.length - 1) {
+      return { reference: value.slice(0, idx).trim(), short_key: value.slice(idx + 1).trim() };
+    }
+    return { password: value };
+  }
+
   var api = {
     ORDER: ORDER,
     applyStatus: applyStatus,
@@ -155,7 +171,8 @@
     describe: describe,
     buildUrl: buildUrl,
     otherFormat: otherFormat,
-    fastspringProductPathFor: fastspringProductPathFor
+    fastspringProductPathFor: fastspringProductPathFor,
+    parseAccessCode: parseAccessCode
   };
 
   if (typeof module !== "undefined" && module.exports) {
@@ -276,8 +293,9 @@
     // any request logging. The picker POSTs it in a JSON body instead, and
     // never computes or checks the checksum itself -- only the Lambda does.
     function requestGatedDownload(platform) {
-      var pw = (passwordInput && passwordInput.value ? passwordInput.value : "").trim();
-      if (!pw) {
+      var raw = passwordInput && passwordInput.value ? passwordInput.value : "";
+      var body = parseAccessCode(raw);
+      if (!body) {
         note.textContent = "Enter the access code you were given.";
         note.classList.add("is-error");
         return;
@@ -288,7 +306,7 @@
       root.fetch(buildUrl(endpoint, platform, { version: versionSelect.value }), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pw })
+        body: JSON.stringify(body)
       })
         .then(function (r) {
           return r.json().catch(function () { return {}; }).then(function (json) {
@@ -315,6 +333,17 @@
 
     var fulfillmentEndpoint = form.getAttribute("data-order-fulfillment-endpoint") || "";
     var purchaseResult = document.getElementById("purchase-result");
+
+    // Pre-fills the Access code field (and selects the purchased/trialed
+    // app, when known) after a purchase or a Test Drive hand-off --
+    // "reuse the main picker" means the buyer never has to type or paste
+    // the reference:short_key pair in by hand.
+    function applyAccessCode(appId, reference, shortKey) {
+      if (!reference || !shortKey) return;
+      if (appId && findApp(baseOptions, appId)) appSelect.value = appId;
+      if (passwordInput) passwordInput.value = reference + ":" + shortKey;
+      render();
+    }
 
     function startFastSpringCheckout(platform) {
       var productPath = fastspringProductPathFor(platform.matrix_app);
@@ -346,17 +375,9 @@
             purchaseResult.textContent = (result.body && result.body.error) || "Could not finish your order. Contact inquiries@kng-consulting.com with your order reference.";
             return;
           }
-          var box = document.createElement("div");
-          box.className = "code-box";
-          var html = "<p><strong>Order reference:</strong> " + result.body.reference + "</p>" +
-            "<p><strong>Activation key:</strong> " + result.body.short_key + "</p>" +
-            "<p>Enter both in the Admin app on first connection to license your Server/MIDI Player.</p>";
-          (result.body.downloads || []).forEach(function (d) {
-            html += '<p><a href="' + d.url + '">' + d.app + " (" + d.platform + ")</a></p>";
-          });
-          box.innerHTML = html;
-          purchaseResult.innerHTML = "";
-          purchaseResult.appendChild(box);
+          root.KnGOrderResult.renderOrderResult(purchaseResult, result.body);
+          var kinds = result.body.kinds || [];
+          applyAccessCode(kinds[0], result.body.reference, result.body.short_key);
         })
         .catch(function () {
           purchaseResult.textContent = "Could not reach the order service. Contact inquiries@kng-consulting.com with your order reference: " + orderReference.id;
@@ -381,6 +402,24 @@
     });
     render();
     loadStatus();
+
+    // Test Drive hand-off: trial.html sends a successful Test Drive here
+    // as ?app=<id>&ref=<reference>&key=<short_key> so this page can
+    // pre-fill the same way a purchase does, without the visitor
+    // re-typing anything. Scrubbed from the URL/history immediately
+    // after reading, same reasoning as never putting an access code in
+    // a query string the download endpoint itself would see.
+    try {
+      var params = new (root.URLSearchParams)(root.location.search);
+      var ref = params.get("ref");
+      var key = params.get("key");
+      if (ref && key) {
+        applyAccessCode(params.get("app"), ref, key);
+        if (root.history && root.history.replaceState) {
+          root.history.replaceState(null, "", root.location.pathname);
+        }
+      }
+    } catch (e) { /* no URLSearchParams, or no location -- skip the hand-off */ }
   }
 
   if (typeof document !== "undefined") {

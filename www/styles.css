@@ -572,6 +572,31 @@ a:focus-visible,
   outline-offset: 2px;
 }
 
+/* Order Information box -- the result of a purchase/Test Drive, shown
+   in place (no redirect) by order-result.js. Deliberately stands out
+   from the rest of the page: bold accent border, larger heading. It's a
+   receipt/pointer back to the main picker above (now pre-filled), not a
+   second picker of its own. */
+.order-info-box {
+  max-width: 46rem;
+  margin: 1.5rem 0;
+  padding: 1.5rem 1.75rem;
+  background: var(--accent-soft);
+  border: 2px solid var(--accent);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.order-info-box h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.order-info-box p {
+  margin: 0.4rem 0;
+}
+
 .radio-pill input {
   width: auto;
   margin: 0;
