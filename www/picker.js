@@ -5,6 +5,21 @@
 
   var ORDER = ["android", "windows", "mac", "linux", "raspberry-pi"];
 
+  // FastSpring product path (Popup Checkout, Add() takes this) for each
+  // matrix_app id that's ever "purchase" type. Only two products, ever --
+  // hardcoding this tiny map is simpler and more reliable than threading a
+  // custom attribute through FastSpring's checkout, same reasoning as
+  // src/order_fulfillment/handler.py's own _PRODUCT_TO_APP_ID (the inverse
+  // of this map).
+  var FASTSPRING_PRODUCT_PATHS = {
+    "server": "virtual-church-musician-server",
+    "midi-player": "virtual-church-musician-midi-player"
+  };
+
+  function fastspringProductPathFor(matrixAppId) {
+    return FASTSPRING_PRODUCT_PATHS[matrixAppId] || null;
+  }
+
   function detectPlatform(nav) {
     if (!nav) return null;
     var hint = (nav.userAgentData && nav.userAgentData.platform) || "";
@@ -139,7 +154,8 @@
     chooseDefault: chooseDefault,
     describe: describe,
     buildUrl: buildUrl,
-    otherFormat: otherFormat
+    otherFormat: otherFormat,
+    fastspringProductPathFor: fastspringProductPathFor
   };
 
   if (typeof module !== "undefined" && module.exports) {
@@ -297,15 +313,70 @@
         });
     }
 
+    var fulfillmentEndpoint = form.getAttribute("data-order-fulfillment-endpoint") || "";
+    var purchaseResult = document.getElementById("purchase-result");
+
+    function startFastSpringCheckout(platform) {
+      var productPath = fastspringProductPathFor(platform.matrix_app);
+      if (!productPath || !root.fastspring || !root.fastspring.builder) {
+        note.textContent = "Purchasing is not available right now. Please try again shortly.";
+        note.classList.add("is-error");
+        return;
+      }
+      root.fastspring.builder.add(productPath);
+      root.fastspring.builder.checkout();
+    }
+
+    // Registered globally (data-popup-closed="onFSPopupClosed" on the
+    // FastSpring script tag) so it exists before the popup can ever close.
+    // orderReference is null on an incomplete/cancelled checkout.
+    root.onFSPopupClosed = function (orderReference) {
+      if (!orderReference || !orderReference.id || !purchaseResult) return;
+      if (root.fastspring && root.fastspring.builder) root.fastspring.builder.reset();
+      purchaseResult.innerHTML = "";
+      purchaseResult.textContent = "Finishing up your order...";
+      fetch(fulfillmentEndpoint + "?fulfill=1&order=" + encodeURIComponent(orderReference.id))
+        .then(function (response) {
+          return response.json().then(function (body) {
+            return { ok: response.ok && body.ok, body: body };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok) {
+            purchaseResult.textContent = (result.body && result.body.error) || "Could not finish your order. Contact inquiries@kng-consulting.com with your order reference.";
+            return;
+          }
+          var box = document.createElement("div");
+          box.className = "code-box";
+          var html = "<p><strong>Order reference:</strong> " + result.body.reference + "</p>" +
+            "<p><strong>Activation key:</strong> " + result.body.short_key + "</p>" +
+            "<p>Enter both in the Admin app on first connection to license your Server/MIDI Player.</p>";
+          (result.body.downloads || []).forEach(function (d) {
+            html += '<p><a href="' + d.url + '">' + d.app + " (" + d.platform + ")</a></p>";
+          });
+          box.innerHTML = html;
+          purchaseResult.innerHTML = "";
+          purchaseResult.appendChild(box);
+        })
+        .catch(function () {
+          purchaseResult.textContent = "Could not reach the order service. Contact inquiries@kng-consulting.com with your order reference: " + orderReference.id;
+        });
+    };
+
     appSelect.addEventListener("change", render);
     versionSelect.addEventListener("change", render);
     go.addEventListener("click", function () {
       var platform = currentPlatform();
-      if (!platform || !describe(platform).enabled || !endpoint) return;
+      if (!platform || !describe(platform).enabled) return;
       if (platform.type === "gated") {
         requestGatedDownload(platform);
         return;
       }
+      if (platform.type === "purchase") {
+        startFastSpringCheckout(platform);
+        return;
+      }
+      if (!endpoint) return;
       root.location.assign(buildUrl(endpoint, platform, { version: versionSelect.value }));
     });
     render();
