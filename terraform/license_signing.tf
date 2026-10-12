@@ -193,7 +193,7 @@ resource "aws_lambda_permission" "license_activate_url" {
   statement_id           = "AllowPublicFunctionUrl"
   action                 = "lambda:InvokeFunctionUrl"
   function_name          = aws_lambda_function.license_activate.function_name
-  principal               = "*"
+  principal              = "*"
   function_url_auth_type = "NONE"
 }
 
