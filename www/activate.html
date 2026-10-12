@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activate a License | KnG Consulting</title>
+    <meta
+      name="description"
+      content="Activate a Virtual Church Musician Server or MIDI Player license without an internet-connected Server -- for air-gapped installs."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- SITE_HEADER_START -->
+    <header class="site-header">
+      <nav class="top-nav" aria-label="Primary">
+        <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
+        <ul class="nav-links">
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li><a href="training.html">Training</a></li>
+          <li><a href="faq.html">Support</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+<!-- SITE_HEADER_END -->
+
+    <section class="hero page-hero">
+      <div class="container">
+        <p class="eyebrow">Licensing</p>
+        <h1>Activate a license</h1>
+        <p class="hero-copy">
+          Most installs activate automatically from inside the Admin app and
+          never need this page. Use this page only if your Server or MIDI
+          Player has no internet access of its own -- the Admin app will
+          tell you if that's the case and show you the device ID to enter
+          below.
+        </p>
+      </div>
+    </section>
+
+    <main>
+      <section class="section">
+        <div class="container split split-top">
+          <div>
+            <h2>What you'll need</h2>
+            <p class="lead">
+              The order reference and activation key from your order
+              confirmation (or trial confirmation) email, and the device ID
+              shown on the Admin app's license screen for the Server or MIDI
+              Player you're activating.
+            </p>
+            <p>
+              This produces a license file to carry over to that device by
+              USB drive (or however you move files there) and upload through
+              the Admin app -- no internet access on the device itself is
+              needed after this step.
+            </p>
+          </div>
+          <form class="contact-form" id="activate-form" data-endpoint="" novalidate>
+            <div class="field">
+              <label for="reference">Order or trial reference</label>
+              <input id="reference" name="reference" type="text" autocomplete="off" maxlength="100" required />
+            </div>
+            <div class="field">
+              <label for="short_key">Activation key</label>
+              <input
+                id="short_key"
+                name="short_key"
+                type="text"
+                autocomplete="off"
+                maxlength="40"
+                placeholder="ABCD-1234-EFGH-5678"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="category">What are you activating?</label>
+              <select id="category" name="category">
+                <option value="server">Server</option>
+                <option value="midi_player">MIDI Player</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="uuid">Device ID (shown on the Admin app's license screen)</label>
+              <input id="uuid" name="uuid" type="text" autocomplete="off" maxlength="64" required />
+            </div>
+            <button class="button button-primary" type="submit">Activate</button>
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+            <p id="download-area"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var form = document.getElementById("activate-form");
+        var status = document.getElementById("form-status");
+        var downloadArea = document.getElementById("download-area");
+        var button = form.querySelector("button[type=submit]");
+
+        function show(message, isError) {
+          status.textContent = message;
+          status.className = "form-status " + (isError ? "is-error" : "is-ok");
+        }
+
+        function base64ToBlob(base64) {
+          var binary = window.atob(base64);
+          var bytes = new Uint8Array(binary.length);
+          for (var i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return new Blob([bytes], { type: "application/octet-stream" });
+        }
+
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          downloadArea.innerHTML = "";
+          var endpoint = form.getAttribute("data-endpoint");
+          if (!endpoint) {
+            show("Activation is not available yet. Please check back soon.", true);
+            return;
+          }
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+          button.disabled = true;
+          show("Activating...", false);
+          fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reference: form.reference.value.trim(),
+              short_key: form.short_key.value.trim(),
+              category: form.category.value,
+              uuid: form.uuid.value.trim()
+            })
+          })
+            .then(function (response) {
+              return response.json().then(function (body) {
+                return { ok: response.ok && body.ok, body: body };
+              });
+            })
+            .then(function (result) {
+              if (result.ok) {
+                var blob = base64ToBlob(result.body.license_file_base64);
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement("a");
+                link.href = url;
+                link.download = "license.dat";
+                link.textContent = "Download your license file";
+                link.className = "button button-primary";
+                downloadArea.appendChild(link);
+                show(
+                  "Activated. Download the license file, carry it to the device, and upload it in the Admin app.",
+                  false
+                );
+              } else {
+                show(result.body.error || "Something went wrong. Please try again.", true);
+              }
+            })
+            .catch(function () {
+              show("Could not reach the activation service. Please try again later.", true);
+            })
+            .then(function () {
+              button.disabled = false;
+            });
+        });
+      })();
+    </script>
+
+    <!-- SITE_FOOTER_START -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>© 2026 KnG Consulting</p>
+        <ul class="footer-links">
+          <li><a href="virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="download.html">Download</a></li>
+          <li><a href="training.html">Training</a></li>
+          <li><a href="faq.html">Support</a></li>
+          <li><a href="blog/index.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="license.html">License</a></li>
+          <li><a href="services-terms.html">Services Terms</a></li>
+        </ul>
+      </div>
+    </footer>
+<!-- SITE_FOOTER_END -->
+  </body>
+</html>
