@@ -157,6 +157,9 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     actions = [
       "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret", "secretsmanager:DescribeSecret",
       "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource",
+      # The provider's read also checks for a resource policy on every
+      # plan/apply even though this secret has none.
+      "secretsmanager:GetResourcePolicy",
     ]
     resources = [aws_secretsmanager_secret.license_signing_key.arn]
   }
