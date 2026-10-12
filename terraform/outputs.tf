@@ -99,3 +99,8 @@ output "trial_request_function_url" {
   description = "License File: set as the data-endpoint attribute on www/trial.html's form."
   value       = aws_lambda_function_url.trial_request.function_url
 }
+
+output "order_fulfillment_function_url" {
+  description = "FastSpring order.completed webhook target (?webhook=1) and the thank-you page's fulfillment call (?fulfill=1&order=<reference>)."
+  value       = aws_lambda_function_url.order_fulfillment.function_url
+}

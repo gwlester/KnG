@@ -165,3 +165,10 @@ test("the VCM Server and VCM MIDI Player offer a Raspberry Pi package, not yet a
   assert.ok(P.ORDER.indexOf("raspberry-pi") > P.ORDER.indexOf("linux"));
   assert.equal(P.findPlatform(P.findApp(options, "template-editor"), "raspberry-pi"), null);
 });
+
+test("fastspringProductPathFor maps the two paid apps and nothing else", () => {
+  assert.equal(P.fastspringProductPathFor("server"), "virtual-church-musician-server");
+  assert.equal(P.fastspringProductPathFor("midi-player"), "virtual-church-musician-midi-player");
+  assert.equal(P.fastspringProductPathFor("template-editor"), null);
+  assert.equal(P.fastspringProductPathFor("unknown"), null);
+});
