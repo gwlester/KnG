@@ -1,6 +1,8 @@
 {
   "FormatVersion": 1,
   "endpoint": "https://kdslqntqrqe2vl7ydpbml522ie0xaigk.lambda-url.us-east-1.on.aws/",
+  "order_fulfillment_endpoint": "https://uxzyvdriozn4ffv6ga4sdsnoem0wizrj.lambda-url.us-east-1.on.aws/",
+  "fastspring_storefront": "kngconsulting.test.onfastspring.com/popup-vmc-001",
   "channel_label": "Beta",
   "platforms": {
     "android": {

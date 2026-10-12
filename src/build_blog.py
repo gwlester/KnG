@@ -652,7 +652,7 @@ def render_picker(options: dict) -> str:
             <p class="eyebrow">Choose your download</p>
             <h2>Pick an app and a platform</h2>
           </div>
-          <form class="picker" id="download-picker" data-endpoint="{_esc(options.get("endpoint", ""))}" onsubmit="return false">
+          <form class="picker" id="download-picker" data-endpoint="{_esc(options.get("endpoint", ""))}" data-order-fulfillment-endpoint="{_esc(options.get("order_fulfillment_endpoint", ""))}" onsubmit="return false">
             <div class="field">
               <label for="pick-app">Application</label>
               <select id="pick-app">
@@ -683,6 +683,13 @@ def render_picker(options: dict) -> str:
             <p class="license-note">By downloading you agree to the <a href="license.html">License Agreement</a>.</p>
             <noscript><p class="picker-note">The picker needs JavaScript. The table below shows what is planned.</p></noscript>
           </form>
+          <div id="purchase-result" role="status" aria-live="polite"></div>
+          <!-- FastSpring Popup Checkout (Store Builder Library). A ".test."
+               segment in data-storefront (options.json's fastspring_storefront)
+               means the sandbox storefront -- switch to the live one in
+               options.json before going live. onFSPopupClosed is defined in
+               picker.js. -->
+          <script id="fsc-api" src="https://sbl.onfastspring.com/sbl/1.0.9/fastspring-builder.min.js" type="text/javascript" data-storefront="{_esc(options.get("fastspring_storefront", ""))}" data-popup-closed="onFSPopupClosed"></script>
           <script type="application/json" id="picker-options">{data}</script>"""
 
 
