@@ -164,6 +164,34 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_secretsmanager_secret.license_signing_key.arn]
   }
 
+  # Order fulfillment (order_fulfillment.tf): same three patterns above,
+  # for its own execution role and its two secrets (FastSpring API
+  # credentials, webhook HMAC secret -- both values set out of band).
+  statement {
+    sid    = "OrderFulfillmentRole"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:GetRolePolicy",
+      "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
+    ]
+    resources = [aws_iam_role.order_fulfillment.arn]
+  }
+
+  statement {
+    sid    = "OrderFulfillmentSecrets"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret", "secretsmanager:DescribeSecret",
+      "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource",
+      "secretsmanager:GetResourcePolicy",
+    ]
+    resources = [
+      aws_secretsmanager_secret.fastspring_api_credentials.arn,
+      aws_secretsmanager_secret.fastspring_webhook_secret.arn,
+    ]
+  }
+
   statement {
     sid       = "DownloadsBucket"
     effect    = "Allow"
