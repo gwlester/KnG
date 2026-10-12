@@ -281,6 +281,22 @@ def webhook(event, context):
         if evt.get("type") != "order.completed":
             continue
         order = evt.get("data") or {}
+        # Logged deliberately (not just on error): this is the only place
+        # FastSpring's real order.completed shape ever gets captured --
+        # 2026-10-12's first sandbox test showed the webhook and the
+        # immediate fulfillment call disagreeing on the reference (see the
+        # fix in fulfill() below), caught only by comparing DynamoDB rows
+        # after the fact. Logging the fields we actually extract here
+        # means the next discrepancy is diagnosable from CloudWatch
+        # without another live test.
+        print(json.dumps({
+            "event": "webhook_order_completed",
+            "order_id": order.get("id"),
+            "order_reference": order.get("reference"),
+            "derived_reference": _order_reference(order),
+            "email": _order_email(order),
+            "item_products": [i.get("product") for i in order.get("items", [])],
+        }))
         reference = _order_reference(order)
         if not reference:
             continue
@@ -289,11 +305,11 @@ def webhook(event, context):
 
 
 def fulfill(event, context):
-    reference = str((event.get("queryStringParameters") or {}).get("order") or "").strip()
-    if not reference:
+    requested_id = str((event.get("queryStringParameters") or {}).get("order") or "").strip()
+    if not requested_id:
         return _error(400, "order is required.")
     username, password = _fastspring_credentials()
-    req = urllib_request.Request(f"https://api.fastspring.com/orders/{reference}", method="GET")
+    req = urllib_request.Request(f"https://api.fastspring.com/orders/{requested_id}", method="GET")
     req.add_header("Authorization", "Basic " + base64.b64encode(f"{username}:{password}".encode()).decode("ascii"))
     try:
         with urllib_request.urlopen(req, timeout=10) as response:
@@ -304,6 +320,24 @@ def fulfill(event, context):
         return _error(502, "Could not verify the order with FastSpring.")
     if not order.get("completed"):
         return _error(409, "This order has not completed.")
+    # Derive the canonical reference from the order body itself -- the
+    # exact same way webhook() does -- rather than trusting whatever id
+    # the popup-closed JS callback happened to query by. Those two can
+    # differ (FastSpring's own order id vs. its human-readable order
+    # reference); using _order_reference() here, not requested_id,
+    # guarantees this call and the webhook agree on one DynamoDB row for
+    # the same real-world order. Falls back to requested_id only if the
+    # order body has neither field, so this never produces an empty key.
+    reference = _order_reference(order) or requested_id
+    print(json.dumps({
+        "event": "fulfill_order_verified",
+        "requested_id": requested_id,
+        "order_id": order.get("id"),
+        "order_reference": order.get("reference"),
+        "derived_reference": reference,
+        "email": _order_email(order),
+        "item_products": [i.get("product") for i in order.get("items", [])],
+    }))
     app_ids = _app_ids_for_order(order)
     row = _upsert_issuance_row(reference, _order_email(order), app_ids)
     return _json(

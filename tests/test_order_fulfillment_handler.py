@@ -223,6 +223,41 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         self.assertEqual(body["short_key"], "ALREADY-ISSUED")
         self.dynamo.put_item.assert_not_called()
 
+    def test_fulfill_keys_the_issuance_row_by_the_orders_api_reference_not_the_requested_id(self):
+        """Regression for a real bug found during the 2026-10-12 sandbox
+        test: the popup-closed callback hands fulfill() FastSpring's
+        order *id*, but the Orders API response's own *reference* field
+        can be a different string -- webhook() always keys by
+        _order_reference(order) (preferring "reference" over "id"), so
+        fulfill() must derive the same value from the order body instead
+        of trusting the query param, or the two write different rows for
+        the same purchase.
+        """
+        order_body = {
+            "completed": True,
+            "id": "Yfc6mX_BR7--uHahfYnFVg",
+            "reference": "KNGCONSULTING261012-5112-10119",
+            "customer": {"email": "buyer@example.org"},
+            "items": [{"product": "virtual-church-musician-server"}],
+        }
+        response = mock.Mock()
+        response.read.return_value = json.dumps(order_body).encode("utf-8")
+        response.__enter__ = mock.Mock(return_value=response)
+        response.__exit__ = mock.Mock(return_value=False)
+        with mock.patch.object(handler.urllib_request, "urlopen", return_value=response), mock.patch.object(
+            handler, "_load_matrix", return_value={"releases": []}
+        ):
+            result = handler.handler(
+                {"queryStringParameters": {"fulfill": "1", "order": "Yfc6mX_BR7--uHahfYnFVg"}}, None
+            )
+
+        body = json.loads(result["body"])
+        self.assertEqual(body["reference"], "KNGCONSULTING261012-5112-10119")
+        put_item = self.dynamo.put_item.call_args.kwargs["Item"]
+        self.assertEqual(put_item["reference"]["S"], "KNGCONSULTING261012-5112-10119")
+        get_item_key = self.dynamo.get_item.call_args.kwargs["Key"]
+        self.assertEqual(get_item_key["reference"]["S"], "KNGCONSULTING261012-5112-10119")
+
 
 if __name__ == "__main__":
     unittest.main()
