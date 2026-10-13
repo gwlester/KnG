@@ -115,6 +115,7 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         self.assertEqual(item["email"]["S"], "buyer@example.org")
         self.assertEqual(item["kinds"]["SS"], ["server"])
         self.assertIn("short_key", item)
+        self.assertIn("created_at", item)
         self.assertNotIn("valid_to", item)
 
     def test_webhook_maps_both_products_by_path(self):

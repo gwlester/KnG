@@ -63,6 +63,7 @@ import json
 import os
 import secrets
 import string
+from datetime import datetime, timezone
 from urllib import error as urllib_error
 from urllib import request as urllib_request
 
@@ -180,6 +181,7 @@ def _upsert_issuance_row(reference: str, email: str, app_ids: list[str]) -> dict
         "kinds": {"SS": app_ids or ["server"]},
         "short_key": {"S": short_key},
         "short_key_hash": {"S": hash_short_key(short_key)},
+        "created_at": {"S": datetime.now(timezone.utc).isoformat()},
         # No "valid_to" attribute at all -- activate() treats a missing
         # one as None, i.e. "forever" (a purchase, not a trial).
     }
