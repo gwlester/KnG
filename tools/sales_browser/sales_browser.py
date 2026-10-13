@@ -44,14 +44,32 @@ def parse_date_bound(text: str) -> date | None:
     return datetime.strptime(text, "%Y-%m-%d").date()
 
 
-def _row_date(row: dict) -> date | None:
-    created_at = row.get("created_at")
-    if not created_at:
+def _row_date(row: dict, date_field: str) -> date | None:
+    value = row.get(date_field)
+    if not value:
         return None
     try:
-        return datetime.fromisoformat(created_at).date()
+        return datetime.fromisoformat(value).date()
     except ValueError:
         return None
+
+
+def _in_date_range(row: dict, date_field: str, date_from: date | None, date_to: date | None) -> bool:
+    if date_from is None and date_to is None:
+        return True
+    row_date = _row_date(row, date_field)
+    if row_date is None:
+        return False
+    if date_from is not None and row_date < date_from:
+        return False
+    if date_to is not None and row_date > date_to:
+        return False
+    return True
+
+
+def _matches_email_pattern(row: dict, email_pattern: str) -> bool:
+    pattern = (email_pattern or "").strip().lower()
+    return not pattern or pattern in row.get("email", "").lower()
 
 
 def matches_filters(
@@ -62,16 +80,9 @@ def matches_filters(
     email_pattern: str = "",
     product: str = "all",
 ) -> bool:
-    if date_from is not None or date_to is not None:
-        row_date = _row_date(row)
-        if row_date is None:
-            return False
-        if date_from is not None and row_date < date_from:
-            return False
-        if date_to is not None and row_date > date_to:
-            return False
-    pattern = (email_pattern or "").strip().lower()
-    if pattern and pattern not in row.get("email", "").lower():
+    if not _in_date_range(row, "created_at", date_from, date_to):
+        return False
+    if not _matches_email_pattern(row, email_pattern):
         return False
     if product != "all" and product not in row.get("kinds", []):
         return False
@@ -119,3 +130,22 @@ def normalize_email(email: str) -> str:
     allowlist lookup -- added here case-sensitively would just mean a
     tester never matches what the Lambda actually checks."""
     return (email or "").strip().lower()
+
+
+def matches_beta_tester_filters(
+    row: dict, *, date_from: date | None = None, date_to: date | None = None, email_pattern: str = ""
+) -> bool:
+    if not _in_date_range(row, "added_at", date_from, date_to):
+        return False
+    return _matches_email_pattern(row, email_pattern)
+
+
+def filter_beta_testers(
+    rows: list[dict], *, date_from: date | None = None, date_to: date | None = None, email_pattern: str = ""
+) -> list[dict]:
+    matched = [
+        row
+        for row in rows
+        if matches_beta_tester_filters(row, date_from=date_from, date_to=date_to, email_pattern=email_pattern)
+    ]
+    return sorted(matched, key=lambda row: row.get("added_at") or "", reverse=True)

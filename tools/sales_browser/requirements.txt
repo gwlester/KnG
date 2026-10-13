@@ -4,3 +4,4 @@ boto3
 # -- without it, boto3 raises MissingDependencyException at client-creation
 # time asking for this exact package.
 botocore[crt]
+tkcalendar

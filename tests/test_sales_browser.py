@@ -6,7 +6,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools" / "sales_browser"))
 
 from sales_browser import (  # noqa: E402
+    filter_beta_testers,
     filter_rows,
+    matches_beta_tester_filters,
     matches_filters,
     normalize_email,
     parse_date_bound,
@@ -167,6 +169,55 @@ class NormalizeEmailTests(unittest.TestCase):
 
     def test_handles_none(self):
         self.assertEqual(normalize_email(None), "")
+
+
+def beta_tester(email="pastor@example.org", added_at="2026-10-01T00:00:00+00:00"):
+    return {"email": {"S": email}, "added_at": {"S": added_at}} if added_at is not None else {
+        "email": {"S": email}
+    }
+
+
+class MatchesBetaTesterFiltersTests(unittest.TestCase):
+    def test_no_filters_matches_everything_including_undated_rows(self):
+        row = simplify_beta_tester_item(beta_tester(added_at=None))
+        self.assertTrue(matches_beta_tester_filters(row))
+
+    def test_a_date_filter_excludes_a_row_with_no_added_at(self):
+        row = simplify_beta_tester_item(beta_tester(added_at=None))
+        self.assertFalse(matches_beta_tester_filters(row, date_from=date(2026, 1, 1)))
+
+    def test_date_range_is_inclusive_on_both_ends(self):
+        row = simplify_beta_tester_item(beta_tester(added_at="2026-10-05T12:00:00+00:00"))
+        self.assertTrue(matches_beta_tester_filters(row, date_from=date(2026, 10, 5), date_to=date(2026, 10, 5)))
+        self.assertFalse(matches_beta_tester_filters(row, date_from=date(2026, 10, 6)))
+        self.assertFalse(matches_beta_tester_filters(row, date_to=date(2026, 10, 4)))
+
+    def test_email_pattern_is_a_case_insensitive_substring_match(self):
+        row = simplify_beta_tester_item(beta_tester(email="Pastor@Example.org"))
+        self.assertTrue(matches_beta_tester_filters(row, email_pattern="pastor"))
+        self.assertTrue(matches_beta_tester_filters(row, email_pattern="EXAMPLE.ORG"))
+        self.assertFalse(matches_beta_tester_filters(row, email_pattern="nomatch"))
+
+
+class FilterBetaTestersTests(unittest.TestCase):
+    def test_sorts_most_recently_added_first(self):
+        rows = [
+            simplify_beta_tester_item(beta_tester(email="older@example.org", added_at="2026-10-01T00:00:00+00:00")),
+            simplify_beta_tester_item(beta_tester(email="newer@example.org", added_at="2026-10-09T00:00:00+00:00")),
+        ]
+        result = filter_beta_testers(rows)
+        self.assertEqual([r["email"] for r in result], ["newer@example.org", "older@example.org"])
+
+    def test_combines_date_and_email_filters(self):
+        rows = [
+            simplify_beta_tester_item(beta_tester(email="match@example.org", added_at="2026-10-05T00:00:00+00:00")),
+            simplify_beta_tester_item(beta_tester(email="wrong-date@example.org", added_at="2026-01-01T00:00:00+00:00")),
+            simplify_beta_tester_item(beta_tester(email="wrong-email@elsewhere.org", added_at="2026-10-05T00:00:00+00:00")),
+        ]
+        result = filter_beta_testers(
+            rows, date_from=date(2026, 10, 1), date_to=date(2026, 10, 31), email_pattern="example.org"
+        )
+        self.assertEqual([r["email"] for r in result], ["match@example.org"])
 
 
 if __name__ == "__main__":

@@ -51,21 +51,38 @@ would use).
   file itself lives at `~/.kng-license-management/logs/license_management.log`
   and is appended to across runs (not truncated on start).
 
-## Sales & Test Drives filters
+## Filtering (both tabs)
 
-- **From / To**: `YYYY-MM-DD`, inclusive on both ends. A purchase made
-  before `created_at` existed on purchase rows won't match either bound
-  -- leave both blank to see it.
+Click **Filters...** to open a modal dialog: a checkbox each for a From
+and To date (a calendar popup appears when its checkbox is checked --
+there's no plain typed date field), an Email contains box, and -- Sales
+tab only -- a Product dropdown. **Apply** re-filters instantly from
+already-loaded data (no new AWS call); **Clear Filters** resets to
+showing everything; **Clear Filters** and **Cancel** both close the
+dialog. Active filters show as small labels under the action buttons
+("From: 2026-10-01", "Email: pastor", ...) so it's obvious at a glance
+whether you're looking at a filtered view -- "No filters applied."
+when you're not.
+
+- **From / To**: inclusive on both ends. A purchase made before
+  `created_at` existed on purchase rows (or a beta tester added before
+  this tool tracked `added_at`) won't match either bound -- leave both
+  unchecked to see it regardless.
 - **Email contains**: case-insensitive substring match.
-- **Product**: All, Server, or MIDI Player.
+- **Product** (Sales tab only): All, Server, or MIDI Player.
 
-Results are sorted most-recent-first.
+Both tabs' results are sorted most-recent-first. Each tab also
+auto-loads the first time you switch to it (and the Sales tab loads
+immediately at launch, since it's already showing) -- after that,
+Refresh is manual, so a filter change never gets overwritten by a
+surprise reload.
 
 ## Beta Testers
 
 One email per row, approved for both products at once (there's no
-per-product approval). Add prompts for an email and stamps it with the
-current time; Remove deletes the selected row immediately after a
-confirmation. Removing someone takes effect on their next Test Drive
-request or download attempt -- it doesn't revoke an access code
+per-product approval). Add prompts for an email (normalized to
+lowercase, same as the Lambdas that check this table) and stamps it
+with the current time; Remove deletes the selected row immediately
+after a confirmation. Removing someone takes effect on their next Test
+Drive request or download attempt -- it doesn't revoke an access code
 already issued and still within its 90-day window in advance.
