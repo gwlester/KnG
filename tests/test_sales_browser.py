@@ -5,7 +5,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools" / "sales_browser"))
 
-from sales_browser import filter_rows, matches_filters, parse_date_bound, product_label, simplify_item  # noqa: E402
+from sales_browser import (  # noqa: E402
+    filter_rows,
+    matches_filters,
+    normalize_email,
+    parse_date_bound,
+    product_label,
+    simplify_beta_tester_item,
+    simplify_item,
+)
 
 
 def purchase_item(reference="order-1", email="buyer@example.org", kinds=("server",), created_at="2026-10-01T00:00:00+00:00"):
@@ -138,6 +146,27 @@ class ProductLabelTests(unittest.TestCase):
 
     def test_unknown_falls_back_to_the_raw_value(self):
         self.assertEqual(product_label("something-else"), "something-else")
+
+
+class SimplifyBetaTesterItemTests(unittest.TestCase):
+    def test_simplifies_a_full_item(self):
+        item = {"email": {"S": "pastor@example.org"}, "added_at": {"S": "2026-10-12T00:00:00+00:00"}}
+        self.assertEqual(
+            simplify_beta_tester_item(item),
+            {"email": "pastor@example.org", "added_at": "2026-10-12T00:00:00+00:00"},
+        )
+
+    def test_missing_added_at_does_not_raise(self):
+        row = simplify_beta_tester_item({"email": {"S": "pastor@example.org"}})
+        self.assertIsNone(row["added_at"])
+
+
+class NormalizeEmailTests(unittest.TestCase):
+    def test_trims_and_lowercases(self):
+        self.assertEqual(normalize_email("  Pastor@Example.ORG  "), "pastor@example.org")
+
+    def test_handles_none(self):
+        self.assertEqual(normalize_email(None), "")
 
 
 if __name__ == "__main__":

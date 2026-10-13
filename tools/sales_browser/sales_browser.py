@@ -102,3 +102,20 @@ def filter_rows(
 
 def product_label(kind: str) -> str:
     return PRODUCT_LABELS.get(kind, kind)
+
+
+DEFAULT_BETA_TESTERS_TABLE = "kng-beta-testers"
+
+
+def simplify_beta_tester_item(item: dict) -> dict:
+    return {
+        "email": item.get("email", {}).get("S", ""),
+        "added_at": item.get("added_at", {}).get("S"),
+    }
+
+
+def normalize_email(email: str) -> str:
+    """Same normalization trial_request.handler applies before its own
+    allowlist lookup -- added here case-sensitively would just mean a
+    tester never matches what the Lambda actually checks."""
+    return (email or "").strip().lower()
