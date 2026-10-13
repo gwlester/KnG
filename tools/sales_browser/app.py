@@ -18,13 +18,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
+from tkcalendar import DateEntry
+
 from sales_browser import (
     DEFAULT_BETA_TESTERS_TABLE,
     DEFAULT_REGION,
     DEFAULT_TABLE,
+    filter_beta_testers,
     filter_rows,
     normalize_email,
-    parse_date_bound,
     product_label,
     simplify_beta_tester_item,
     simplify_item,
@@ -104,9 +106,15 @@ class SalesBrowserApp:
         self._client = None
         self._rows: list[dict] = []
         self._beta_testers: list[dict] = []
+        self.sales_filters: dict = {"date_from": None, "date_to": None, "email_pattern": "", "product": "all"}
+        self.beta_filters: dict = {"date_from": None, "date_to": None, "email_pattern": ""}
+        self._auto_refreshed_tabs: set[int] = set()
 
         root.title(f"KnG License Management -- {region}")
         root.geometry("1100x550")
+
+        style = ttk.Style(root)
+        style.configure("Chip.TLabel", background="#d8e8ff", padding=(6, 2), relief="solid", borderwidth=1)
 
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill=tk.BOTH, expand=True)
@@ -118,7 +126,24 @@ class SalesBrowserApp:
         self._build_sales_tab(sales_tab)
         self._build_beta_testers_tab(beta_tab)
         self._build_menu()
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         logger.info("Application started.")
+
+        # Tab 0 (Sales) is shown by default at launch, so no
+        # <<NotebookTabChanged>> event ever fires for it -- auto-refresh it
+        # directly instead of waiting for one.
+        self._auto_refreshed_tabs.add(0)
+        self.refresh()
+
+    def _on_tab_changed(self, event: object) -> None:
+        index = self.notebook.index(self.notebook.select())
+        if index in self._auto_refreshed_tabs:
+            return
+        self._auto_refreshed_tabs.add(index)
+        if index == 0:
+            self.refresh()
+        else:
+            self.refresh_beta_testers()
 
     def _build_menu(self) -> None:
         menu_bar = tk.Menu(self.root)
@@ -172,29 +197,13 @@ class SalesBrowserApp:
         text.configure(state="disabled")
 
     def _build_sales_tab(self, parent: tk.Widget) -> None:
-        filters = ttk.Frame(parent, padding=8)
-        filters.pack(side=tk.TOP, fill=tk.X)
+        actions = ttk.Frame(parent, padding=8)
+        actions.pack(side=tk.TOP, fill=tk.X)
+        ttk.Button(actions, text="Filters...", command=self._open_sales_filter_dialog).pack(side=tk.LEFT)
+        ttk.Button(actions, text="Refresh", command=self.refresh).pack(side=tk.LEFT, padx=(8, 0))
 
-        ttk.Label(filters, text="From (YYYY-MM-DD)").grid(row=0, column=0, sticky="w")
-        self.date_from_var = tk.StringVar()
-        ttk.Entry(filters, textvariable=self.date_from_var, width=12).grid(row=1, column=0, padx=(0, 10))
-
-        ttk.Label(filters, text="To (YYYY-MM-DD)").grid(row=0, column=1, sticky="w")
-        self.date_to_var = tk.StringVar()
-        ttk.Entry(filters, textvariable=self.date_to_var, width=12).grid(row=1, column=1, padx=(0, 10))
-
-        ttk.Label(filters, text="Email contains").grid(row=0, column=2, sticky="w")
-        self.email_var = tk.StringVar()
-        ttk.Entry(filters, textvariable=self.email_var, width=28).grid(row=1, column=2, padx=(0, 10))
-
-        ttk.Label(filters, text="Product").grid(row=0, column=3, sticky="w")
-        self.product_var = tk.StringVar(value="All")
-        ttk.Combobox(
-            filters, textvariable=self.product_var, values=["All", "Server", "MIDI Player"],
-            state="readonly", width=12,
-        ).grid(row=1, column=3, padx=(0, 10))
-
-        ttk.Button(filters, text="Refresh", command=self.refresh).grid(row=1, column=4, padx=(10, 0))
+        self.sales_chips_frame = ttk.Frame(parent, padding=(8, 0, 8, 8))
+        self.sales_chips_frame.pack(side=tk.TOP, fill=tk.X)
 
         tree_frame = ttk.Frame(parent)
         tree_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
@@ -210,14 +219,20 @@ class SalesBrowserApp:
         self.status_var = tk.StringVar(value="Click Refresh to load records.")
         ttk.Label(parent, textvariable=self.status_var, padding=(8, 4)).pack(side=tk.BOTTOM, fill=tk.X, anchor="w")
 
+        self._render_filter_chips(self.sales_chips_frame, self.sales_filters, include_product=True)
+
     def _build_beta_testers_tab(self, parent: tk.Widget) -> None:
         actions = ttk.Frame(parent, padding=8)
         actions.pack(side=tk.TOP, fill=tk.X)
-        ttk.Button(actions, text="Refresh", command=self.refresh_beta_testers).pack(side=tk.LEFT)
+        ttk.Button(actions, text="Filters...", command=self._open_beta_filter_dialog).pack(side=tk.LEFT)
+        ttk.Button(actions, text="Refresh", command=self.refresh_beta_testers).pack(side=tk.LEFT, padx=(8, 0))
         ttk.Button(actions, text="Add...", command=self.add_beta_tester).pack(side=tk.LEFT, padx=(8, 0))
         ttk.Button(actions, text="Remove selected", command=self.remove_selected_beta_tester).pack(
             side=tk.LEFT, padx=(8, 0)
         )
+
+        self.beta_chips_frame = ttk.Frame(parent, padding=(8, 0, 8, 8))
+        self.beta_chips_frame.pack(side=tk.TOP, fill=tk.X)
 
         tree_frame = ttk.Frame(parent)
         tree_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
@@ -235,6 +250,136 @@ class SalesBrowserApp:
             side=tk.BOTTOM, fill=tk.X, anchor="w"
         )
 
+        self._render_filter_chips(self.beta_chips_frame, self.beta_filters, include_product=False)
+
+    def _render_filter_chips(self, chips_frame: tk.Widget, filters: dict, *, include_product: bool) -> None:
+        for widget in chips_frame.winfo_children():
+            widget.destroy()
+        chips = []
+        if filters.get("date_from"):
+            chips.append(f"From: {filters['date_from'].isoformat()}")
+        if filters.get("date_to"):
+            chips.append(f"To: {filters['date_to'].isoformat()}")
+        if filters.get("email_pattern"):
+            chips.append(f"Email: {filters['email_pattern']}")
+        if include_product and filters.get("product", "all") != "all":
+            chips.append(f"Product: {product_label(filters['product'])}")
+        if not chips:
+            ttk.Label(chips_frame, text="No filters applied.", foreground="#666666").pack(side=tk.LEFT)
+            return
+        for chip_text in chips:
+            ttk.Label(chips_frame, text=chip_text, style="Chip.TLabel").pack(side=tk.LEFT, padx=(0, 6))
+
+    def _open_filter_dialog(self, *, title: str, current: dict, include_product: bool, on_apply) -> None:
+        dialog = tk.Toplevel(self.root)
+        dialog.title(title)
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+
+        frame = ttk.Frame(dialog, padding=12)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        from_enabled = tk.BooleanVar(value=current["date_from"] is not None)
+        to_enabled = tk.BooleanVar(value=current["date_to"] is not None)
+        email_var = tk.StringVar(value=current["email_pattern"])
+        product_var = tk.StringVar(
+            value={"all": "All", "server": "Server", "midi-player": "MIDI Player"}[current.get("product", "all")]
+        )
+
+        ttk.Checkbutton(
+            frame, text="From", variable=from_enabled,
+            command=lambda: from_entry.configure(state="normal" if from_enabled.get() else "disabled"),
+        ).grid(row=0, column=0, sticky="w")
+        from_entry = DateEntry(frame, date_pattern="yyyy-mm-dd", width=12)
+        if current["date_from"] is not None:
+            from_entry.set_date(current["date_from"])
+        from_entry.configure(state="normal" if from_enabled.get() else "disabled")
+        from_entry.grid(row=0, column=1, sticky="w", padx=(6, 0), pady=4)
+
+        ttk.Checkbutton(
+            frame, text="To", variable=to_enabled,
+            command=lambda: to_entry.configure(state="normal" if to_enabled.get() else "disabled"),
+        ).grid(row=1, column=0, sticky="w")
+        to_entry = DateEntry(frame, date_pattern="yyyy-mm-dd", width=12)
+        if current["date_to"] is not None:
+            to_entry.set_date(current["date_to"])
+        to_entry.configure(state="normal" if to_enabled.get() else "disabled")
+        to_entry.grid(row=1, column=1, sticky="w", padx=(6, 0), pady=4)
+
+        ttk.Label(frame, text="Email contains").grid(row=2, column=0, sticky="w")
+        ttk.Entry(frame, textvariable=email_var, width=28).grid(row=2, column=1, sticky="w", padx=(6, 0), pady=4)
+
+        next_row = 3
+        if include_product:
+            ttk.Label(frame, text="Product").grid(row=next_row, column=0, sticky="w")
+            ttk.Combobox(
+                frame, textvariable=product_var, values=["All", "Server", "MIDI Player"],
+                state="readonly", width=14,
+            ).grid(row=next_row, column=1, sticky="w", padx=(6, 0), pady=4)
+            next_row += 1
+
+        def build_filters() -> dict:
+            result = {
+                "date_from": from_entry.get_date() if from_enabled.get() else None,
+                "date_to": to_entry.get_date() if to_enabled.get() else None,
+                "email_pattern": email_var.get().strip(),
+            }
+            if include_product:
+                result["product"] = {"All": "all", "Server": "server", "MIDI Player": "midi-player"}[
+                    product_var.get()
+                ]
+            return result
+
+        def apply() -> None:
+            new_filters = build_filters()
+            dialog.destroy()
+            on_apply(new_filters)
+
+        def clear() -> None:
+            cleared = {"date_from": None, "date_to": None, "email_pattern": ""}
+            if include_product:
+                cleared["product"] = "all"
+            dialog.destroy()
+            on_apply(cleared)
+
+        buttons = ttk.Frame(frame)
+        buttons.grid(row=next_row, column=0, columnspan=2, pady=(12, 0), sticky="e")
+        ttk.Button(buttons, text="Cancel", command=dialog.destroy).pack(side=tk.RIGHT)
+        ttk.Button(buttons, text="Clear Filters", command=clear).pack(side=tk.RIGHT, padx=(0, 8))
+        ttk.Button(buttons, text="Apply", command=apply).pack(side=tk.RIGHT, padx=(0, 8))
+
+        dialog.bind("<Return>", lambda event: apply())
+        dialog.bind("<Escape>", lambda event: dialog.destroy())
+
+        # Modal: grabbed after the dialog is fully built, so the calendar
+        # popups inside it (which open their own transient windows) are
+        # never blocked by a grab taken too early. No wait_visibility()
+        # here -- it blocks waiting for a visibility event that only a
+        # running mainloop ever delivers, which hung this dialog solid
+        # under test (confirmed against a real Tk instance, no mainloop).
+        dialog.grab_set()
+        dialog.focus_set()
+
+    def _open_sales_filter_dialog(self) -> None:
+        self._open_filter_dialog(
+            title="Filter Sales & Test Drives", current=self.sales_filters, include_product=True,
+            on_apply=self._apply_sales_filters,
+        )
+
+    def _apply_sales_filters(self, new_filters: dict) -> None:
+        self.sales_filters = new_filters
+        self._render_sales()
+
+    def _open_beta_filter_dialog(self) -> None:
+        self._open_filter_dialog(
+            title="Filter Beta Testers", current=self.beta_filters, include_product=False,
+            on_apply=self._apply_beta_filters,
+        )
+
+    def _apply_beta_filters(self, new_filters: dict) -> None:
+        self.beta_filters = new_filters
+        self._render_beta_testers()
+
     def _dynamodb_client(self):
         if self._client is None:
             try:
@@ -250,13 +395,6 @@ class SalesBrowserApp:
         return self._client
 
     def refresh(self):
-        try:
-            date_from = parse_date_bound(self.date_from_var.get())
-            date_to = parse_date_bound(self.date_to_var.get())
-        except ValueError:
-            messagebox.showerror("Invalid date", "Dates must be in YYYY-MM-DD form.")
-            return
-
         self.status_var.set("Loading...")
         self.root.update_idletasks()
         try:
@@ -266,11 +404,10 @@ class SalesBrowserApp:
             self.status_var.set(f"Could not load records: {exc}")
             messagebox.showerror("Could not load records", str(exc))
             return
+        self._render_sales()
 
-        product = {"All": "all", "Server": "server", "MIDI Player": "midi-player"}[self.product_var.get()]
-        rows = filter_rows(
-            self._rows, date_from=date_from, date_to=date_to, email_pattern=self.email_var.get(), product=product
-        )
+    def _render_sales(self) -> None:
+        rows = filter_rows(self._rows, **self.sales_filters)
 
         self.tree.delete(*self.tree.get_children())
         for row in rows:
@@ -291,6 +428,7 @@ class SalesBrowserApp:
             ))
         self.status_var.set(f"{len(rows)} of {len(self._rows)} total record(s).")
         logger.info("Refreshed sales/Test Drive records: %d of %d shown.", len(rows), len(self._rows))
+        self._render_filter_chips(self.sales_chips_frame, self.sales_filters, include_product=True)
 
     def refresh_beta_testers(self):
         self.beta_status_var.set("Loading...")
@@ -302,12 +440,17 @@ class SalesBrowserApp:
             self.beta_status_var.set(f"Could not load the beta tester list: {exc}")
             messagebox.showerror("Could not load the beta tester list", str(exc))
             return
+        self._render_beta_testers()
+
+    def _render_beta_testers(self) -> None:
+        rows = filter_beta_testers(self._beta_testers, **self.beta_filters)
 
         self.beta_tree.delete(*self.beta_tree.get_children())
-        for row in self._beta_testers:
+        for row in rows:
             self.beta_tree.insert("", tk.END, values=(row["email"], row["added_at"] or ""))
-        self.beta_status_var.set(f"{len(self._beta_testers)} approved beta tester(s).")
-        logger.info("Refreshed beta tester list: %d approved.", len(self._beta_testers))
+        self.beta_status_var.set(f"{len(rows)} of {len(self._beta_testers)} approved beta tester(s) shown.")
+        logger.info("Refreshed beta tester list: %d of %d shown.", len(rows), len(self._beta_testers))
+        self._render_filter_chips(self.beta_chips_frame, self.beta_filters, include_product=False)
 
     def add_beta_tester(self):
         raw = simpledialog.askstring("Add beta tester", "Email address to approve:", parent=self.root)

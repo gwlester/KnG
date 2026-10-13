@@ -159,7 +159,10 @@ def _order_reference(order: dict) -> str:
 
 
 def _order_email(order: dict) -> str:
-    return str((order.get("customer") or {}).get("email") or "")
+    # Lowercased for the same reason trial_request.handler lowercases its
+    # own email -- consistent matching/display regardless of how
+    # FastSpring (or the buyer) capitalized it.
+    return str((order.get("customer") or {}).get("email") or "").strip().lower()
 
 
 def _upsert_issuance_row(reference: str, email: str, app_ids: list[str]) -> dict:

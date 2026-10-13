@@ -118,6 +118,16 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
         self.assertIn("created_at", item)
         self.assertNotIn("valid_to", item)
 
+    def test_webhook_normalizes_the_order_email_to_lowercase(self):
+        event = _signed_event(
+            _order_completed_payload(reference="order-123", email="  Buyer@Example.ORG  ")
+        )
+
+        handler.handler(event, None)
+
+        item = self.dynamo.put_item.call_args.kwargs["Item"]
+        self.assertEqual(item["email"]["S"], "buyer@example.org")
+
     def test_webhook_maps_both_products_by_path(self):
         event = _signed_event(
             _order_completed_payload(products=["virtual-church-musician-server", "virtual-church-musician-midi-player"])
