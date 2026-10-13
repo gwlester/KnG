@@ -3,7 +3,7 @@ title: Privacy Policy
 slug: privacy
 description: How KnG Consulting handles information on this website and in Virtual Church Musician.
 ---
-**Effective:** September 18, 2026
+**Effective:** October 12, 2026
 
 **The short version:** the Virtual Church Musician apps do not send any information back to us. This website has no accounts, no cookies, and no analytics or advertising trackers. The only personal information we receive is what you choose to send us through the contact form.
 
@@ -33,7 +33,13 @@ If you ask us for a quote or engage us for a service, we collect what is needed 
 
 ## Downloads and purchases
 
-Free downloads come from our hosting, and delivering a file involves the same technical request details described above. A small service on AWS hands out each download link and records which file was requested (the app, platform, and version) so we can see what is used. That record does not include your IP address or any personal information. Paid products may be sold through a third-party sales platform. That platform collects and processes your payment and order information under its own privacy policy, and we may receive limited order details (such as your name, email address, and license information) from it so that we can provide your license and support. We will update this policy when these services go live.
+Free downloads come from our hosting, and delivering a file involves the same technical request details described above. A small service on AWS hands out each download link and records which file was requested (the app, platform, and version) so we can see what is used. That record does not include your IP address or any personal information.
+
+Paid products (the Server and the MIDI Player) are sold through FastSpring, a third-party sales platform that acts as the seller of record and collects and processes your payment and order information under its own privacy policy. We receive limited order details from FastSpring -- your email address and which product you bought -- and store them, together with a license reference and an activation key, so that we can issue and support your license.
+
+You can also request a free 90-day Test Drive directly from us, without going through FastSpring. That request collects only your email address and which product you are trying, stored the same way as a purchase.
+
+We keep these records for as long as needed to provide and support your license: purchase records for as long as the license exists (it does not expire), Test Drive records for the 90-day trial period plus a short time after. We use them only to issue and support your license -- for a Test Drive, also to enforce one trial per email address per product -- and we do not use them for marketing.
 
 ## Children
 
