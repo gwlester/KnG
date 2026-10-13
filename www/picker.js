@@ -346,6 +346,12 @@
       if (appId && findApp(baseOptions, appId)) appSelect.value = appId;
       if (passwordInput) passwordInput.value = reference + ":" + shortKey;
       render();
+      // The buyer/tester lands on this page already scrolled past the
+      // "Choose your download" picker (hero, beta callout, Test Drive
+      // callout all come first) -- without this, the pre-filled Download
+      // button is easy to miss entirely below the fold.
+      var heading = document.getElementById("picker-heading");
+      if (heading && heading.scrollIntoView) heading.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function startFastSpringCheckout(platform) {

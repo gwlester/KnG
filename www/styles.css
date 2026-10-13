@@ -45,6 +45,20 @@ a {
   text-decoration: none;
 }
 
+/* Inline prose links (inside a paragraph or list item, anywhere in the
+   page's main content -- nav/footer links, buttons, and card headings
+   are structurally outside both of those and keep their own look)
+   always get the same visibly-a-link treatment: an underline, not just
+   color. Previously added piecemeal wherever a link happened to appear
+   in body text (.post-body, .license-note, .extras below) -- generalized
+   here instead of adding a fourth one-off the next time it comes up. */
+main p a:not(.button),
+main li a:not(.button) {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 h1,
 h2,
 h3 {
@@ -644,13 +658,6 @@ a:focus-visible,
   margin: 1rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
-}
-
-.license-note a,
-.extras a {
-  color: var(--accent-dark);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 
 .button .new-tab-icon {
