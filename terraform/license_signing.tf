@@ -34,6 +34,22 @@ resource "aws_dynamodb_table" "trial_by_email" {
   }
 }
 
+# Approved beta testers for the Server/MIDI Player betas (decided
+# 2026-10-12): Test Drive now requires the requesting email to be on this
+# list -- it's no longer an open "anyone can request a 90-day trial" page.
+# One row per approved email covers both products; maintained by hand via
+# tools/sales_browser (read/write), read-only by trial_request.
+resource "aws_dynamodb_table" "beta_testers" {
+  name         = "kng-beta-testers"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "email"
+
+  attribute {
+    name = "email"
+    type = "S"
+  }
+}
+
 # Container only -- the real secret VALUE is set out of band
 # (aws secretsmanager put-secret-value), never through Terraform state or
 # committed to this repo. See terraform/README's apply notes.

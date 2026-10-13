@@ -136,7 +136,7 @@ test("a paid app becomes gated once a real file is published on a non-stable rel
   assert.equal(P.describe(plat).enabled, true);
 });
 
-test("a paid app stays a plain download once the release is stable", () => {
+test("a paid app stays gated (now purchase-only) once the release is stable", () => {
   const stableStatus = {
     FormatVersion: 1,
     current: { version: "v1.1.0", channel: "stable", available: { "server:linux": ["deb"] }, documents: {} },
@@ -144,7 +144,7 @@ test("a paid app stays a plain download once the release is stable", () => {
   };
   const o = P.applyStatus(options, stableStatus, "current");
   const plat = P.findPlatform(P.findApp(o, "server"), "linux");
-  assert.equal(plat.type, "download");
+  assert.equal(plat.type, "gated");
 });
 
 test("a free app is never gated, even on a non-stable release", () => {

@@ -144,7 +144,10 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "dynamodb:DescribeContinuousBackups", "dynamodb:UpdateContinuousBackups",
       "dynamodb:DescribeKinesisStreamingDestination",
     ]
-    resources = [aws_dynamodb_table.license_issuance.arn, aws_dynamodb_table.trial_by_email.arn]
+    resources = [
+      aws_dynamodb_table.license_issuance.arn, aws_dynamodb_table.trial_by_email.arn,
+      aws_dynamodb_table.beta_testers.arn,
+    ]
   }
 
   # License File: the signing key's secret container only -- its value is

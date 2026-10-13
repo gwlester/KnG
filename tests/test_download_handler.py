@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -98,9 +99,8 @@ class DownloadHandlerTests(unittest.TestCase):
         result = handler.handler(event(**qs), None)
         return result["statusCode"], result
 
-    def post(self, password=None, **qs):
-        body = {} if password is None else {"password": password}
-        result = handler.handler(event(method="POST", body=body, **qs), None)
+    def post(self, **qs):
+        result = handler.handler(event(method="POST", body={}, **qs), None)
         return result["statusCode"], result
 
     def post_order(self, reference=None, short_key=None, **qs):
@@ -112,11 +112,16 @@ class DownloadHandlerTests(unittest.TestCase):
         result = handler.handler(event(method="POST", body=body, **qs), None)
         return result["statusCode"], result
 
-    def issuance_item(self, kinds, short_key):
-        return {
+    def issuance_item(self, kinds, short_key, source=None, valid_to=None):
+        item = {
             "kinds": {"SS": kinds},
             "short_key_hash": {"S": hashlib.sha256(short_key.strip().upper().encode("utf-8")).hexdigest()},
         }
+        if source is not None:
+            item["source"] = {"S": source}
+        if valid_to is not None:
+            item["valid_to"] = {"S": valid_to}
+        return item
 
     def add_server_file(self, release_index=0, sha256=None):
         rel = self.matrix["releases"][release_index]
@@ -148,14 +153,21 @@ class DownloadHandlerTests(unittest.TestCase):
         status, _ = self.call(app="template-editor", platform="windows", version="v9.9.9")
         self.assertEqual(status, 404)
 
-    def test_betas_are_hidden_once_a_stable_release_exists(self):
+    def test_betas_drop_out_of_current_and_previous_once_a_stable_release_exists(self):
         self.matrix["releases"].insert(0, release("v1.1.0", channel="stable"))
         _, result = self.call(app="template-editor", platform="windows")
         self.assertIn("releases/v1.1.0/", result["headers"]["Location"])
         status, _ = self.call(app="template-editor", platform="windows", version="previous")
         self.assertEqual(status, 404)
+
+    def test_an_old_beta_stays_reachable_by_its_exact_version_even_once_stable_exists(self):
+        # Decided 2026-10-12: an approved beta tester must still be able to
+        # reach a specific beta release by tag, even though it no longer
+        # shows up as "current" or "previous" once some release has gone
+        # stable -- only current/previous are stable-filtered.
+        self.matrix["releases"].insert(0, release("v1.1.0", channel="stable"))
         status, _ = self.call(app="template-editor", platform="windows", version="v1.0.1-b.7")
-        self.assertEqual(status, 404)
+        self.assertEqual(status, 302)
 
     def test_missing_downloads_and_bad_input(self):
         self.assertEqual(self.call(app="server", platform="windows")[0], 404)
@@ -179,67 +191,82 @@ class DownloadHandlerTests(unittest.TestCase):
         _, result = self.call(app="template-editor", platform="android")
         self.assertIn("releases/v1.0.1-b.7/TemplateEditor.apk", result["headers"]["Location"])
 
-    def test_paid_app_is_blocked_and_hidden_once_a_stable_release_exists(self):
+    def test_paid_app_on_a_stable_release_requires_a_purchase_code_not_a_trial_one(self):
         self.matrix["releases"].insert(0, release("v1.1.0", channel="stable"))
         self.add_server_file(release_index=0)
-        self.assertEqual(self.call(app="server", platform="linux")[0], 404)
-        # Even a correct-looking attempt never gets as far as checking one --
-        # stable-channel server/midi-player still isn't sold from here at all.
-        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
-        self.assertEqual(status, 404)
-        self.s3.get_object.assert_not_called()
+        self.mock_server_file_body()
+        # Available in status now -- "sold elsewhere, not here" no longer
+        # hides it; purchasers must be able to redownload it.
         body = json.loads(self.call(status="1")[1]["body"])
-        self.assertNotIn("server:linux", body["current"]["available"])
+        self.assertEqual(body["current"]["available"]["server:linux"], ["deb"])
+
+        self.dynamo.get_item.return_value = {
+            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial")
+        }
+        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 403)
+        self.s3.get_object.assert_not_called()
+
+        self.dynamo.get_item.return_value = {
+            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="purchase")
+        }
+        status, result = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
+                                          app="server", platform="linux")
+        self.assertEqual(status, 200)
+        self.assertIn("releases/v1.1.0/server.deb", json.loads(result["body"])["url"])
 
     def test_paid_app_appears_in_status_once_a_file_exists_on_a_beta_release(self):
         self.add_server_file()
         body = json.loads(self.call(status="1")[1]["body"])
         self.assertEqual(body["current"]["available"]["server:linux"], ["deb"])
 
-    def test_paid_app_download_without_a_password_is_rejected_before_touching_s3(self):
+    def test_paid_app_download_without_an_access_code_is_rejected_before_touching_dynamo(self):
         self.add_server_file()
         status, _ = self.call(app="server", platform="linux")  # GET: no body at all
         self.assertEqual(status, 401)
-        self.s3.get_object.assert_not_called()
+        self.dynamo.get_item.assert_not_called()
 
-    def test_paid_app_wrong_password_is_rejected(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        status, result = self.post(password="0" * 64, app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.assertNotIn(SERVER_FILE_SHA256, result["body"])
-
-    def test_paid_app_correct_password_returns_json_not_a_redirect(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        status, result = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
-        self.assertEqual(status, 200)
-        body = json.loads(result["body"])
-        self.assertTrue(body["ok"])
-        self.assertIn("releases/v1.0.1-b.7/server.deb", body["url"])
-        self.s3.get_object.assert_called_once_with(Bucket="test-bucket", Key="releases/v1.0.1-b.7/server.deb")
-
-    def test_paid_app_password_is_case_and_whitespace_insensitive(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        status, _ = self.post(password=f"  {SERVER_FILE_SHA256.upper()}  ", app="server", platform="linux")
-        self.assertEqual(status, 200)
-
-    def test_paid_app_hashes_fresh_every_time_ignoring_any_stored_checksum(self):
-        # A stored (wrong) sha256 on the matrix entry must never be consulted --
-        # the whole point is that nothing but a fresh hash of the bytes counts.
-        self.add_server_file(sha256="0" * 64)
-        self.mock_server_file_body()
-        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
-        self.assertEqual(status, 200)
-        self.s3.get_object.assert_called_once()
-
-    def test_paid_app_rate_limits_before_touching_s3(self):
+    def test_paid_app_rate_limits_before_touching_dynamo(self):
         self.add_server_file()
         self.dynamo.update_item.side_effect = _ConditionalCheckFailed()
-        status, _ = self.post(password=SERVER_FILE_SHA256, app="server", platform="linux")
+        status, _ = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
         self.assertEqual(status, 429)
+        self.dynamo.get_item.assert_not_called()
+
+    def test_expired_trial_order_code_is_rejected(self):
+        self.add_server_file()
+        past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        self.dynamo.get_item.return_value = {
+            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial", valid_to=past)
+        }
+        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 403)
         self.s3.get_object.assert_not_called()
+
+    def test_a_trial_order_code_still_within_its_window_works(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        self.dynamo.get_item.return_value = {
+            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial", valid_to=future)
+        }
+        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 200)
+
+    def test_a_purchase_order_code_has_no_expiry(self):
+        self.add_server_file()
+        self.mock_server_file_body()
+        # Purchase rows never carry a valid_to attribute at all.
+        self.dynamo.get_item.return_value = {
+            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="purchase")
+        }
+        status, _ = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
+                                     app="server", platform="linux")
+        self.assertEqual(status, 200)
 
     def test_paid_app_order_code_unknown_reference_is_rejected(self):
         self.add_server_file()

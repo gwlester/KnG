@@ -31,12 +31,14 @@
 
     <section class="hero page-hero">
       <div class="container">
-        <p class="eyebrow">Try it free</p>
+        <p class="eyebrow">Beta testers</p>
         <h1>Request a 90-day Test Drive</h1>
         <p class="hero-copy">
-          One Test Drive per email address, per product. Once it's issued, we'll take you straight
-          to the <a href="download.html">Download</a> page with your platform and access code
-          already filled in -- just pick your platform and click Download.
+          For approved beta testers only. If your email is on our beta tester list, we'll issue
+          you a 90-day access code and take you straight to the
+          <a href="download.html">Download</a> page with it already filled in -- just pick your
+          platform and click Download. Not on the list yet?
+          <a href="contact.html">Use the contact form</a> to ask for access.
         </p>
       </div>
     </section>
@@ -47,9 +49,10 @@
           <div>
             <h2>What happens next</h2>
             <p class="lead">
-              This page issues your Test Drive's reference and activation key, then sends you on
-              to the Download page with both already filled in. Keep them anyway -- you'll also
-              enter them in the Admin app on first connection to license your Server/MIDI Player.
+              We check your email against our approved beta tester list. If you're on it, this
+              page issues your Test Drive's reference and activation key, then sends you on to the
+              Download page with both already filled in. Keep them anyway -- you'll also enter
+              them in the Admin app on first connection to license your Server/MIDI Player.
             </p>
           </div>
           <form
@@ -85,8 +88,23 @@
         var button = form.querySelector("button[type=submit]");
 
         function show(message, isError) {
-          status.textContent = message;
           status.className = "form-status " + (isError ? "is-error" : "is-ok");
+          // The "not on our approved beta tester list" error always
+          // mentions "contact form" -- turn that phrase into a real link
+          // rather than leaving it as unclickable plain text.
+          var marker = "contact form";
+          var at = isError ? message.indexOf(marker) : -1;
+          if (at < 0) {
+            status.textContent = message;
+            return;
+          }
+          status.innerHTML = "";
+          status.appendChild(document.createTextNode(message.slice(0, at)));
+          var link = document.createElement("a");
+          link.href = "contact.html";
+          link.textContent = marker;
+          status.appendChild(link);
+          status.appendChild(document.createTextNode(message.slice(at + marker.length)));
         }
 
         // Maps the form's "kind" value to the app id picker.js/download.html
