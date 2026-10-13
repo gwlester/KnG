@@ -2,6 +2,9 @@
 __pycache__/
 *.pyc
 
+# Local virtual environments (e.g. tools/sales_browser's)
+.venv/
+
 # Local .terraform directories
 .terraform/
 

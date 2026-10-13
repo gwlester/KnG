@@ -1,1 +1,6 @@
 boto3
+# [crt] is needed if your AWS credentials come from the newer `aws login`
+# (browser-based) credential provider rather than a static key/SSO profile
+# -- without it, boto3 raises MissingDependencyException at client-creation
+# time asking for this exact package.
+botocore[crt]

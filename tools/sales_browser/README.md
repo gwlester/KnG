@@ -31,6 +31,13 @@ first (no need to re-run `pip install`). If you see "No module named
 boto3" when using Add/Refresh, this step was skipped or you're running
 a different `python3` than the one `pip install` used.
 
+If AWS commands/credentials come from the newer `aws login` (browser-based)
+flow rather than a static key or SSO profile, and you see
+`MissingDependencyException: ... pip install "botocore[crt]"` when using
+Add/Refresh, that's `requirements.txt`'s `botocore[crt]` line not having
+installed cleanly -- re-run `pip install -r requirements.txt` inside the
+venv.
+
 Options: `--table NAME` (default `kng-license-issuance`),
 `--beta-testers-table NAME` (default `kng-beta-testers`), `--region NAME`
 (default `us-east-1`), `--profile NAME` (default: whatever `aws` CLI
