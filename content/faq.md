@@ -31,7 +31,7 @@ The apps send nothing to us. See the [Privacy Policy](privacy.html) for the deta
 
 ## Which computers and devices are supported?
 
-The desktop apps run on Windows, macOS, and Linux. The VCM Server and VCM MIDI Player also run on the Raspberry Pi 4 and Raspberry Pi 5 (64-bit). The Android apps for on-the-go use are provided as APK files you download from this site, and Google Play listings are planned. A Chromebook can run either the Android or Linux version -- see [Can I use VCM on a Chromebook?](#can-i-use-vcm-on-a-chromebook). There is no iPhone or iPad version yet.
+The desktop apps run on Windows, macOS, and Linux. The VCM Server and VCM MIDI Player also run on the Raspberry Pi 4 and Raspberry Pi 5 (64-bit). The Android apps for on-the-go use are provided as APK files you download from this site, and Google Play listings are planned. A Chromebook can run either the Android or Linux version -- see [Can I use VCM on a Chromebook?](#can-i-use-vcm-on-a-chromebook). There is no iPhone or iPad version: an iOS release needs a paid Apple Developer account, which we're holding off on until sales justify the cost.
 
 ## How do I install an Android app from an APK?
 
@@ -59,7 +59,7 @@ You may request a refund within {{refund_days}} days after purchase, provided yo
 
 ## On macOS, the app says it is damaged or cannot be opened. What do I do?
 
-This means the app has not been notarized by Apple yet; nothing is actually wrong with it. Double-click the fix_app_permissions.command file included in the same download once, then open the app normally from your Applications folder.
+This means the app is not notarized by Apple; nothing is actually wrong with it. Notarizing requires the same paid Apple Developer account an iOS release would need, which we're holding off on until sales justify the cost. Double-click the fix_app_permissions.command file included in the same download once, then open the app normally from your Applications folder.
 
 ## Can you customize Virtual Church Musician for our church?
 
