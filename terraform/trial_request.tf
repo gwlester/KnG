@@ -1,8 +1,10 @@
-# License File: issues a 90-day trial reference + activation key. Public
-# (Function URL, no auth) -- email + one-trial-per-email-and-kind is the
-# whole anti-abuse check, done inside the handler
+# License File: issues a 90-day beta-access reference + activation key.
+# Public (Function URL, no auth), but gated: the requesting email must be
+# on the kng-beta-testers allowlist (decided 2026-10-12 -- this is no
+# longer an open "anyone can request" page), checked inside the handler
 # (src/trial_request/handler.py). See license_signing.tf for the Lambda
-# that actually mints/signs the resulting license.
+# that actually mints/signs the resulting license, and for the
+# kng-beta-testers table.
 
 data "archive_file" "trial_request_handler" {
   type        = "zip"
@@ -35,6 +37,13 @@ data "aws_iam_policy_document" "trial_request" {
     actions   = ["dynamodb:GetItem", "dynamodb:PutItem"]
     resources = [aws_dynamodb_table.license_issuance.arn, aws_dynamodb_table.trial_by_email.arn]
   }
+
+  statement {
+    sid       = "ReadBetaTesters"
+    effect    = "Allow"
+    actions   = ["dynamodb:GetItem"]
+    resources = [aws_dynamodb_table.beta_testers.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "trial_request" {
@@ -57,6 +66,7 @@ resource "aws_lambda_function" "trial_request" {
     variables = {
       LICENSE_ISSUANCE_TABLE = aws_dynamodb_table.license_issuance.name
       TRIAL_BY_EMAIL_TABLE   = aws_dynamodb_table.trial_by_email.name
+      BETA_TESTERS_TABLE     = aws_dynamodb_table.beta_testers.name
     }
   }
 

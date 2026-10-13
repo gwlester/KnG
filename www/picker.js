@@ -104,9 +104,12 @@
         if (!p.available) return;
         if (formats.indexOf("store") >= 0) { p.type = "store"; return; }
         if (formats.indexOf("purchase") >= 0) { p.type = "purchase"; return; }
-        // A real file is published for a paid app on a non-stable release:
-        // that's the alpha/beta password-gated flow, not a plain download.
-        p.type = (app.tier === "paid" && release && release.channel !== "stable") ? "gated" : "download";
+        // A real file is published for a paid app, on any channel: the
+        // Access code field (a purchase or an approved beta tester's
+        // Test Drive credential) is the only way to get it, never a
+        // plain download -- the backend enforces which credential kind
+        // is accepted on which channel.
+        p.type = (app.tier === "paid") ? "gated" : "download";
         if (p.formats) {
           p.formats = p.formats.filter(function (f) { return formats.indexOf(f) >= 0; });
           if (p.formats.indexOf(p.default_format) < 0) p.default_format = p.formats[0];

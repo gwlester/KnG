@@ -3,10 +3,11 @@
 # src/download_handler/handler.py. The publish-downloads workflow fills the
 # bucket and writes matrix.json.
 #
-# Server and MIDI Player are alpha/beta-tester downloads gated by a password
-# that must equal the file's own SHA-256, hashed fresh from S3 on every
-# request (see the handler's docstring) -- the downloads_rate_limit table
-# below exists only to cap that per-IP before it costs a file read.
+# Server and MIDI Player require a {reference, short_key} order-gated
+# access code (a purchase or an approved beta tester's Test Drive
+# credential, checked against kng-license-issuance) on every channel --
+# see the handler's docstring. The downloads_rate_limit table below caps
+# guessing attempts per-IP before a lookup happens.
 
 locals {
   downloads_allowed_origins = [
@@ -66,7 +67,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "downloads" {
   depends_on = [aws_s3_bucket_versioning.downloads]
 }
 
-# Per-IP counter for password attempts on the alpha/beta-gated downloads.
+# Per-IP counter for order-gated download attempts (server/midi-player).
 # Fixed 60-second buckets keyed by "{ip}#{minute}"; the TTL attribute just
 # cleans up old buckets, it isn't load-bearing for correctness.
 resource "aws_dynamodb_table" "downloads_rate_limit" {
@@ -130,7 +131,7 @@ data "aws_iam_policy_document" "downloads" {
     resources = ["${aws_cloudwatch_log_group.downloads.arn}:*"]
   }
 
-  # The password-attempt rate limiter's atomic conditional counter.
+  # The order-gated-download rate limiter's atomic conditional counter.
   statement {
     sid       = "RateLimitCounter"
     effect    = "Allow"
@@ -161,12 +162,8 @@ resource "aws_lambda_function" "downloads" {
   handler          = "handler.handler"
   filename         = data.archive_file.downloads_handler.output_path
   source_code_hash = data.archive_file.downloads_handler.output_base64sha256
-  # 10s/128MB was sized for "read matrix.json and presign," not "stream and
-  # hash an installer" -- the password-gated path needs headroom for both
-  # memory (Lambda's network throughput scales with it) and time (proportional
-  # to file size). Revisit once real Server/MIDI Player file sizes are known.
-  timeout     = 60
-  memory_size = 512
+  timeout          = 15
+  memory_size      = 256
 
   environment {
     variables = {
@@ -187,9 +184,9 @@ resource "aws_lambda_function_url" "downloads" {
   authorization_type = "NONE"
 
   # Free downloads and the picker's status check are plain GETs. POST exists
-  # only so the picker can submit a password in a JSON body instead of a
-  # query string (see the handler's docstring) -- needs the content-type
-  # header allowed for the preflight to succeed.
+  # only so the picker can submit a {reference, short_key} access code in a
+  # JSON body instead of a query string (see the handler's docstring) --
+  # needs the content-type header allowed for the preflight to succeed.
   cors {
     allow_origins = local.downloads_allowed_origins
     allow_methods = ["GET", "POST"]
