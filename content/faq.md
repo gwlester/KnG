@@ -57,6 +57,10 @@ The paid products will be sold through an online sales platform. Purchase detail
 
 You may request a refund within {{refund_days}} days after purchase, provided you have stopped using the software and removed all copies. Write to inquiries@kng-consulting.com. The [License Agreement](license.html) has the full terms. The refund policy covers software. Hardware orders are custom builds and are not refundable.
 
+## Are future updates included with my purchase?
+
+Yes. Minor version upgrades and patches (for example 1.0 to 1.1, or 1.1.2 to 1.1.3) are included with your license at no additional cost, for as long as you hold a valid license. A new major version (for example 1.x to 2.0) may require an additional purchase, as stated at the time it becomes available. See the [License Agreement](license.html) for the full terms.
+
 ## On macOS, the app says it is damaged or cannot be opened. What do I do?
 
 This means the app has not been notarized by Apple yet; nothing is actually wrong with it. Double-click the fix_app_permissions.command file included in the same download once, then open the app normally from your Applications folder.

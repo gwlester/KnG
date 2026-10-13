@@ -5,7 +5,7 @@ description: Commercial Software License Agreement for Virtual Church Musician.
 ---
 **Online Purchase and Download License**
 
-**Last Updated:** August 29, 2026
+**Last Updated:** October 12, 2026
 
 This Commercial Software License Agreement (“Agreement”) is between **Gerald Lester**, an individual located in Jefferson Parish, Louisiana (“Licensor”), and the person or legal entity purchasing, downloading, installing, or using the Software (“Customer”).
 
@@ -91,11 +91,13 @@ Customer may make one backup copy of downloadable Software solely for archival p
 
 ## 7. Updates and Upgrades
 
-Licensor may provide patches, bug fixes, updates, or upgrades. Updates may be installed automatically or may require Customer action.
+Licensor may provide patches, bug fixes, updates, or upgrades, but is not obligated to continue development or to provide any particular update.
 
-Updates are subject to this Agreement unless Licensor provides separate terms with the update. Licensor is not required to provide updates or upgrades unless stated in the applicable purchase terms.
+When provided, minor version upgrades and patches (any update that does not change the version number before the first decimal point, for example 1.0 to 1.1, or 1.1.2 to 1.1.3) are included with your license at no additional cost, for as long as you hold a valid license for the Software.
 
-A new version or major upgrade may require an additional purchase or subscription.
+A new major version (a change in the version number before the first decimal point, for example 1.x to 2.0) may require an additional purchase or subscription, as stated at the time it becomes available.
+
+Updates may be installed automatically or may require Customer action, and are subject to this Agreement unless Licensor provides separate terms with the update.
 
 ## 8. Fees, Taxes, and Renewals
 
