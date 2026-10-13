@@ -12,8 +12,10 @@ Usage: python3 app.py [--table NAME] [--beta-testers-table NAME]
 from __future__ import annotations
 
 import argparse
+import logging
 import tkinter as tk
 from datetime import datetime, timezone
+from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
 from sales_browser import (
@@ -27,6 +29,24 @@ from sales_browser import (
     simplify_beta_tester_item,
     simplify_item,
 )
+
+LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
+LOG_DIR = Path.home() / ".kng-license-management" / "logs"
+LOG_FILE = LOG_DIR / "license_management.log"
+
+
+def _configure_logging() -> logging.Logger:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    logger = logging.getLogger("kng_license_management")
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logger.addHandler(handler)
+    logger.propagate = False
+    return logger
+
+
+logger = _configure_logging()
 
 COLUMNS = ("reference", "source", "email", "products", "short_key", "created_at", "valid_to")
 COLUMN_LABELS = {
@@ -88,15 +108,68 @@ class SalesBrowserApp:
         root.title(f"KnG License Management -- {region}")
         root.geometry("1100x550")
 
-        notebook = ttk.Notebook(root)
-        notebook.pack(fill=tk.BOTH, expand=True)
-        sales_tab = ttk.Frame(notebook)
-        beta_tab = ttk.Frame(notebook)
-        notebook.add(sales_tab, text="Sales & Test Drives")
-        notebook.add(beta_tab, text="Beta Testers")
+        self.notebook = ttk.Notebook(root)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+        sales_tab = ttk.Frame(self.notebook)
+        beta_tab = ttk.Frame(self.notebook)
+        self.notebook.add(sales_tab, text="Sales & Test Drives")
+        self.notebook.add(beta_tab, text="Beta Testers")
 
         self._build_sales_tab(sales_tab)
         self._build_beta_testers_tab(beta_tab)
+        self._build_menu()
+        logger.info("Application started.")
+
+    def _build_menu(self) -> None:
+        menu_bar = tk.Menu(self.root)
+        self.root.config(menu=menu_bar)
+
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Refresh", command=self._refresh_active_tab, accelerator="Ctrl+R")
+        file_menu.add_separator()
+
+        log_level_menu = tk.Menu(file_menu, tearoff=0)
+        file_menu.add_cascade(label="Set Log Level", menu=log_level_menu)
+        self.log_level_var = tk.StringVar(value=logging.getLevelName(logger.level))
+        for level in LOG_LEVELS:
+            log_level_menu.add_radiobutton(
+                label=level, value=level, variable=self.log_level_var,
+                command=lambda lvl=level: self._set_log_level(lvl),
+            )
+
+        file_menu.add_command(label="View Logs...", command=self._view_logs)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.destroy)
+
+        self.root.bind_all("<Control-r>", lambda event: self._refresh_active_tab())
+
+    def _refresh_active_tab(self) -> None:
+        if self.notebook.index(self.notebook.select()) == 0:
+            self.refresh()
+        else:
+            self.refresh_beta_testers()
+
+    def _set_log_level(self, level: str) -> None:
+        logger.setLevel(getattr(logging, level))
+        logger.info("Log level set to %s.", level)
+
+    def _view_logs(self) -> None:
+        window = tk.Toplevel(self.root)
+        window.title(f"Logs -- {LOG_FILE}")
+        window.geometry("700x400")
+        text = tk.Text(window, wrap="word")
+        scrollbar = ttk.Scrollbar(window, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=scrollbar.set)
+        text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        try:
+            content = LOG_FILE.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            content = "(no log entries yet)"
+        text.insert("1.0", content)
+        text.see("end")
+        text.configure(state="disabled")
 
     def _build_sales_tab(self, parent: tk.Widget) -> None:
         filters = ttk.Frame(parent, padding=8)
@@ -164,8 +237,14 @@ class SalesBrowserApp:
 
     def _dynamodb_client(self):
         if self._client is None:
-            import boto3  # imported lazily so sales_browser.py's pure logic needs no boto3 to test
-
+            try:
+                import boto3  # imported lazily so sales_browser.py's pure logic needs no boto3 to test
+            except ModuleNotFoundError as exc:
+                raise RuntimeError(
+                    "boto3 is not installed in this Python environment. Run "
+                    "'pip install -r requirements.txt' here (inside a virtual environment first "
+                    "if your system Python refuses direct installs -- see tools/sales_browser/README.md)."
+                ) from exc
             session = boto3.Session(profile_name=self.profile) if self.profile else boto3.Session()
             self._client = session.client("dynamodb", region_name=self.region)
         return self._client
@@ -183,6 +262,7 @@ class SalesBrowserApp:
         try:
             self._rows = fetch_all_rows(self._dynamodb_client(), self.table_name)
         except Exception as exc:  # noqa: BLE001 -- surfaced to the user, not raised
+            logger.exception("Could not load records from %s.", self.table_name)
             self.status_var.set(f"Could not load records: {exc}")
             messagebox.showerror("Could not load records", str(exc))
             return
@@ -210,6 +290,7 @@ class SalesBrowserApp:
                 valid_to,
             ))
         self.status_var.set(f"{len(rows)} of {len(self._rows)} total record(s).")
+        logger.info("Refreshed sales/Test Drive records: %d of %d shown.", len(rows), len(self._rows))
 
     def refresh_beta_testers(self):
         self.beta_status_var.set("Loading...")
@@ -217,6 +298,7 @@ class SalesBrowserApp:
         try:
             self._beta_testers = fetch_all_beta_testers(self._dynamodb_client(), self.beta_testers_table)
         except Exception as exc:  # noqa: BLE001 -- surfaced to the user, not raised
+            logger.exception("Could not load the beta tester list from %s.", self.beta_testers_table)
             self.beta_status_var.set(f"Could not load the beta tester list: {exc}")
             messagebox.showerror("Could not load the beta tester list", str(exc))
             return
@@ -225,6 +307,7 @@ class SalesBrowserApp:
         for row in self._beta_testers:
             self.beta_tree.insert("", tk.END, values=(row["email"], row["added_at"] or ""))
         self.beta_status_var.set(f"{len(self._beta_testers)} approved beta tester(s).")
+        logger.info("Refreshed beta tester list: %d approved.", len(self._beta_testers))
 
     def add_beta_tester(self):
         raw = simpledialog.askstring("Add beta tester", "Email address to approve:", parent=self.root)
@@ -243,8 +326,10 @@ class SalesBrowserApp:
                 },
             )
         except Exception as exc:  # noqa: BLE001 -- surfaced to the user, not raised
+            logger.exception("Could not add beta tester %s.", email)
             messagebox.showerror("Could not add beta tester", str(exc))
             return
+        logger.info("Added beta tester %s.", email)
         self.refresh_beta_testers()
 
     def remove_selected_beta_tester(self):
@@ -258,8 +343,10 @@ class SalesBrowserApp:
         try:
             self._dynamodb_client().delete_item(TableName=self.beta_testers_table, Key={"email": {"S": email}})
         except Exception as exc:  # noqa: BLE001 -- surfaced to the user, not raised
+            logger.exception("Could not remove beta tester %s.", email)
             messagebox.showerror("Could not remove beta tester", str(exc))
             return
+        logger.info("Removed beta tester %s.", email)
         self.refresh_beta_testers()
 
 

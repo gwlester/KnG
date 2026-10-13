@@ -16,15 +16,33 @@ purpose).
 
 ## Run it
 
+On most modern systems, the system Python refuses a plain `pip install`
+("externally managed environment") -- use a virtual environment:
+
 ```
+python3 -m venv .venv
+source .venv/bin/activate   # .venv\Scripts\activate on Windows
 pip install -r requirements.txt   # boto3 -- not a dependency of the site itself
 python3 app.py
 ```
+
+Every time you come back to run it again, just `source .venv/bin/activate`
+first (no need to re-run `pip install`). If you see "No module named
+boto3" when using Add/Refresh, this step was skipped or you're running
+a different `python3` than the one `pip install` used.
 
 Options: `--table NAME` (default `kng-license-issuance`),
 `--beta-testers-table NAME` (default `kng-beta-testers`), `--region NAME`
 (default `us-east-1`), `--profile NAME` (default: whatever `aws` CLI
 would use).
+
+## File menu
+
+- **Refresh** (Ctrl+R): refreshes whichever tab is currently active.
+- **Set Log Level**: Debug/Info/Warning/Error, applies immediately.
+- **View Logs...**: shows the current log file in a window. The log
+  file itself lives at `~/.kng-license-management/logs/license_management.log`
+  and is appended to across runs (not truncated on start).
 
 ## Sales & Test Drives filters
 
