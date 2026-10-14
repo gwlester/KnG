@@ -138,6 +138,33 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual([r["version"] for r in matrix["releases"]], ["v1.1.1-b.1", "v1.1.0"])
         self.assertIn("links", matrix)
 
+    def test_deprecated_release_still_counts_against_the_beta_retention_pool(self):
+        matrix = {}
+        matrix, _ = pr.merge_matrix(matrix, {"version": "v1.0.1-b.5", "channel": "beta", "published": "2026-10-01"})
+        matrix, _ = pr.merge_matrix(matrix, {"version": "v1.0.1-b.6", "channel": "beta", "published": "2026-10-02"})
+        matrix, deprecated = pr.deprecate_matrix(matrix, "v1.0.1-b.6")
+        self.assertEqual(deprecated, ["v1.0.1-b.5"])
+        matrix, dropped = pr.merge_matrix(matrix, {"version": "v1.0.1-b.7", "channel": "beta", "published": "2026-10-03"})
+        self.assertEqual([r["version"] for r in matrix["releases"]], ["v1.0.1-b.7", "v1.0.1-b.6"])
+        self.assertEqual(dropped, ["v1.0.1-b.5"])
+
+    def test_deprecate_matrix_marks_only_releases_older_than_the_cutoff(self):
+        matrix = {"releases": [
+            {"version": "v1.0.1-b.20", "channel": "beta", "published": "2026-10-14"},
+            {"version": "v1.0.1-b.19", "channel": "beta", "published": "2026-10-11"},
+        ]}
+        new_matrix, deprecated = pr.deprecate_matrix(matrix, "v1.0.1-b.20")
+        self.assertEqual(deprecated, ["v1.0.1-b.19"])
+        by_version = {r["version"]: r["channel"] for r in new_matrix["releases"]}
+        self.assertEqual(by_version, {"v1.0.1-b.20": "beta", "v1.0.1-b.19": "deprecated"})
+
+    def test_deprecate_matrix_is_idempotent(self):
+        matrix = {"releases": [{"version": "v1.0.1-b.19", "channel": "beta", "published": "2026-10-11"}]}
+        matrix, first = pr.deprecate_matrix(matrix, "v1.0.1-b.20")
+        self.assertEqual(first, ["v1.0.1-b.19"])
+        _, second = pr.deprecate_matrix(matrix, "v1.0.1-b.20")
+        self.assertEqual(second, [])
+
     def test_checksum_parsing_accepts_binary_marker(self):
         digest = "a" * 64
         self.assertEqual(pr.parse_checksums(f"{digest} *dir/file.bin\n"), {"file.bin": digest})
