@@ -443,6 +443,14 @@ a:focus-visible,
   color: var(--ink);
 }
 
+.callout summary {
+  cursor: pointer;
+}
+
+.callout[open] summary {
+  margin-bottom: 1em;
+}
+
 /* Contact form ---------------------------------------------------- */
 
 .split-top {
