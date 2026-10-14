@@ -1,0 +1,90 @@
+name: Publish Monthly Blog Post
+
+# Picks the next topic out of content/pending-blogs/ and publishes it --
+# see tools/blog_publisher/publish_next_post.py and its README. Pushing
+# to master here runs deploy-to-aws.yml automatically (it triggers on
+# every push), which updates preview; this workflow separately queues
+# the live-site switch, which still needs manual approval in GitHub
+# (the production-switch environment's required reviewer) -- that gate
+# is unrelated to this workflow and is not bypassed by it.
+
+on:
+  schedule:
+    # First Monday of the month, ~9am Central. GitHub Actions cron has
+    # no timezone support, so this is a fixed UTC time (14:00 UTC =
+    # 9am CDT; it drifts to ~8am during CST) rather than a DST-aware
+    # pair of cron lines -- not time-critical for a monthly post.
+    - cron: "0 14 1-7 * 1"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no commit/push, no Dev.to post, nothing deleted)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: publish-monthly-blog-post
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: pip install -r requirements.txt
+
+      - name: Configure git identity
+        shell: bash
+        run: |
+          git config user.name "KnG Blog Publisher"
+          git config user.email "inquiries@kng-consulting.com"
+
+      - name: Publish the next queued post
+        shell: bash
+        env:
+          DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            python3 tools/blog_publisher/publish_next_post.py --dry-run
+          else
+            python3 tools/blog_publisher/publish_next_post.py
+          fi
+
+      - name: Commit and push
+        id: commit
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        shell: bash
+        run: |
+          git add content/pending-blogs content/blog www
+          if git diff --cached --quiet; then
+            echo "published=false" >> "${GITHUB_OUTPUT}"
+            echo "Nothing to commit (queue was empty)."
+          else
+            git commit -m "Publish monthly blog post ($(date -u +%Y-%m-%d))"
+            git push origin HEAD:master
+            echo "published=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      # deploy-to-aws.yml already ran (push trigger, above) and updated
+      # preview. This just queues its live-switch job, which still waits
+      # for the production-switch environment's required reviewer --
+      # same approval step as any other manual deploy, just pre-queued.
+      - name: Queue the live-site switch for approval
+        if: ${{ github.event.inputs.dry_run != 'true' && steps.commit.outputs.published == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-to-aws.yml --repo "${{ github.repository }}"
