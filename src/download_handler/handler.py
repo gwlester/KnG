@@ -161,8 +161,11 @@ def _redirect(url: str) -> dict:
 
 
 def visible_releases(matrix: dict) -> list:
-    """Stable releases once any exist; until then every release (labelled Beta)."""
-    releases = matrix.get("releases", [])
+    """Stable releases once any exist; until then every release (labelled
+    Beta). A "deprecated" release (no longer offered for download -- see
+    publish_release.py's deprecate_matrix) is excluded either way, before
+    the stable/beta fallback is even considered."""
+    releases = [r for r in matrix.get("releases", []) if r.get("channel") != "deprecated"]
     stable = [r for r in releases if r.get("channel") == "stable"]
     return stable or releases
 
@@ -181,7 +184,13 @@ def resolve_release(matrix: dict, version: str):
     # have a UI path that requests an explicit non-current/previous
     # version -- this makes the backend capable of it; wiring an actual
     # "beta" selector into the picker is a follow-up, not done here.
+    # A deprecated release is deliberately not reachable even here
+    # (decided 2026-10-14): unlike the stable-filter above, this isn't a
+    # UI-convenience exemption, it's "this build doesn't work with the
+    # licensing system" -- the same exclusion applies to every path.
     for release in matrix.get("releases", []):
+        if release.get("channel") == "deprecated":
+            continue
         if release.get("version") == version:
             return release
     return None

@@ -7,10 +7,18 @@ uploads what the plan lists and finally replaces matrix.json.
   python3 src/publish_release.py assets --tag v1.0.1-b.7
   python3 src/publish_release.py plan --tag v1.0.1-b.7 --assets DIR \
       --published 2026-09-11 --matrix current-matrix.json --out OUT
+  python3 src/publish_release.py deprecate --before v1.0.1-b.20 \
+      --matrix current-matrix.json --out OUT
 
-Writes OUT/matrix.json, OUT/uploads.tsv (local path, key, content type) and
-OUT/delete-prefixes.txt (release prefixes that fell out of retention).
-Exits non-zero on a checksum mismatch or when nothing publishable was found.
+`plan` writes OUT/matrix.json, OUT/uploads.tsv (local path, key, content
+type) and OUT/delete-prefixes.txt (release prefixes that fell out of
+retention). Exits non-zero on a checksum mismatch or when nothing
+publishable was found.
+
+`deprecate` marks every release older than --before as no longer offered
+for download (channel: "deprecated") without republishing anything --
+see deprecate_matrix's own docstring for how this interacts with
+retention. Writes only OUT/matrix.json.
 """
 
 import argparse
@@ -139,20 +147,61 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
     return {"release": release, "uploads": uploads, "warnings": warnings}
 
 
+def _retention_bucket(channel: str) -> str:
+    """A "deprecated" release shares the beta pool's retention budget with
+    plain beta releases (Gerald, 2026-10-14: "at most two beta/deprecated
+    in the matrix" -- deprecating only changes whether a release is
+    offered for download, not how long its files stick around for). A
+    stable release deprecated in the future would still count against the
+    stable pool, not beta, for the same reason."""
+    return channel if channel != "deprecated" else "beta"
+
+
 def merge_matrix(matrix: dict, release: dict, keep: int = KEEP_PER_CHANNEL):
-    """Insert the release, drop older ones beyond `keep` per channel, newest first.
-    Returns (new matrix, versions dropped)."""
+    """Insert the release, drop older ones beyond `keep` per retention
+    bucket (see _retention_bucket), newest first. Returns (new matrix,
+    versions dropped) -- a dropped release's files are deleted from the
+    bucket by the workflow's own retention-prune step, deprecated or not."""
     matrix = json.loads(json.dumps(matrix)) if matrix else {}
     matrix.setdefault("FormatVersion", 1)
     releases = [r for r in matrix.get("releases", []) if r["version"] != release["version"]] + [release]
     releases.sort(key=lambda r: (r.get("published", ""), version_key(r["version"])), reverse=True)
     kept, dropped, seen = [], [], {}
     for r in releases:
-        channel = r.get("channel", "beta")
-        seen[channel] = seen.get(channel, 0) + 1
-        (kept if seen[channel] <= keep else dropped).append(r)
+        bucket = _retention_bucket(r.get("channel", "beta"))
+        seen[bucket] = seen.get(bucket, 0) + 1
+        (kept if seen[bucket] <= keep else dropped).append(r)
     matrix["releases"] = kept
     return matrix, [r["version"] for r in dropped]
+
+
+def deprecate_matrix(matrix: dict, before_tag: str) -> tuple:
+    """Marks every listed release older than `before_tag` (by version_key,
+    not channel -- an alpha and a beta compare the same way a stable
+    release would) as channel "deprecated", in place of whatever channel
+    it had. Deprecated releases are excluded from every serving path
+    (download_handler's visible_releases/resolve_release), but -- unlike
+    a plain release that ages out -- their files are not deleted here:
+    they still count against the beta retention pool (_retention_bucket)
+    and only actually get dropped (and their files deleted, by the
+    workflow's existing retention-prune step) the next time a real
+    publish pushes the combined beta/deprecated count past `keep`. This
+    only ever rewrites matrix.json. Returns (new matrix, versions just
+    deprecated); a release already deprecated, or not older than
+    before_tag, is left untouched and not counted as "just deprecated"
+    again.
+    """
+    matrix = json.loads(json.dumps(matrix)) if matrix else {}
+    matrix.setdefault("FormatVersion", 1)
+    cutoff = version_key(before_tag)
+    newly_deprecated = []
+    for r in matrix.get("releases", []):
+        if r.get("channel") == "deprecated":
+            continue
+        if version_key(r["version"]) < cutoff:
+            r["channel"] = "deprecated"
+            newly_deprecated.append(r["version"])
+    return matrix, newly_deprecated
 
 
 def unsigned_releases(matrix: dict) -> list:
@@ -210,6 +259,17 @@ def cmd_plan(args) -> int:
     return 0
 
 
+def cmd_deprecate(args) -> int:
+    matrix_path = Path(args.matrix)
+    matrix = json.loads(matrix_path.read_text(encoding="utf-8")) if matrix_path.exists() and matrix_path.stat().st_size else {}
+    new_matrix, deprecated = deprecate_matrix(matrix, args.before)
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "matrix.json").write_text(json.dumps(new_matrix, indent=2) + "\n", encoding="utf-8")
+    print(f"deprecated (older than {args.before}): {deprecated}")
+    return 0
+
+
 def cmd_assets(args) -> int:
     """Print the release asset names the workflow needs to download."""
     artifact_map = json.loads(Path(args.map).read_text(encoding="utf-8"))
@@ -235,6 +295,11 @@ def main(argv=None) -> int:
     check = sub.add_parser("check-live", help="fail if any listed release is unsigned")
     check.add_argument("--matrix", required=True)
     check.set_defaults(func=cmd_check_live)
+    deprecate = sub.add_parser("deprecate", help="mark every listed release older than --before as channel=deprecated")
+    deprecate.add_argument("--before", required=True, help="e.g. v1.0.1-b.20 -- marks everything older than this")
+    deprecate.add_argument("--matrix", required=True, help="current matrix.json (may not exist)")
+    deprecate.add_argument("--out", required=True)
+    deprecate.set_defaults(func=cmd_deprecate)
     assets = sub.add_parser("assets", help="list the release assets to download")
     assets.add_argument("--tag", required=True)
     assets.add_argument("--map", default=str(DEFAULT_MAP))

@@ -169,6 +169,22 @@ class DownloadHandlerTests(unittest.TestCase):
         status, _ = self.call(app="template-editor", platform="windows", version="v1.0.1-b.7")
         self.assertEqual(status, 302)
 
+    def test_deprecated_release_is_excluded_from_current_and_previous(self):
+        self.matrix["releases"][1]["channel"] = "deprecated"  # v1.0.1-b.6
+        _, result = self.call(app="template-editor", platform="windows")
+        self.assertIn("releases/v1.0.1-b.7/", result["headers"]["Location"])
+        status, _ = self.call(app="template-editor", platform="windows", version="previous")
+        self.assertEqual(status, 404)
+
+    def test_deprecated_release_is_not_reachable_by_exact_version_either(self):
+        # Decided 2026-10-14: unlike an ordinary old beta (see the test
+        # above this one), a deprecated release doesn't work with the
+        # licensing system, so it's refused on every path, not just
+        # current/previous.
+        self.matrix["releases"][1]["channel"] = "deprecated"  # v1.0.1-b.6
+        status, _ = self.call(app="template-editor", platform="windows", version="v1.0.1-b.6")
+        self.assertEqual(status, 404)
+
     def test_missing_downloads_and_bad_input(self):
         self.assertEqual(self.call(app="server", platform="windows")[0], 404)
         self.assertEqual(self.call(app="../etc", platform="windows")[0], 400)
