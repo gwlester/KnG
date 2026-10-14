@@ -42,6 +42,11 @@ resource "aws_cloudfront_distribution" "site" {
     # AWS managed "CachingOptimized" policy -- long cache, no cookies/query
     # strings forwarded, appropriate for a static site.
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.clean_urls.arn
+    }
   }
 
   # index.html is served for a missing path too, since this is a single

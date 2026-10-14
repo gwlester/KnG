@@ -43,6 +43,11 @@ resource "aws_cloudfront_distribution" "preview" {
     # a guarantee the reviewer always sees the exact release just uploaded,
     # with no invalidation step needed after each origin_path flip.
     cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.clean_urls.arn
+    }
   }
 
   custom_error_response {
