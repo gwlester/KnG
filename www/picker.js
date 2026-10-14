@@ -260,7 +260,7 @@
       var text = info.note;
       if (platform && options.platforms[platform.id].note && info.enabled) text = options.platforms[platform.id].note;
       if (app && !platform && detected === null && root.navigator && /iphone|ipad|ipod/i.test(root.navigator.userAgent || "")) {
-        text = "There is no iPhone or iPad version yet. Choose a platform for another device.";
+        text = "There is no iPhone or iPad version -- that needs a paid Apple Developer account we're holding off on until sales justify the cost. Choose a platform for another device.";
       }
       note.textContent = text;
       note.classList.remove("is-error");
