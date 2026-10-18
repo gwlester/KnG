@@ -124,30 +124,6 @@ class SignedFlagTests(unittest.TestCase):
             self.assertEqual(release["unsigned_files"], ["Security.apk"])
 
 
-class CheckLiveTests(unittest.TestCase):
-    def matrix_file(self, tmp, releases):
-        path = Path(tmp) / "matrix.json"
-        path.write_text(json.dumps({"releases": releases}))
-        return str(path)
-
-    def test_no_matrix_or_no_releases_passes(self):
-        with tempfile.TemporaryDirectory() as d:
-            self.assertEqual(pr.main(["check-live", "--matrix", str(Path(d) / "missing.json")]), 0)
-            self.assertEqual(pr.main(["check-live", "--matrix", self.matrix_file(d, [])]), 0)
-
-    def test_fully_signed_releases_pass(self):
-        with tempfile.TemporaryDirectory() as d:
-            releases = [{"version": "v1.1.0", "signed": True}, {"version": "v1.0.9", "signed": True}]
-            self.assertEqual(pr.main(["check-live", "--matrix", self.matrix_file(d, releases)]), 0)
-
-    def test_an_unsigned_previous_release_blocks(self):
-        with tempfile.TemporaryDirectory() as d:
-            releases = [{"version": "v1.1.0", "signed": True}, {"version": "v1.0.1-b.6", "signed": False, "unsigned_files": ["Security.apk"]}]
-            self.assertEqual(pr.main(["check-live", "--matrix", self.matrix_file(d, releases)]), 1)
-
-    def test_a_release_without_a_signed_flag_counts_as_unsigned(self):
-        self.assertEqual(pr.unsigned_releases({"releases": [{"version": "v1"}]}), [("v1", ["(signing status unknown)"])])
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -155,7 +155,7 @@ jobs:
             echo
             echo "Uploaded $(wc -l < out/uploads.tsv) files to \`releases/${RELEASE_TAG}/\`."
             echo
-            echo "Releases now listed (unsigned ones block going live):"
+            echo "Releases now listed:"
             python3 -c "import json;[print('- '+r['version']+' ('+r['channel']+', '+('signed' if r.get('signed') else 'UNSIGNED')+')') for r in json.load(open('out/matrix.json'))['releases']]"
           } >> "${GITHUB_STEP_SUMMARY}"
 

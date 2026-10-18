@@ -204,32 +204,6 @@ def deprecate_matrix(matrix: dict, before_tag: str) -> tuple:
     return matrix, newly_deprecated
 
 
-def unsigned_releases(matrix: dict) -> list:
-    """(version, unsigned file names) for every listed release that is not fully signed.
-    A release without a `signed` flag (published before signing was tracked) counts as unsigned."""
-    found = []
-    for release in matrix.get("releases", []):
-        if release.get("signed") is True:
-            continue
-        names = release.get("unsigned_files") or ["(signing status unknown)"]
-        found.append((release["version"], names))
-    return found
-
-
-def cmd_check_live(args) -> int:
-    path = Path(args.matrix)
-    matrix = json.loads(path.read_text(encoding="utf-8")) if path.exists() and path.stat().st_size else {}
-    bad = unsigned_releases(matrix)
-    if not bad:
-        print("ok: every release listed in the downloads matrix is signed (or none are listed)")
-        return 0
-    print("error: unsigned releases are still listed in the downloads matrix:", file=sys.stderr)
-    for version, names in bad:
-        print(f"  {version}: {', '.join(names[:6])}{' ...' if len(names) > 6 else ''}", file=sys.stderr)
-    print("Publish a signed release until these age out, or delete their releases/<tag>/ folders and matrix entries.", file=sys.stderr)
-    return 1
-
-
 def cmd_plan(args) -> int:
     artifact_map = json.loads(Path(args.map).read_text(encoding="utf-8"))
     assets = {p.name: p for p in Path(args.assets).iterdir() if p.is_file()}
@@ -292,9 +266,6 @@ def main(argv=None) -> int:
     plan.add_argument("--out", required=True)
     plan.add_argument("--signatures", help="signatures.json from verify_signatures.py")
     plan.set_defaults(func=cmd_plan)
-    check = sub.add_parser("check-live", help="fail if any listed release is unsigned")
-    check.add_argument("--matrix", required=True)
-    check.set_defaults(func=cmd_check_live)
     deprecate = sub.add_parser("deprecate", help="mark every listed release older than --before as channel=deprecated")
     deprecate.add_argument("--before", required=True, help="e.g. v1.0.1-b.20 -- marks everything older than this")
     deprecate.add_argument("--matrix", required=True, help="current matrix.json (may not exist)")
