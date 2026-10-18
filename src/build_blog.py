@@ -39,6 +39,7 @@ SERVICES_LEGAL_ENTITY = "KnG Consulting, LLC"
 NAV_ITEMS = [
     ("virtual-church-musician.html", "Virtual Church Musician"),
     ("services.html", "Services"),
+    ("pricing.html", "Pricing"),
     ("download.html", "Download"),
     ("trial.html", "Test Drive"),
     ("training.html", "Training"),

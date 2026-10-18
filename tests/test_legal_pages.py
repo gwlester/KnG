@@ -51,6 +51,14 @@ class SitePagesTests(unittest.TestCase):
                     self.assertIn(f'href="{prefix}{href}"', html)
             self.assertIn(f"{build_blog.LEGAL_ENTITY}</p>", html)
 
+    def test_pricing_page_states_prices_and_is_in_the_nav(self):
+        import build_blog
+
+        self.assertIn(("pricing.html", "Pricing"), build_blog.NAV_ITEMS)
+        html = self.read("pricing.html")
+        for text in ("$500", "$200", "Minor version upgrades", "Free"):
+            self.assertIn(text, html)
+
     def test_no_unfilled_tokens_or_placeholders(self):
         for path in (ROOT / "www").glob("*.html"):
             html = path.read_text(encoding="utf-8")
