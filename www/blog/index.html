@@ -34,13 +34,34 @@
             <p class="eyebrow">Blog</p>
             <h1>Notes from Gerald Lester</h1>
           </div>
-          <article class="card blog-latest" id="designing-software-that-earns-its-place">
-            <p class="post-meta">Latest · September 1, 2026</p>
-            <h2><a href="designing-software-that-earns-its-place.html">Designing software that earns a place in the daily workflow</a></h2>
-            <p>Great software should feel dependable from the first click -- fast feedback, clean interfaces, and features that solve real problems without adding noise.</p>
-            <a class="button button-secondary" href="designing-software-that-earns-its-place.html">Read the full post</a>
+          <article class="card blog-latest" id="unit-testing-python-tkinter-desktop-programs">
+            <p class="post-meta">Latest · October 19, 2026</p>
+            <h2><a href="unit-testing-python-tkinter-desktop-programs.html">Unit Testing Python/Tkinter Desktop Programs</a></h2>
+            <p>Tkinter code is testable once you stop testing Tkinter -- mock every Tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless.</p>
+            <a class="button button-secondary" href="unit-testing-python-tkinter-desktop-programs.html">Read the full post</a>
           </article>
-
+          <h2 class="blog-older-heading">Earlier posts</h2>
+          <form class="blog-filter" id="blog-filter" role="search" aria-label="Filter posts" hidden>
+            <label>Search <input type="search" id="blog-text" placeholder="Words in a post" /></label>
+            <label>Month
+              <select id="blog-month">
+                <option value="">All dates</option>
+                <option value="2026-10">October 2026</option>
+                <option value="2026-09">September 2026</option>
+              </select>
+            </label>
+            <button type="button" class="button button-secondary" id="blog-clear">Clear</button>
+            <p class="blog-count" id="blog-count" aria-live="polite"></p>
+          </form>
+          <div class="faq-list blog-list" id="blog-list">
+            <details class="faq-item blog-item" id="designing-software-that-earns-its-place" data-month="2026-09" data-search="designing software that earns a place in the daily workflow great software should feel dependable from the first click -- fast feedback, clean interfaces, and features that solve real problems without adding noise. great software should feel dependable from the first click. at kng consulting, that means focusing on fast feedback, clean interfaces, and features that solve real problems without adding noise. as the site grows, this blog will highlight product milestones and the thinking behind the tools we are building for desktop and android users.">
+              <summary><span class="post-meta">September 1, 2026</span> Designing software that earns a place in the daily workflow</summary>
+              <div class="faq-answer">
+                <p>Great software should feel dependable from the first click -- fast feedback, clean interfaces, and features that solve real problems without adding noise.</p>
+                <p><a href="designing-software-that-earns-its-place.html">Read the full post</a></p>
+              </div>
+            </details>
+          </div>
         </div>
       </section>
       <script src="../blog.js" defer></script>

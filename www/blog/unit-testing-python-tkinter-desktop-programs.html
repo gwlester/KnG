@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unit Testing Python/Tkinter Desktop Programs | KnG Consulting Blog</title>
+    <meta name="description" content="Tkinter code is testable once you stop testing Tkinter -- mock every Tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless." />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+<!-- SITE_HEADER_START -->
+    <header class="site-header">
+      <nav class="top-nav" aria-label="Primary">
+        <a class="brand" href="../index.html"><span class="brand-mark" aria-hidden="true">K</span>KnG Consulting</a>
+        <ul class="nav-links">
+          <li><a href="../virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="../services.html">Services</a></li>
+          <li><a href="../pricing.html">Pricing</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../trial.html">Test Drive</a></li>
+          <li><a href="../training.html">Training</a></li>
+          <li><a href="../faq.html">Support</a></li>
+          <li><a href="../blog/index.html" aria-current="page">Blog</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+<!-- SITE_HEADER_END -->
+
+    <main>
+      <article class="section">
+        <div class="container post-body">
+          <p class="post-meta">By Gerald Lester · October 19, 2026</p>
+          <h1>Unit Testing Python/Tkinter Desktop Programs</h1>
+          <p>Desktop GUI code has a bad reputation for being untestable. Most of that
+reputation comes from testing the wrong layer. A <code>Button</code> doesn't need a
+unit test; the function it calls does. Once that split is deliberate,
+Tkinter programs unit-test about as easily as anything else in Python.</p>
+<p>A few practices carry most of the weight:</p>
+<p><strong>Mock every Tk interaction.</strong> A unit test should never construct a real
+widget, open a real window, or touch a real display. Wrap Tk calls behind
+a thin interface (or patch <code>tkinter</code> directly) so the test exercises your
+logic, not Tcl's event loop.</p>
+<p><strong>Run headless, or with <code>DISPLAY</code> unset, to catch what you missed.</strong> Mocks
+drift. A stray <code>tk.Label(...)</code> that sneaks past review will pass on a
+developer's laptop and fail the moment CI has no X server. Running the
+unit suite with no display at all -- not even Xvfb -- turns that failure
+into an immediate, obvious one instead of a flaky one three weeks later.</p>
+<p>A few more worth adding to that list:</p>
+<ul>
+<li><strong>Separate logic from widgets.</strong> A thin presenter/view-model layer that
+  holds the actual decisions (what to enable, what to validate, what to
+  save) means most of your test surface never imports <code>tkinter</code> at all.</li>
+<li><strong>Inject the root and any widgets your code touches</strong>, rather than
+  reaching for a module-level <code>Tk()</code>. Tests then pass a fake stand-in with
+  no Tcl underneath it.</li>
+<li><strong>Keep state in plain Python, not <code>StringVar</code>/<code>IntVar</code>.</strong> Tk variables
+  need a live interpreter to exist. If the value itself is just a string
+  or int in your model, the variable becomes a thin adapter at the very
+  edge of the UI, not something your business logic depends on.</li>
+<li><strong>Don't let tests wait on <code>after()</code>.</strong> A scheduled callback should be
+  something your test can invoke directly or flush synchronously, not
+  something it sleeps for.</li>
+<li><strong>Isolate the handful of tests that need a real window</strong> (geometry,
+  focus, tab order) into their own marked, slower suite, so the fast unit
+  suite never needs a display and everyone knows which tests do.</li>
+<li><strong>Watch for Tk version drift across platforms.</strong> The same widget can
+  behave slightly differently between the Tk shipped with a distro's
+  Python and the one bundled on macOS or Windows -- worth knowing before
+  it shows up as a "flaky" test.</li>
+<li><strong>Use coverage to audit the mocks themselves.</strong> A mocked Tk call that's
+  never asked to do anything can hide a branch of real logic that never
+  actually runs in the test.</li>
+</ul>
+<p>None of this is Tkinter-specific advice in disguise -- it's the same
+discipline that makes any UI layer testable. Tkinter just makes it easy to
+skip, because a quick <code>root = tk.Tk()</code> at the top of a test file "works"
+right up until it doesn't.</p>
+          <p><a class="button button-secondary" href="index.html">← Back to all posts</a></p>
+        </div>
+      </article>
+    </main>
+<!-- SITE_FOOTER_START -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>© 2026 KnG Consulting</p>
+        <ul class="footer-links">
+          <li><a href="../virtual-church-musician.html">Virtual Church Musician</a></li>
+          <li><a href="../services.html">Services</a></li>
+          <li><a href="../pricing.html">Pricing</a></li>
+          <li><a href="../download.html">Download</a></li>
+          <li><a href="../trial.html">Test Drive</a></li>
+          <li><a href="../training.html">Training</a></li>
+          <li><a href="../faq.html">Support</a></li>
+          <li><a href="../blog/index.html">Blog</a></li>
+          <li><a href="../contact.html">Contact</a></li>
+          <li><a href="../privacy.html">Privacy</a></li>
+          <li><a href="../license.html">License</a></li>
+          <li><a href="../services-terms.html">Services Terms</a></li>
+        </ul>
+      </div>
+    </footer>
+<!-- SITE_FOOTER_END -->
+  </body>
+</html>

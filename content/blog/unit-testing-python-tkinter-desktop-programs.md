@@ -1,6 +1,6 @@
 ---
 title: Unit Testing Python/Tkinter Desktop Programs
-date: 2026-09-22
+date: 2026-10-19
 summary: Tkinter code is testable once you stop testing Tkinter -- mock every Tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless.
 ---
 
