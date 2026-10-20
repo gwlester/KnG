@@ -32,14 +32,14 @@
 
     <section class="hero page-hero">
       <div class="container">
-        <p class="eyebrow">Beta testers</p>
+        <p class="eyebrow">Beta</p>
         <h1>Request a 90-day Test Drive</h1>
         <p class="hero-copy">
-          For approved beta testers only. If your email is on our beta tester list, we'll issue
-          you a 90-day access code and take you straight to the
-          <a href="download.html">Download</a> page with it already filled in -- just pick your
-          platform and click Download. Not on the list yet?
-          <a href="contact.html">Use the contact form</a> to ask for access.
+          Enter your email and we'll issue you a free 90-day access code, then take you
+          straight to the <a href="download.html">Download</a> page with it already filled in --
+          just pick your platform and click Download. Registered beta testers can renew an
+          expired Test Drive; if yours has expired,
+          <a href="contact.html">use the contact form</a>.
         </p>
       </div>
     </section>
@@ -50,8 +50,7 @@
           <div>
             <h2>What happens next</h2>
             <p class="lead">
-              We check your email against our approved beta tester list. If you're on it, this
-              page issues your Test Drive's reference and activation key, then sends you on to the
+              This page issues your Test Drive's reference and activation key, then sends you on to the
               Download page with both already filled in. Keep them anyway -- you'll also enter
               them in the Admin app on first connection to license your Server/MIDI Player.
             </p>
@@ -90,7 +89,7 @@
 
         function show(message, isError) {
           status.className = "form-status " + (isError ? "is-error" : "is-ok");
-          // The "not on our approved beta tester list" error always
+          // The "expired" error always
           // mentions "contact form" -- turn that phrase into a real link
           // rather than leaving it as unclickable plain text.
           var marker = "contact form";

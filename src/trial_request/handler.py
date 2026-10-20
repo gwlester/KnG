@@ -1,25 +1,23 @@
-"""Beta-access-request Lambda: issues a 90-day beta reference + activation
-key for an approved beta tester.
+"""Test Drive request Lambda: issues a 90-day reference + activation key.
 
 POST {email, kind} where kind is "server" or "midi_player" -> 200
 {reference, short_key, valid_to}.
 
-Decided 2026-10-12: this is no longer an open "anyone can request a
-trial" page. The requesting email must be on the kng-beta-testers
-allowlist (maintained by hand via tools/sales_browser) or the request is
-rejected with a pointer to the contact form. One approval per email
-covers both products; which product this particular request is for is
-still tracked per kind, same as before.
+Decided 2026-10-20 (reversing the 2026-10-12 allowlist-only gate, now that
+the Server and MIDI Player enforce per-node license files): anyone with a
+valid email may request a Test Drive. Which product a request is for is
+tracked per kind, one trial per email and kind.
 
-An approved tester can come back and request again: while their
-existing credential is still within its 90-day window, the same
-reference/short_key is returned unchanged (so it can be reused/re-shown
-by the picker without inventing a new one); once it has expired, the
+While an existing credential is still within its 90-day window, the same
+reference/short_key is returned unchanged to anyone (so it can be
+reused/re-shown by the picker without inventing a new one). Once it has
+expired, only a registered beta tester (an email on the kng-beta-testers
+allowlist, maintained by hand via tools/sales_browser) can renew: the
 same reference is renewed in place with a fresh key and a fresh 90-day
-window, rather than erroring out the way a one-shot trial would. Any
-prior device binding on that reference (license_signing.handler's
-bound_uuid_<category>) is cleared on renewal, so a tester who moved to a
-new test device isn't stuck bound to their previous one.
+window, and any prior device binding on that reference
+(license_signing.handler's bound_uuid_<category>) is cleared so a tester
+who moved to a new test device isn't stuck bound to their previous one.
+Anyone else gets a 409 pointing them to the contact form.
 
 Deliberately does not hand back an installer download link -- that stays
 the existing download_handler/matrix.json/picker.js flow (Prompts/ToDo.md's
@@ -47,7 +45,7 @@ from datetime import datetime, timedelta, timezone
 
 TRIAL_DAYS = 90
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-_NOT_APPROVED_MESSAGE = "This email is not on our approved beta tester list. Use the contact form to request access."
+_TRIAL_EXPIRED_MESSAGE = "Your Test Drive has expired. Use the contact form to ask about purchasing or extending it."
 
 
 def generate_short_key() -> str:
@@ -134,9 +132,6 @@ def handler(event, context):
     if kind not in ("server", "midi_player"):
         return _error(400, "kind must be 'server' or 'midi_player'.")
 
-    if not _is_approved_beta_tester(email):
-        return _error(403, _NOT_APPROVED_MESSAGE)
-
     email_kind_key = f"{email}#{kind}"
     existing = _dynamodb().get_item(
         TableName=_trial_by_email_table(), Key={"email_kind": {"S": email_kind_key}}
@@ -149,13 +144,14 @@ def handler(event, context):
         issuance = _dynamodb().get_item(TableName=_issuance_table(), Key={"reference": {"S": reference}}).get("Item")
         valid_to = issuance.get("valid_to", {}).get("S") if issuance else None
         if issuance is not None and valid_to and datetime.fromisoformat(valid_to) > now:
-            # Still within the window: hand back the same credential so an
-            # approved tester can keep coming back, instead of the 409 a
-            # one-shot trial would have returned here.
+            # Still within the window: hand back the same credential so the
+            # requester can keep coming back.
             return _json(
                 200,
                 {"ok": True, "reference": reference, "short_key": issuance["short_key"]["S"], "valid_to": valid_to},
             )
+        if not _is_approved_beta_tester(email):
+            return _error(409, _TRIAL_EXPIRED_MESSAGE)
         short_key, new_valid_to = _renew_issuance_row(reference, now)
         return _json(200, {"ok": True, "reference": reference, "short_key": short_key, "valid_to": new_valid_to})
 

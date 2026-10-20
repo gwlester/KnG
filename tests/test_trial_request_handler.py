@@ -100,9 +100,7 @@ class TrialRequestHandlerTests(unittest.TestCase):
         item.pop("bound_uuid_midi_player", None)
         return {}
 
-    def test_issues_a_reference_and_short_key_for_an_approved_tester(self):
-        self.approve("pastor@example.org")
-
+    def test_issues_a_reference_and_short_key_to_anyone(self):
         result = handler.handler(event({"email": "pastor@example.org", "kind": "server"}), None)
 
         self.assertEqual(result["statusCode"], 200)
@@ -112,13 +110,19 @@ class TrialRequestHandlerTests(unittest.TestCase):
         self.assertIn("valid_to", body)
         self.assertEqual(self.dynamo.put_item.call_count, 2)
 
-    def test_rejects_an_email_not_on_the_beta_tester_list(self):
+    def test_an_expired_trial_is_not_renewed_for_a_non_beta_tester(self):
+        self.seed_trial_by_email("stranger@example.org", "server", "trial-abc123")
+        past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        self.seed_issuance(
+            "trial-abc123", short_key={"S": "OLD1-OLD1-OLD1-OLD1"}, short_key_hash={"S": "old-hash"},
+            valid_to={"S": past},
+        )
+
         result = handler.handler(event({"email": "stranger@example.org", "kind": "server"}), None)
 
-        self.assertEqual(result["statusCode"], 403)
-        body = json.loads(result["body"])
-        self.assertIn("contact form", body["error"])
-        self.dynamo.put_item.assert_not_called()
+        self.assertEqual(result["statusCode"], 409)
+        self.assertIn("contact form", json.loads(result["body"])["error"])
+        self.dynamo.update_item.assert_not_called()
 
     def test_rejects_an_invalid_email(self):
         result = handler.handler(event({"email": "not-an-email", "kind": "server"}), None)
@@ -131,7 +135,6 @@ class TrialRequestHandlerTests(unittest.TestCase):
         self.assertEqual(result["statusCode"], 400)
 
     def test_a_second_request_within_the_window_returns_the_same_credential(self):
-        self.approve("pastor@example.org")
         self.seed_trial_by_email("pastor@example.org", "server", "trial-abc123")
         future = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
         self.seed_issuance(
@@ -149,7 +152,7 @@ class TrialRequestHandlerTests(unittest.TestCase):
         self.dynamo.update_item.assert_not_called()
         self.dynamo.put_item.assert_not_called()
 
-    def test_an_expired_request_is_renewed_in_place_with_a_fresh_key(self):
+    def test_an_expired_request_is_renewed_in_place_for_a_beta_tester(self):
         self.approve("pastor@example.org")
         self.seed_trial_by_email("pastor@example.org", "server", "trial-abc123")
         past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
@@ -169,7 +172,6 @@ class TrialRequestHandlerTests(unittest.TestCase):
         self.assertNotIn("bound_uuid_server", self.issuance_items["trial-abc123"])
 
     def test_same_email_may_still_request_the_other_kind(self):
-        self.approve("pastor@example.org")
         self.seed_trial_by_email("pastor@example.org", "midi_player", "trial-existing")
         future = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
         self.seed_issuance(
@@ -184,8 +186,6 @@ class TrialRequestHandlerTests(unittest.TestCase):
         self.assertNotEqual(body["reference"], "trial-existing")
 
     def test_email_is_case_and_whitespace_normalized(self):
-        self.approve("pastor@example.org")
-
         result = handler.handler(event({"email": "  Pastor@Example.ORG  ", "kind": "server"}), None)
 
         self.assertEqual(result["statusCode"], 200)
