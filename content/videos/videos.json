@@ -79,6 +79,25 @@
       "note": "",
       "videos": [
         {
+          "id": "every-piece-in-place",
+          "title": "Every piece in place: how the apps fit together",
+          "blurb": "An animated tour of the VCM Server and the apps around it, and what each one does.",
+          "use_when": "you want to see which apps you need",
+          "roles": [
+            "everyone"
+          ],
+          "platforms": [
+            "computer",
+            "android"
+          ],
+          "task": null,
+          "audience": "Anyone curious",
+          "length": "about 1:20",
+          "available": true,
+          "version": 1,
+          "transcript_html": "<p>Every Sunday, a lot of pieces have to come together. The music, the timing, the instruments, the people.</p><p>At the center is the Server. It keeps your hymns, chants, and services, and plays them at the right moment, to your sound system.</p><p>To prepare, there are two free apps. Templates holds the shape of a service. Services fills it in for Sunday: the date, the hymns, the timing.</p><p>On Sunday, Runner is the one you press Play on, on a computer or on a phone. Each item shows what is waiting, what is next, and what is playing.</p><p>If your organ is across the room, the MIDI Player sits beside it. The Server sends it the music over your church network, and it plays the instrument.</p><p>To keep it yours, Administrator decides which devices may connect. Security does the same from a phone, for lost or new devices.</p><p>Seven apps, one picture, all running on your own network. No internet, no account. Just the pieces you need.</p><p>Every app has a built-in demo, so you can look around first. Find it all at kng-consulting.com.</p>"
+        },
+        {
           "id": "overview",
           "title": "VCM in about two and a half minutes",
           "blurb": "A quick tour: how the VCM Server, the apps and your sound system fit together, and what a service looks like from planning to Play.",

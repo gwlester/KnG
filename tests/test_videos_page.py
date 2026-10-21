@@ -16,7 +16,7 @@ class VideosPageTests(unittest.TestCase):
         return [v for s in self.data["sections"] for v in s["videos"]]
 
     def test_every_video_is_on_the_page_with_its_anchor(self):
-        self.assertEqual(len(self.all_videos()), 30)
+        self.assertEqual(len(self.all_videos()), 31)
         for v in self.all_videos():
             with self.subTest(video=v["id"]):
                 self.assertIn(f'id="{v["id"]}"', self.html)
@@ -69,7 +69,7 @@ class VideosPageTests(unittest.TestCase):
         self.assertIn('id="finder"', self.html)
         self.assertIn("hidden>", self.html.split('id="finder"', 1)[1][:80] + ">")
         self.assertIn('src="training.js"', self.html)
-        self.assertEqual(self.html.count("class=\"video-card\""), 30)
+        self.assertEqual(self.html.count("class=\"video-card\""), 31)
         for role in self.data["roles"]:
             self.assertIn(f'<option value="{role["id"]}">', self.html)
 
@@ -133,6 +133,46 @@ class CommercialHooksTests(unittest.TestCase):
             # turning it back off removes the watch page again
             self.build_blog.refresh_commercial_hooks(tmp, self.with_commercial(False))
             self.assertFalse((tmp / "watch.html").exists())
+
+
+class OverviewHooksTests(unittest.TestCase):
+    def setUp(self):
+        import build_blog
+        self.build_blog = build_blog
+        self.data = json.loads((ROOT / "content" / "videos" / "videos.json").read_text(encoding="utf-8"))
+
+    def with_overview(self, available):
+        import copy
+        data = copy.deepcopy(self.data)
+        for sec in data["sections"]:
+            for v in sec["videos"]:
+                if v["id"] == "every-piece-in-place":
+                    v["available"] = available
+        return data
+
+    def run_hooks(self, available):
+        import shutil
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            tmp = Path(d)
+            shutil.copy(ROOT / "www" / "index.html", tmp / "index.html")
+            self.build_blog.refresh_overview_hooks(tmp, self.with_overview(available))
+            return (tmp / "index.html").read_text(encoding="utf-8")
+
+    def test_nothing_appears_until_the_overview_is_available(self):
+        home = self.run_hooks(False)
+        self.assertNotIn("how-it-fits", home)
+        self.assertNotIn("every-piece-in-place", home)
+
+    def test_player_and_button_appear_when_available(self):
+        home = self.run_hooks(True)
+        self.assertIn('id="how-it-fits"', home)
+        self.assertIn('href="#how-it-fits"', home)
+        self.assertIn('every-piece-in-place-v1.mp4', home)
+        self.assertIn('preload="none"', home)
+        self.assertNotIn("autoplay", home)
+        self.assertIn('kind="captions"', home)
+        self.assertIn("Transcript", home)
 
 
 if __name__ == "__main__":

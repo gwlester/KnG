@@ -639,6 +639,40 @@ def refresh_commercial_hooks(www_dir: Path | None = None, data: dict | None = No
         path.write_text(_replace_between(html, start, end, text, path), encoding="utf-8")
 
 
+OVERVIEW_ID = "every-piece-in-place"
+
+
+def refresh_overview_hooks(www_dir: Path | None = None, data: dict | None = None) -> None:
+    """The animated overview video appears on the home page (a player section at the top of the page, no autoplay,
+    plus a hero button that scrolls to it), but only once its 'available' flag is true in content/videos/videos.json.
+    Until then both are empty."""
+    www = www_dir or WWW_DIR
+    data = data or json.loads(VIDEOS_SOURCE.read_text(encoding="utf-8"))
+    v = next((v for sec in data["sections"] for v in sec["videos"] if v["id"] == OVERVIEW_ID and v.get("available")), None)
+    base = data.get("media_base", "media/")
+    button = section = ""
+    if v:
+        button = (
+            f'            <a class="button button-secondary" href="#how-it-fits">'
+            f'See how it fits together ({_esc(v["length"].replace("about ", ""))})</a>'
+        )
+        transcript = v.get("transcript_html", "")
+        section = f"""      <section class="section" id="how-it-fits">
+        <div class="container watch">
+          <div class="section-heading">
+            <p class="eyebrow">How it fits together</p>
+            <h2>Seven apps, one picture</h2>
+          </div>
+          {_player(v, base, "watch-video")}{f'<details class="video-transcript"><summary>Transcript</summary>{transcript}</details>' if transcript else ""}
+        </div>
+      </section>"""
+    path = www / "index.html"
+    html = path.read_text(encoding="utf-8")
+    html = _replace_between(html, "<!-- OVERVIEW_BUTTON_START -->", "<!-- OVERVIEW_BUTTON_END -->", button, path)
+    html = _replace_between(html, "<!-- OVERVIEW_PLAYER_START -->", "<!-- OVERVIEW_PLAYER_END -->", section, path)
+    path.write_text(html, encoding="utf-8")
+
+
 def _esc(text: str) -> str:
     return html_lib.escape(text, quote=True)
 
@@ -809,6 +843,7 @@ def main() -> None:
     render_faq_page()
     render_videos_page()
     refresh_commercial_hooks()
+    refresh_overview_hooks()
     refresh_download_page()
     refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
