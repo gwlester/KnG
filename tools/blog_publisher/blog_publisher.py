@@ -46,6 +46,12 @@ def variant_filenames(base_filename: str, filenames: list[str]) -> list[str]:
     return sorted(name for name in filenames if name != base_filename and name.startswith(prefix))
 
 
+def platform_from_variant(base_filename: str, variant_filename: str) -> str:
+    """The platform name in a teaser variant's filename: the part after the
+    base stem and before ".md" ("...-linkedin.md" -> "linkedin")."""
+    return variant_filename[len(base_filename[:-3]) + 1 : -3]
+
+
 def slug_from_base_filename(base_filename: str) -> str:
     """Strips the "NN-" ordering prefix and ".md" extension -- this becomes
     both the published filename (content/blog/<slug>.md) and the URL slug,

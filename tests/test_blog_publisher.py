@@ -8,6 +8,7 @@ from blog_publisher import (  # noqa: E402
     devto_payload,
     fill_post_url,
     find_next_post,
+    platform_from_variant,
     parse_front_matter,
     set_front_matter_date,
     slug_from_base_filename,
@@ -58,6 +59,13 @@ class VariantFilenamesTests(unittest.TestCase):
     def test_does_not_pick_up_a_different_topics_variants(self):
         result = variant_filenames("01-unit-testing-python-tkinter-desktop-programs.md", PENDING_FILES)
         self.assertNotIn("02-end-to-end-testing-python-tkinter-desktop-programs-linkedin.md", result)
+
+
+class PlatformFromVariantTests(unittest.TestCase):
+    def test_extracts_the_platform_name(self):
+        base = "06-remote-logging-for-a-smaller-project.md"
+        self.assertEqual(platform_from_variant(base, "06-remote-logging-for-a-smaller-project-linkedin.md"), "linkedin")
+        self.assertEqual(platform_from_variant(base, "06-remote-logging-for-a-smaller-project-reddit-programming.md"), "reddit-programming")
 
 
 class SlugFromBaseFilenameTests(unittest.TestCase):

@@ -23,6 +23,7 @@ On most modern systems, the system Python refuses a plain `pip install`
 python3 -m venv .venv
 source .venv/bin/activate   # .venv\Scripts\activate on Windows
 pip install -r requirements.txt   # boto3 -- not a dependency of the site itself
+aws login
 python3 app.py
 ```
 

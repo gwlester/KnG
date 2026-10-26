@@ -68,7 +68,7 @@ jobs:
         if: ${{ github.event.inputs.dry_run != 'true' }}
         shell: bash
         run: |
-          git add content/pending-blogs content/blog www
+          git add content/pending-blogs content/published-teasers content/blog www
           if git diff --cached --quiet; then
             echo "published=false" >> "${GITHUB_OUTPUT}"
             echo "Nothing to commit (queue was empty)."

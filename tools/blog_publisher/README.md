@@ -4,7 +4,9 @@ Runs automatically via `.github/workflows/publish-blog-post.yml`, first
 Monday of the month. Picks the lowest-numbered topic still in
 `content/pending-blogs/`, moves its base post into `content/blog/` with
 today's date, regenerates the site (`src/build_blog.py`), and fills in
-`{{post_url}}` on every teaser variant for that topic.
+`{{post_url}}` on every teaser variant for that topic. The filled-in teasers are then
+kept in `content/published-teasers/<slug>/<platform>.md` (not deleted), so what was
+posted stays on record.
 
 ## What gets automated vs. staged
 

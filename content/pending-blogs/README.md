@@ -26,5 +26,7 @@ To publish one:
 2. Run `python3 src/build_blog.py` and review the rendered page.
 3. Replace `{{post_url}}` in the three social files with the live URL and
    post each to its platform.
-4. Delete the four files for that topic from this folder in the same
-   commit.
+4. Move the topic's teaser files (with the URL filled in) to
+   `content/published-teasers/<slug>/<platform>.md` and delete the originals
+   from this folder in the same commit. (The monthly publisher does this
+   itself.)

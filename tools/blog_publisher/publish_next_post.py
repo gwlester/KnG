@@ -7,6 +7,9 @@ summary for Gerald to paste in by hand (Facebook/MeWe/LinkedIn --
 none of those have a posting API that's both official and usable for
 this, see Prompts/ToDo.md's "Monthly Blog Publishing" item).
 
+Each topic's teaser variants are moved to content/published-teasers/<slug>/<platform>.md
+(with the URL filled in) rather than deleted.
+
 Does not touch git at all -- the calling workflow commits/pushes the
 result. Run from the repository root:
 
@@ -32,6 +35,7 @@ from blog_publisher import (  # noqa: E402
     devto_payload,
     fill_post_url,
     find_next_post,
+    platform_from_variant,
     set_front_matter_date,
     slug_from_base_filename,
     variant_filenames,
@@ -40,6 +44,9 @@ from blog_publisher import (  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PENDING_DIR = REPO_ROOT / "content" / "pending-blogs"
 BLOG_DIR = REPO_ROOT / "content" / "blog"
+# Published topics' teasers are kept here (one folder per post slug, one file per platform, with
+# {{post_url}} filled in) instead of being deleted, so what was posted stays on record.
+PUBLISHED_DIR = REPO_ROOT / "content" / "published-teasers"
 SITE_URL = "https://www.kng-consulting.com"
 DEVTO_API_URL = "https://dev.to/api/articles"
 
@@ -110,10 +117,13 @@ def main() -> int:
                     f"```\n{variant_content}\n```"
                 )
         else:
-            platform = variant_name[len(base_filename[:-3]) + 1 : -3]
+            platform = platform_from_variant(base_filename, variant_name)
             _write_summary(f"- **{platform} (paste this in by hand):**\n```\n{variant_content}\n```")
 
         if not args.dry_run:
+            archive_dir = PUBLISHED_DIR / slug
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            (archive_dir / f"{platform_from_variant(base_filename, variant_name)}.md").write_text(variant_content, encoding="utf-8")
             variant_path.unlink()
 
     _write_summary(
