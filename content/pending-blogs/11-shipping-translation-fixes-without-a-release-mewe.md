@@ -10,3 +10,5 @@ that keeps a multi-campus device from ever being talked backward into an
 older translation by a second, out-of-date server.
 
 {{post_url}}
+
+#Localization #i18n #SoftwareArchitecture #APIVersioning #ReactNative

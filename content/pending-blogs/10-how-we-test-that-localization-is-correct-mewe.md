@@ -11,3 +11,5 @@ opening a real Tk window -- and how we closed off that whole category of
 bug afterward.
 
 {{post_url}}
+
+#Localization #SoftwareTesting #QA #i18n #CI

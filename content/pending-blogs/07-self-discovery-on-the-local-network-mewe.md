@@ -10,3 +10,5 @@ later means every deployed device is stuck un-versioned. Wrote up the
 approach.
 
 {{post_url}}
+
+#NetworkProtocols #SoftwareArchitecture #UDP #APIDesign

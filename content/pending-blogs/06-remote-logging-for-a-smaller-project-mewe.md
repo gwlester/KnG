@@ -9,3 +9,5 @@ opt-in, structured, and scoped to failures rather than user data. Wrote up
 how I've approached this for a small, air-gapped-by-default project.
 
 {{post_url}}
+
+#SoftwareEngineering #Logging #Observability #SmallTeams #Privacy

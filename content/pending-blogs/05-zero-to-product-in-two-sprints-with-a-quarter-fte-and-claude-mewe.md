@@ -11,3 +11,5 @@ decisions, let the AI draft everything downstream of them, and never skip
 the full test run just because time's tight.
 
 {{post_url}}
+
+#ProductDevelopment #AI #Claude #StartupLessons #SoftwareDevelopment

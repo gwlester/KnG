@@ -10,3 +10,5 @@ pressure. Wrote up how I've been keeping red-green-refactor honest while
 working with Claude.
 
 {{post_url}}
+
+#TDD #SoftwareEngineering #AI #Claude #TestDrivenDevelopment

@@ -10,3 +10,5 @@ pausing for full teardown between runs, resetting AsyncStorage/permissions
 upgrade paths separately.
 
 {{post_url}}
+
+#ReactNative #MobileTesting #EndToEndTesting #QA #CI

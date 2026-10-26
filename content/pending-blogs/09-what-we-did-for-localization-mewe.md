@@ -11,3 +11,5 @@ answer for OS locale detection and live language switching than desktop
 did.
 
 {{post_url}}
+
+#Localization #i18n #SoftwareArchitecture #ReactNative #Python
