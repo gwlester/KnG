@@ -1,6 +1,6 @@
 ---
 title: End to End Testing Python/Tkinter Desktop Programs
-date: 2026-09-22
+date: 2026-10-26
 summary: Driving a real Tkinter app end to end takes a virtual display, Tk's own "send" command, and a discipline about events versus direct calls that keeps the test honest.
 ---
 

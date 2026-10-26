@@ -34,11 +34,11 @@
             <p class="eyebrow">Blog</p>
             <h1>Notes from Gerald Lester</h1>
           </div>
-          <article class="card blog-latest" id="unit-testing-python-tkinter-desktop-programs">
-            <p class="post-meta">Latest · October 19, 2026</p>
-            <h2><a href="unit-testing-python-tkinter-desktop-programs.html">Unit Testing Python/Tkinter Desktop Programs</a></h2>
-            <p>Tkinter code is testable once you stop testing Tkinter -- mock every Tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless.</p>
-            <a class="button button-secondary" href="unit-testing-python-tkinter-desktop-programs.html">Read the full post</a>
+          <article class="card blog-latest" id="end-to-end-testing-python-tkinter-desktop-programs">
+            <p class="post-meta">Latest · October 26, 2026</p>
+            <h2><a href="end-to-end-testing-python-tkinter-desktop-programs.html">End to End Testing Python/Tkinter Desktop Programs</a></h2>
+            <p>Driving a real Tkinter app end to end takes a virtual display, Tk's own "send" command, and a discipline about events versus direct calls that keeps the test honest.</p>
+            <a class="button button-secondary" href="end-to-end-testing-python-tkinter-desktop-programs.html">Read the full post</a>
           </article>
           <h2 class="blog-older-heading">Earlier posts</h2>
           <form class="blog-filter" id="blog-filter" role="search" aria-label="Filter posts" hidden>
@@ -54,6 +54,13 @@
             <p class="blog-count" id="blog-count" aria-live="polite"></p>
           </form>
           <div class="faq-list blog-list" id="blog-list">
+            <details class="faq-item blog-item" id="unit-testing-python-tkinter-desktop-programs" data-month="2026-10" data-search="unit testing python/tkinter desktop programs tkinter code is testable once you stop testing tkinter -- mock every tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless. desktop gui code has a bad reputation for being untestable. most of that reputation comes from testing the wrong layer. a button doesn&#x27;t need a unit test; the function it calls does. once that split is deliberate, tkinter programs unit-test about as easily as anything else in python. a few practices carry most of the weight: mock every tk interaction. a unit test should never construct a real widget, open a real window, or touch a real display. wrap tk calls behind a thin interface (or patch tkinter directly) so the test exercises your logic, not tcl&#x27;s event loop. run headless, or with display unset, to catch what you missed. mocks drift. a stray tk.label(...) that sneaks past review will pass on a developer&#x27;s laptop and fail the moment ci has no x server. running the unit suite with no display at all -- not even xvfb -- turns that failure into an immediate, obvious one instead of a flaky one three weeks later. a few more worth adding to that list: separate logic from widgets. a thin presenter/view-model layer that holds the actual decisions (what to enable, what to validate, what to save) means most of your test surface never imports tkinter at all. inject the root and any widgets your code touches , rather than reaching for a module-level tk() . tests then pass a fake stand-in with no tcl underneath it. keep state in plain python, not stringvar / intvar . tk variables need a live interpreter to exist. if the value itself is just a string or int in your model, the variable becomes a thin adapter at the very edge of the ui, not something your business logic depends on. don&#x27;t let tests wait on after() . a scheduled callback should be something your test can invoke directly or flush synchronously, not something it sleeps for. isolate the handful of tests that need a real window (geometry, focus, tab order) into their own marked, slower suite, so the fast unit suite never needs a display and everyone knows which tests do. watch for tk version drift across platforms. the same widget can behave slightly differently between the tk shipped with a distro&#x27;s python and the one bundled on macos or windows -- worth knowing before it shows up as a &quot;flaky&quot; test. use coverage to audit the mocks themselves. a mocked tk call that&#x27;s never asked to do anything can hide a branch of real logic that never actually runs in the test. none of this is tkinter-specific advice in disguise -- it&#x27;s the same discipline that makes any ui layer testable. tkinter just makes it easy to skip, because a quick root = tk.tk() at the top of a test file &quot;works&quot; right up until it doesn&#x27;t.">
+              <summary><span class="post-meta">October 19, 2026</span> Unit Testing Python/Tkinter Desktop Programs</summary>
+              <div class="faq-answer">
+                <p>Tkinter code is testable once you stop testing Tkinter -- mock every Tk interaction, keep logic out of widgets, and prove the mocks are complete by running headless.</p>
+                <p><a href="unit-testing-python-tkinter-desktop-programs.html">Read the full post</a></p>
+              </div>
+            </details>
             <details class="faq-item blog-item" id="designing-software-that-earns-its-place" data-month="2026-09" data-search="designing software that earns a place in the daily workflow great software should feel dependable from the first click -- fast feedback, clean interfaces, and features that solve real problems without adding noise. great software should feel dependable from the first click. at kng consulting, that means focusing on fast feedback, clean interfaces, and features that solve real problems without adding noise. as the site grows, this blog will highlight product milestones and the thinking behind the tools we are building for desktop and android users.">
               <summary><span class="post-meta">September 1, 2026</span> Designing software that earns a place in the daily workflow</summary>
               <div class="faq-answer">
