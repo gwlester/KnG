@@ -33,6 +33,6 @@ Scan this code with your phone's camera, or [download the app directly](https://
 
 <p><a href="https://github.com/gwlester/findit/releases/latest/download/findcache.apk"><img class="qr" src="img/findcache/qr.svg" width="220" height="220" alt="QR code: scan with your phone to download FindCache" /></a></p>
 
-The first time, Android asks you to allow installing the app from your browser: [Getting started](findcache-getting-started.html) walks through it.
+FindCache is not on Google Play yet, so you install the app file directly. The first time, Android asks you to allow installing from your browser: [Getting started](findcache-getting-started.html) walks through each step.
 
 FindCache has no account, no ads and no analytics. Read the short [FindCache privacy policy](findcache-privacy.html).

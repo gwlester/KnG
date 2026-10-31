@@ -10,9 +10,23 @@ This takes about five minutes. You need an Android phone (Android 7 or later) wi
 
 ## 1. Install the app
 
-1. On your phone, open the download link, or scan the QR code on the [FindCache page](findcache.html). The file is called **findcache.apk**.
-2. When the download finishes, open it. Android may say your browser is not allowed to install apps. Choose **Settings**, allow it for this one install, then go back and tap **Install**.
-3. Open **FindCache**.
+<!-- TEMPORARY: this section describes installing the APK directly (sideloading). Replace it with
+     "Get it on Google Play" once FindCache is on the Play Store. -->
+
+FindCache is not on Google Play yet, so for now you install the app file directly (this is called
+*sideloading*). It is safe, it takes a minute, and you only do it once.
+
+1. **Download.** On your phone, open the download link, or scan the QR code on the [FindCache page](findcache.html). The file is **findcache.apk** (about 30 MB). If your browser warns that this type of file can harm your device, choose **Download anyway**: it only says that about any app file.
+2. **Open it.** When the download finishes, tap **Open** in the browser, or find **findcache.apk** in your **Files** app under **Downloads**, and tap it.
+3. **Allow your browser (or Files app) to install apps, one time.** Android says your phone "isn't allowed to install unknown apps from this source". Tap **Settings**, switch on **Allow from this source**, then press Back. On Android 7, open **Settings → Security** and switch on **Unknown sources** instead.
+4. **Tap Install.** If Google Play Protect says the app is unrecognised or blocked, choose **More details**, then **Install anyway**. FindCache is small, free and open source, and it just has not been through Google Play yet.
+5. Tap **Open** to start FindCache. You can switch **Allow from this source** off again afterwards.
+
+Your phone needs Android 7 or later and a 64-bit processor, which covers nearly every phone made since 2017.
+
+**Updating:** to update, download and open the newer **findcache.apk** the same way. It installs over the old version and keeps your places.
+
+**Moving to Google Play later:** when FindCache arrives on Google Play, the Play version will need the sideloaded one removed first, and removing it deletes your places. Before that, use **Files → Export** to save your places as a file (see [Import and export](findcache-files.html)), then import them into the new install.
 
 ## 2. Allow location
 
