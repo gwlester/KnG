@@ -19,6 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTENT_DIR = REPO_ROOT / "content" / "blog"
 LEGAL_DIR = REPO_ROOT / "content" / "legal"
 FAQ_SOURCE = REPO_ROOT / "content" / "faq.md"
+FINDCACHE_DIR = REPO_ROOT / "content" / "findcache"
 DOWNLOAD_OPTIONS = REPO_ROOT / "content" / "downloads" / "options.json"
 DOWNLOAD_PAGE = REPO_ROOT / "www" / "download.html"
 VIDEOS_SOURCE = REPO_ROOT / "content" / "videos" / "videos.json"
@@ -43,6 +44,7 @@ NAV_ITEMS = [
     ("download.html", "Download"),
     ("trial.html", "Test Drive"),
     ("training.html", "Training"),
+    ("fun.html", "Just for Fun"),
     ("faq.html", "Support"),
     ("blog/index.html", "Blog"),
     ("contact.html", "Contact"),
@@ -51,6 +53,7 @@ FOOTER_EXTRA = [
     ("privacy.html", "Privacy"),
     ("license.html", "License"),
     ("services-terms.html", "Services Terms"),
+    ("findcache-privacy.html", "FindCache Privacy"),
 ]
 HEADER_START = "<!-- SITE_HEADER_START -->"
 HEADER_END = "<!-- SITE_HEADER_END -->"
@@ -217,7 +220,10 @@ def refresh_chrome() -> None:
         html = path.read_text(encoding="utf-8")
         if HEADER_START not in html:
             continue
-        html = _replace_between(html, HEADER_START, HEADER_END, header_html("", path.name), path)
+        current = path.name
+        if current.startswith("findcache") and current != "findcache-privacy.html":
+            current = "fun.html"  # the FindCache pages sit under "Just for Fun" in the nav
+        html = _replace_between(html, HEADER_START, HEADER_END, header_html("", current), path)
         html = _replace_between(html, FOOTER_START, FOOTER_END, footer_html(""), path)
         path.write_text(html, encoding="utf-8")
 
@@ -388,6 +394,79 @@ def render_legal_pages() -> list[Path]:
                 description=fields.get("description", ""),
                 prefix="",
                 body=body,
+            ),
+            encoding="utf-8",
+        )
+        written.append(out)
+    return written
+
+
+def render_findcache_pages() -> list[Path]:
+    """Render content/findcache/*.md (front matter: title, slug, description, order, summary) into
+    www/<slug>.html: the FindCache overview (slug 'findcache') and its user-guide pages, all under the
+    "Just for Fun" nav entry. The overview lists the guide pages; each guide page ends with a link
+    back to the overview and to its neighbours."""
+    pages = []
+    for path in sorted(FINDCACHE_DIR.glob("*.md")):
+        match = FRONT_MATTER_RE.match(path.read_text(encoding="utf-8"))
+        if not match:
+            raise ValueError(f"{path}: missing '---' front matter block")
+        fields = {}
+        for line in match.group(1).splitlines():
+            key, _, value = line.partition(":")
+            if key.strip():
+                fields[key.strip()] = value.strip()
+        for required in ("title", "slug", "order"):
+            if required not in fields:
+                raise ValueError(f"{path}: front matter missing '{required}'")
+        pages.append((int(fields["order"]), slugify(fields["slug"]), fields, match.group(2)))
+    pages.sort(key=lambda page: page[0])
+    guide = [page for page in pages if page[1] != "findcache"]
+
+    written = []
+    for order, slug, fields, text in pages:
+        body_html = markdown.markdown(text.strip(), extensions=["extra"])
+        if slug == "findcache":
+            cards = "\n".join(
+                f"""            <article class="card">
+              <h3><a href="{g_slug}.html">{html_lib.escape(g_fields["title"])}</a></h3>
+              <p>{html_lib.escape(g_fields.get("summary", ""))}</p>
+            </article>"""
+                for _o, g_slug, g_fields, _t in guide
+            )
+            extra = f"""
+          <h2>The user guide</h2>
+          <div class="card-grid">
+{cards}
+          </div>"""
+        else:
+            index = [g[1] for g in guide].index(slug)
+            prev_page = guide[index - 1] if index > 0 else None
+            next_page = guide[index + 1] if index + 1 < len(guide) else None
+            links = ['<a class="button button-secondary" href="findcache.html">&uarr; FindCache overview</a>']
+            if prev_page:
+                links.insert(0, f'<a class="button button-secondary" href="{prev_page[1]}.html">&larr; {html_lib.escape(prev_page[2]["title"])}</a>')
+            if next_page:
+                links.append(f'<a class="button button-secondary" href="{next_page[1]}.html">{html_lib.escape(next_page[2]["title"])} &rarr;</a>')
+            extra = '\n          <p class="guide-nav">' + " ".join(links) + "</p>"
+        body = f"""
+    <main>
+      <article class="section">
+        <div class="container post-body">
+          <p class="eyebrow"><a href="fun.html">Just for Fun</a> &rsaquo; <a href="findcache.html">FindCache</a></p>
+          <h1>{html_lib.escape(fields["title"])}</h1>
+          {body_html}{extra}
+        </div>
+      </article>
+    </main>"""
+        out = WWW_DIR / f"{slug}.html"
+        out.write_text(
+            page_shell(
+                title=f"{fields['title']} | FindCache | KnG Consulting",
+                description=fields.get("description", ""),
+                prefix="",
+                body=body,
+                current="fun.html",
             ),
             encoding="utf-8",
         )
@@ -841,6 +920,7 @@ def main() -> None:
     update_homepage(posts)
     legal = render_legal_pages()
     render_faq_page()
+    findcache = render_findcache_pages()
     render_videos_page()
     refresh_commercial_hooks()
     refresh_overview_hooks()
@@ -848,6 +928,7 @@ def main() -> None:
     refresh_chrome()
     print(f"Rendered {len(posts)} post(s) to {BLOG_OUT_DIR}")
     print(f"Rendered {len(legal)} legal page(s) to {WWW_DIR}")
+    print(f"Rendered {len(findcache)} FindCache page(s) to {WWW_DIR}")
 
 
 if __name__ == "__main__":

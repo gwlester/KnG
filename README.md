@@ -10,6 +10,10 @@ KnG website, Terraform, and site files.
   (Markdown); `content/faq.md` — the Support/FAQ page. `build_blog.py`
   renders them to `www/<slug>.html` and refreshes the shared header/footer
   (between the `SITE_HEADER`/`SITE_FOOTER` markers) on every hand-written page
+- `content/findcache/` — the FindCache overview and user-guide pages (Markdown with `title`,
+  `slug`, `order`, `summary` front matter), rendered by `build_blog.py` to `www/findcache*.html`
+  under the "Just for Fun" nav entry; `www/fun.html` (hand-written) is that section's landing
+  page, and `www/img/findcache/` holds its screenshots, icon and download QR code
 - `src/` — Python: `build_blog.py` renders `content/blog/` into
   `www/blog/`; `contact_handler/` is the contact-form Lambda
 - `content/downloads/` — `options.json` (public picker options for the Download
