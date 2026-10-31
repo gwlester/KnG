@@ -29,7 +29,7 @@ When you are within a set distance of the place (50 m by default, changeable in 
 - the **shaded circle** is the search area, as large as the uncertainty radius;
 - dashed rings and labels (for example "10 m") show the scale. It zooms in as you get closer.
 
-You can show a **street map** or **satellite picture** under it, so the circle lands on real paths and trees: see [Maps and offline use](findcache-maps.html).
+You can show a **street map** or **satellite view** under it, so the circle lands on real paths and trees: see [Maps and offline use](findcache-maps.html).
 
 ## Average my position while you look
 
