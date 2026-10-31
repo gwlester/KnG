@@ -13,7 +13,7 @@ description: FindCache is a free Android app for saving places and finding them 
 
 - **Save a place** with one tap from where you are standing, or type in coordinates. Add notes, such as a hint.
 - **Find it again.** A compass points at the place and shows how far away it is, along with an uncertainty radius that tells you how close you can honestly expect to get.
-- **Search area.** When you are close, the compass turns into a small map of the area where the place most likely is, optionally over a street map or satellite picture.
+- **Search area.** When you are close, the compass turns into a small map of the area where the place most likely is, optionally over a street map or satellite view.
 - **Average your position** for a steadier, more accurate answer (see below).
 - **Maps** that work with no signal, once you have saved an area.
 - **Swap places with friends** nearby over Bluetooth, with no internet and no account. Import and export GPX files from geocaching.com and GPS units.

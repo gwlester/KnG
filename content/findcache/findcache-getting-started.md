@@ -35,7 +35,7 @@ For a better position, tap **Average position** instead and wait a minute: see [
 1. From the places list, tap the place. The list shows how far away each one is.
 2. The compass opens. Hold the phone flat and **follow the arrow**. The outer ring turns so N, E, S and W always point the real way.
 3. Below the compass you see the distance and an **uncertainty radius**: how close the phone can honestly tell. Read more in [Finding a place](findcache-finding-a-place.html).
-4. When you are close, the middle of the compass turns into a small map of the **search area**. Look around inside the shaded circle.
+4. When you are close, the middle of the compass turns into a small map of the **search area**, optionally over a street map or satellite view (see [Settings](findcache-settings.html)). Look around inside the shaded circle.
 5. Found it? Tap **Mark found**.
 
 ![The places list, with distances from where you stand](img/findcache/places.png){: .screenshot }
