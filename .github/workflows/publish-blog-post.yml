@@ -14,7 +14,9 @@ on:
     # no timezone support, so this is a fixed UTC time (14:00 UTC =
     # 9am CDT; it drifts to ~8am during CST) rather than a DST-aware
     # pair of cron lines -- not time-critical for a monthly post.
-    - cron: "0 14 1-7 * 1"
+    # Cron ORs day-of-month with day-of-week when both are set, so this
+    # fires every Monday and the publish step skips any Monday after the 7th.
+    - cron: "0 14 * * 1"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -57,7 +59,9 @@ jobs:
         env:
           DEVTO_API_KEY: ${{ secrets.DEVTO_API_KEY }}
         run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%-d)" -gt 7 ]; then
+            echo "Not the first Monday of the month; skipping."
+          elif [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             python3 tools/blog_publisher/publish_next_post.py --dry-run
           else
             python3 tools/blog_publisher/publish_next_post.py
