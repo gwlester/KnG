@@ -8,4 +8,4 @@ app -- it's the emulator not being as clean between runs as you think.
 New post on teardown pauses, resetting storage/permissions (not just
 files), and testing a fresh install separately from an upgrade.
 
-https://www.kng-consulting.com/blog/end-to-end-testing-react-native-programs.html
+{{post_url}}
