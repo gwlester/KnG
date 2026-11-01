@@ -9,4 +9,4 @@ call, run headless to prove it, keep the actual decisions in plain Python
 instead of StringVar/IntVar. Curious how others handle the "few tests that
 really do need a live window" problem.
 
-{{post_url}}
+https://www.kng-consulting.com/blog/unit-testing-python-tkinter-desktop-programs.html
