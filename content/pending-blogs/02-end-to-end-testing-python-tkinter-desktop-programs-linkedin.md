@@ -26,6 +26,6 @@ instance is running, waiting on state instead of the clock, restarting
 between scenarios instead of resetting in place, and pinning your Tcl/Tk
 version so `send` behaves the same in CI as in production.
 
-Read it here: https://www.kng-consulting.com/blog/end-to-end-testing-python-tkinter-desktop-programs.html
+Read it here: {{post_url}}
 
 #Python #Tkinter #EndToEndTesting #DesktopApps #QA
