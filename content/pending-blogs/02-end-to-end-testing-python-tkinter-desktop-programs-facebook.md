@@ -8,4 +8,4 @@ app end to end -- a virtual display and the `send` command. New post on
 using them the right way (async sends, real events instead of calling
 functions directly, and why restarting the app beats trying to reset it).
 
-https://www.kng-consulting.com/blog/end-to-end-testing-python-tkinter-desktop-programs.html
+{{post_url}}

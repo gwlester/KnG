@@ -8,4 +8,4 @@ widgets and start testing the logic behind them. New post on mocking every
 Tk interaction, running headless to catch what you missed, and a few other
 habits that make Python/Tkinter apps genuinely testable.
 
-Read it here: {{post_url}}
+Read it here: https://www.kng-consulting.com/blog/unit-testing-python-tkinter-desktop-programs.html

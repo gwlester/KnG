@@ -29,6 +29,6 @@ catch a mock that's never actually asked to do anything.
 None of it is really Tkinter-specific -- it's the same discipline that
 makes any UI layer testable. Tkinter just makes it unusually easy to skip.
 
-Read the full post: {{post_url}}
+Read the full post: https://www.kng-consulting.com/blog/unit-testing-python-tkinter-desktop-programs.html
 
 #Python #Tkinter #SoftwareTesting #DesktopApps #UnitTesting
