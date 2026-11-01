@@ -9,6 +9,6 @@ pausing for full teardown between runs, resetting AsyncStorage/permissions
 (not just files), disabling animations, and testing fresh-install and
 upgrade paths separately.
 
-{{post_url}}
+https://www.kng-consulting.com/blog/end-to-end-testing-react-native-programs.html
 
 #ReactNative #MobileTesting #EndToEndTesting #QA #CI

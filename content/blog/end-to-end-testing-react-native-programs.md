@@ -1,6 +1,6 @@
 ---
 title: End to End Testing of React Native Programs
-date: 2026-09-22
+date: 2026-11-01
 summary: Emulator-based end to end tests for React Native live or die on teardown discipline -- give runs time to fully exit, reset state deliberately, and clean up what they leave behind.
 ---
 

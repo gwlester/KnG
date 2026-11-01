@@ -27,6 +27,6 @@ disabling animations to remove a whole class of timing flakiness, pinning
 the device clock/timezone, and testing a fresh install separately from an
 upgrade path (migration bugs only show up on the second one).
 
-Read it here: {{post_url}}
+Read it here: https://www.kng-consulting.com/blog/end-to-end-testing-react-native-programs.html
 
 #ReactNative #MobileTesting #EndToEndTesting #QA #CI
