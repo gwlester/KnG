@@ -9,4 +9,4 @@ up the details -- async sends, real events instead of calling handlers
 directly, restarting between scenarios instead of resetting in place.
 Linux/Unix only, which is the one catch.
 
-{{post_url}}
+https://www.kng-consulting.com/blog/end-to-end-testing-python-tkinter-desktop-programs.html
