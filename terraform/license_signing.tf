@@ -172,7 +172,7 @@ resource "aws_lambda_function" "license_activate" {
 
   environment {
     variables = {
-      LICENSE_ISSUANCE_TABLE                 = aws_dynamodb_table.license_issuance.name
+      LICENSE_ISSUANCE_TABLE            = aws_dynamodb_table.license_issuance.name
       LICENSE_SIGNING_PRIVATE_KEY_PARAM = local.license_signing_key_param
     }
   }
