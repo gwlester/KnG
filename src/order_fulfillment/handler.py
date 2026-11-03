@@ -109,21 +109,23 @@ def _secrets():
     if _secrets_client is None:
         import boto3
 
-        _secrets_client = boto3.client("secretsmanager")
+        _secrets_client = boto3.client("ssm")
     return _secrets_client
+
+
+def _secret_value(name: str) -> str:
+    return _secrets().get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"]
 
 
 def _fastspring_credentials() -> tuple[str, str]:
     value = json.loads(
-        _secrets().get_secret_value(SecretId=os.environ["FASTSPRING_API_CREDENTIALS_SECRET_ARN"])["SecretString"]
+        _secret_value(os.environ["FASTSPRING_API_CREDENTIALS_PARAM"])
     )
     return value["username"], value["password"]
 
 
 def _webhook_secret() -> bytes:
-    return _secrets().get_secret_value(SecretId=os.environ["FASTSPRING_WEBHOOK_SECRET_ARN"])[
-        "SecretString"
-    ].encode("utf-8")
+    return _secret_value(os.environ["FASTSPRING_WEBHOOK_SECRET_PARAM"]).encode("utf-8")
 
 
 def _json(status: int, payload: dict) -> dict:

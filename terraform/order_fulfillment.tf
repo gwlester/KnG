@@ -18,21 +18,16 @@ data "archive_file" "order_fulfillment_handler" {
   excludes    = ["__pycache__"]
 }
 
-# Container only -- FastSpring API credentials and the webhook HMAC
-# secret are both set out of band (aws secretsmanager put-secret-value),
-# never through Terraform or committed to this repo. The webhook secret
-# in particular doesn't exist until the webhook itself is created in
-# FastSpring's dashboard (it needs this Lambda's URL first), so this
-# starts empty and the webhook fails signature verification (closed,
-# safely) until it's populated.
-resource "aws_secretsmanager_secret" "fastspring_api_credentials" {
-  name                    = "kng/fastspring-api-credentials"
-  recovery_window_in_days = 7
-}
-
-resource "aws_secretsmanager_secret" "fastspring_webhook_secret" {
-  name                    = "kng/fastspring-webhook-secret"
-  recovery_window_in_days = 7
+# FastSpring API credentials and the webhook HMAC secret are SSM
+# SecureString parameters (see license_signing.tf), set out of band
+# (aws ssm put-parameter --overwrite), never through Terraform or
+# committed to this repo. The webhook secret in particular doesn't exist
+# until the webhook itself is created in FastSpring's dashboard (it needs
+# this Lambda's URL first); until the parameter exists the webhook fails
+# (closed, safely).
+locals {
+  fastspring_api_credentials_param = "/kng/fastspring-api-credentials"
+  fastspring_webhook_secret_param  = "/kng/fastspring-webhook-secret"
 }
 
 resource "aws_iam_role" "order_fulfillment" {
@@ -58,8 +53,11 @@ data "aws_iam_policy_document" "order_fulfillment" {
   statement {
     sid       = "ReadSecrets"
     effect    = "Allow"
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [aws_secretsmanager_secret.fastspring_api_credentials.arn, aws_secretsmanager_secret.fastspring_webhook_secret.arn]
+    actions = ["ssm:GetParameter"]
+    resources = [
+      "${local.ssm_param_arn_prefix}${local.fastspring_api_credentials_param}",
+      "${local.ssm_param_arn_prefix}${local.fastspring_webhook_secret_param}",
+    ]
   }
 }
 
@@ -82,8 +80,8 @@ resource "aws_lambda_function" "order_fulfillment" {
   environment {
     variables = {
       LICENSE_ISSUANCE_TABLE                = aws_dynamodb_table.license_issuance.name
-      FASTSPRING_API_CREDENTIALS_SECRET_ARN = aws_secretsmanager_secret.fastspring_api_credentials.arn
-      FASTSPRING_WEBHOOK_SECRET_ARN         = aws_secretsmanager_secret.fastspring_webhook_secret.arn
+      FASTSPRING_API_CREDENTIALS_PARAM = local.fastspring_api_credentials_param
+      FASTSPRING_WEBHOOK_SECRET_PARAM  = local.fastspring_webhook_secret_param
     }
   }
 

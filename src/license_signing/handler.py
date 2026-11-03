@@ -1,7 +1,7 @@
 """License-signing Lambda: mints and signs Virtual Church Musician license files.
 
 Holds the production private key -- a local dev file for now
-(LICENSE_SIGNING_PRIVATE_KEY_PATH), moved to AWS Secrets Manager before any
+(LICENSE_SIGNING_PRIVATE_KEY_PATH), moved to AWS SSM Parameter Store (SecureString) before any
 real customer-facing deployment (see the "Open items" note at the bottom of
 Prompts/FastSpring_implementation.md section 4d). Two entry points share one
 core mint-and-sign function:
@@ -61,15 +61,15 @@ _private_key = None
 def _private_key_obj():
     global _private_key
     if _private_key is None:
-        secret_arn = os.environ.get("LICENSE_SIGNING_PRIVATE_KEY_SECRET_ARN")
-        if secret_arn:
+        param_name = os.environ.get("LICENSE_SIGNING_PRIVATE_KEY_PARAM")
+        if param_name:
             # Deployed Lambda path -- the real production key lives only in
-            # Secrets Manager, never on local disk or in Terraform state.
+            # SSM Parameter Store, never on local disk or in Terraform state.
             import boto3  # bundled in the Lambda runtime; imported lazily so tests need no boto3
 
             pem_bytes = (
-                boto3.client("secretsmanager")
-                .get_secret_value(SecretId=secret_arn)["SecretString"]
+                boto3.client("ssm")
+                .get_parameter(Name=param_name, WithDecryption=True)["Parameter"]["Value"]
                 .encode("utf-8")
             )
         else:

@@ -150,26 +150,10 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     ]
   }
 
-  # License File: the signing key's secret container only -- its value is
-  # deliberately set out of band (aws secretsmanager put-secret-value),
-  # never through Terraform, so PutSecretValue/GetSecretValue are not
-  # granted here.
-  statement {
-    sid    = "LicenseFileSecret"
-    effect = "Allow"
-    actions = [
-      "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret", "secretsmanager:DescribeSecret",
-      "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource",
-      # The provider's read also checks for a resource policy on every
-      # plan/apply even though this secret has none.
-      "secretsmanager:GetResourcePolicy",
-    ]
-    resources = [aws_secretsmanager_secret.license_signing_key.arn]
-  }
-
   # Order fulfillment (order_fulfillment.tf): same three patterns above,
-  # for its own execution role and its two secrets (FastSpring API
-  # credentials, webhook HMAC secret -- both values set out of band).
+  # for its own execution role. Its secrets and the license signing key
+  # are SSM parameters created out of band, so CI needs no SSM or Secrets
+  # Manager permissions.
   statement {
     sid    = "OrderFulfillmentRole"
     effect = "Allow"
@@ -179,20 +163,6 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
     ]
     resources = [aws_iam_role.order_fulfillment.arn]
-  }
-
-  statement {
-    sid    = "OrderFulfillmentSecrets"
-    effect = "Allow"
-    actions = [
-      "secretsmanager:CreateSecret", "secretsmanager:DeleteSecret", "secretsmanager:DescribeSecret",
-      "secretsmanager:UpdateSecret", "secretsmanager:TagResource", "secretsmanager:UntagResource",
-      "secretsmanager:GetResourcePolicy",
-    ]
-    resources = [
-      aws_secretsmanager_secret.fastspring_api_credentials.arn,
-      aws_secretsmanager_secret.fastspring_webhook_secret.arn,
-    ]
   }
 
   statement {

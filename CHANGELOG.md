@@ -8,6 +8,10 @@ per-tag release notes once releases begin.
 
 ## [Unreleased]
 
+### Changed
+
+- License-signing and order-fulfillment Lambdas read their secrets from SSM Parameter Store (standard SecureString, free) instead of AWS Secrets Manager; `tools/migrate_secrets_to_ssm.sh` copies existing values.
+
 ### Added
 
 - Coming-soon site with product and blog sections.

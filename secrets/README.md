@@ -7,7 +7,7 @@ Local-dev-only key material, gitignored. Currently holds
 
 This is a throwaway development keypair generated 2026-10-12. Before any
 real customer-facing deployment, generate a real production keypair and
-move the private half into AWS Secrets Manager -- see
+move the private half into AWS SSM Parameter Store -- see
 `Prompts/FastSpring_implementation.md` section 4d's "Open items" note.
 The matching public key is committed (not a secret) at
 `../../VirtualChurchMusician/src/server/license_public_key.pem` in the
