@@ -57,8 +57,8 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
             os.environ,
             {
                 "LICENSE_ISSUANCE_TABLE": "test-issuance",
-                "FASTSPRING_WEBHOOK_SECRET_ARN": "arn:fake:webhook-secret",
-                "FASTSPRING_API_CREDENTIALS_SECRET_ARN": "arn:fake:api-credentials",
+                "FASTSPRING_WEBHOOK_SECRET_PARAM": "/fake/webhook-secret",
+                "FASTSPRING_API_CREDENTIALS_PARAM": "/fake/api-credentials",
             },
         )
         patcher.start()
@@ -72,12 +72,12 @@ class OrderFulfillmentHandlerTests(unittest.TestCase):
             handler,
             "_secrets",
             return_value=mock.Mock(
-                get_secret_value=lambda SecretId: {
-                    "arn:fake:webhook-secret": {"SecretString": WEBHOOK_SECRET.decode("ascii")},
-                    "arn:fake:api-credentials": {
-                        "SecretString": json.dumps({"username": "u", "password": "p"})
+                get_parameter=lambda Name, WithDecryption: {
+                    "/fake/webhook-secret": {"Parameter": {"Value": WEBHOOK_SECRET.decode("ascii")}},
+                    "/fake/api-credentials": {
+                        "Parameter": {"Value": json.dumps({"username": "u", "password": "p"})}
                     },
-                }[SecretId]
+                }[Name]
             ),
         )
         secrets_patch.start()

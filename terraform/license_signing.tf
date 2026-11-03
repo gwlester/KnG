@@ -50,13 +50,19 @@ resource "aws_dynamodb_table" "beta_testers" {
   }
 }
 
-# Container only -- the real secret VALUE is set out of band
-# (aws secretsmanager put-secret-value), never through Terraform state or
-# committed to this repo. See terraform/README's apply notes.
-resource "aws_secretsmanager_secret" "license_signing_key" {
-  name                    = "kng/license-signing-private-key"
-  recovery_window_in_days = 7
+# The signing key lives in SSM Parameter Store as a standard-tier
+# SecureString (free, encrypted with the AWS-managed aws/ssm key). The
+# parameter is created and populated out of band (tools/migrate_secrets_to_ssm.sh
+# or `aws ssm put-parameter --type SecureString`), never through Terraform
+# state or this repo -- Terraform only references it by name for IAM.
+locals {
+  ssm_param_arn_prefix = "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter"
+
+  license_signing_key_param = "/kng/license-signing-private-key"
+  license_signing_key_arn   = "${local.ssm_param_arn_prefix}${local.license_signing_key_param}"
 }
+
+data "aws_caller_identity" "current" {}
 
 # Built by terraform/build_license_signing.sh before `terraform apply`
 # (vendors cryptography's compiled wheel for the Lambda runtime -- not a
@@ -114,8 +120,8 @@ data "aws_iam_policy_document" "license_activate" {
   statement {
     sid       = "ReadSigningKey"
     effect    = "Allow"
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [aws_secretsmanager_secret.license_signing_key.arn]
+    actions   = ["ssm:GetParameter"]
+    resources = [local.license_signing_key_arn]
   }
 
   statement {
@@ -143,8 +149,8 @@ data "aws_iam_policy_document" "license_generate_test" {
   statement {
     sid       = "ReadSigningKey"
     effect    = "Allow"
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = [aws_secretsmanager_secret.license_signing_key.arn]
+    actions   = ["ssm:GetParameter"]
+    resources = [local.license_signing_key_arn]
   }
 }
 
@@ -167,7 +173,7 @@ resource "aws_lambda_function" "license_activate" {
   environment {
     variables = {
       LICENSE_ISSUANCE_TABLE                 = aws_dynamodb_table.license_issuance.name
-      LICENSE_SIGNING_PRIVATE_KEY_SECRET_ARN = aws_secretsmanager_secret.license_signing_key.arn
+      LICENSE_SIGNING_PRIVATE_KEY_PARAM = local.license_signing_key_param
     }
   }
 
@@ -186,7 +192,7 @@ resource "aws_lambda_function" "license_generate_test" {
 
   environment {
     variables = {
-      LICENSE_SIGNING_PRIVATE_KEY_SECRET_ARN = aws_secretsmanager_secret.license_signing_key.arn
+      LICENSE_SIGNING_PRIVATE_KEY_PARAM = local.license_signing_key_param
     }
   }
 
