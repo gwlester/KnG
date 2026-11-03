@@ -51,8 +51,8 @@ data "aws_iam_policy_document" "order_fulfillment" {
   }
 
   statement {
-    sid       = "ReadSecrets"
-    effect    = "Allow"
+    sid     = "ReadSecrets"
+    effect  = "Allow"
     actions = ["ssm:GetParameter"]
     resources = [
       "${local.ssm_param_arn_prefix}${local.fastspring_api_credentials_param}",
@@ -79,7 +79,7 @@ resource "aws_lambda_function" "order_fulfillment" {
 
   environment {
     variables = {
-      LICENSE_ISSUANCE_TABLE                = aws_dynamodb_table.license_issuance.name
+      LICENSE_ISSUANCE_TABLE           = aws_dynamodb_table.license_issuance.name
       FASTSPRING_API_CREDENTIALS_PARAM = local.fastspring_api_credentials_param
       FASTSPRING_WEBHOOK_SECRET_PARAM  = local.fastspring_webhook_secret_param
     }
