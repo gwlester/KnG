@@ -77,6 +77,102 @@ data "aws_iam_policy_document" "findcache_log" {
   }
 }
 
+# Daily digest: one email per day listing the previous day's uploads (reason,
+# version, device and the aws s3 cp command). A digest rather than one email
+# per upload keeps an unauthenticated endpoint from flooding the inbox.
+data "archive_file" "findcache_digest_handler" {
+  type        = "zip"
+  source_dir  = "${path.module}/../src/findcache_digest"
+  output_path = "${path.module}/findcache_digest.zip"
+  excludes    = ["__pycache__"]
+}
+
+resource "aws_cloudwatch_log_group" "findcache_digest" {
+  name              = "/aws/lambda/kng-findcache-digest"
+  retention_in_days = 30
+}
+
+resource "aws_iam_role" "findcache_digest" {
+  name               = "kng-findcache-digest"
+  assume_role_policy = data.aws_iam_policy_document.contact_assume.json
+}
+
+data "aws_iam_policy_document" "findcache_digest" {
+  statement {
+    sid       = "WriteLogs"
+    effect    = "Allow"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.findcache_digest.arn}:*"]
+  }
+
+  statement {
+    sid       = "ListUploads"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.findcache_logs.arn]
+  }
+
+  statement {
+    sid       = "ReadUploadRecords"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.findcache_logs.arn}/findcache/*"]
+  }
+
+  statement {
+    sid       = "SendFromContactDomain"
+    effect    = "Allow"
+    actions   = ["ses:SendEmail"]
+    resources = [aws_sesv2_email_identity.contact_domain.arn, aws_sesv2_email_identity.contact_recipient.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "findcache_digest" {
+  name   = "kng-findcache-digest"
+  role   = aws_iam_role.findcache_digest.id
+  policy = data.aws_iam_policy_document.findcache_digest.json
+}
+
+resource "aws_lambda_function" "findcache_digest" {
+  function_name    = "kng-findcache-digest"
+  role             = aws_iam_role.findcache_digest.arn
+  runtime          = "python3.12"
+  handler          = "handler.handler"
+  filename         = data.archive_file.findcache_digest_handler.output_path
+  source_code_hash = data.archive_file.findcache_digest_handler.output_base64sha256
+  timeout          = 60
+  memory_size      = 128
+
+  environment {
+    variables = {
+      LOG_BUCKET    = aws_s3_bucket.findcache_logs.bucket
+      SES_SENDER    = var.contact_sender
+      SES_RECIPIENT = var.contact_recipient
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.findcache_digest, aws_iam_role_policy.findcache_digest]
+}
+
+# 13:00 UTC is early morning US Central, after the previous UTC day has closed.
+resource "aws_cloudwatch_event_rule" "findcache_digest" {
+  name                = "kng-findcache-digest-daily"
+  schedule_expression = "cron(0 13 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "findcache_digest" {
+  rule = aws_cloudwatch_event_rule.findcache_digest.name
+  arn  = aws_lambda_function.findcache_digest.arn
+}
+
+resource "aws_lambda_permission" "findcache_digest_schedule" {
+  statement_id  = "AllowDailySchedule"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.findcache_digest.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.findcache_digest.arn
+}
+
 resource "aws_iam_role_policy" "findcache_log" {
   name   = "kng-findcache-log"
   role   = aws_iam_role.findcache_log.id

@@ -1,5 +1,6 @@
 import base64
 import importlib.util
+import json
 import os
 import unittest
 from pathlib import Path
@@ -20,6 +21,7 @@ REAL_S3 = handler._s3
 UPLOAD_LINE = "2026-11-04 10:30:00.123 [app] Uploading debug log: FindCache 2026.11.04.006, Android 17 (API 37), Google Pixel 10 Pro"
 GOOD_LOG = "2026-11-03 [app] hello\n" + UPLOAD_LINE + "\n"
 GOOD_HEADERS = {"X-API-Version": "2", "X-App-Version": "2026.11.04.006"}
+V3_HEADERS = {"X-API-Version": "3", "X-App-Version": "2026.11.04.006"}
 
 
 def event(body=GOOD_LOG, method="POST", headers=None, encoded=False):
@@ -46,16 +48,56 @@ class FindCacheLogHandlerTests(unittest.TestCase):
         self.assertEqual(result["statusCode"], 200)
         body = __import__("json").loads(result["body"])
         self.assertEqual(body["FormatVersion"], 1)
-        kwargs = self.s3.put_object.call_args.kwargs
+        kwargs = self.s3.put_object.call_args_list[0].kwargs
         self.assertEqual(kwargs["Bucket"], "logs-bucket")
         self.assertRegex(kwargs["Key"], r"^findcache/\d{4}/\d{2}/\d{2}/" + body["id"] + r"\.txt$")
         self.assertEqual(kwargs["Body"], GOOD_LOG.encode())
         self.assertEqual(kwargs["Metadata"], {"app-version": "2026.11.04.006"})
 
+    def v3(self, description="The map froze", log=GOOD_LOG, **kw):
+        return event(body=json.dumps({"description": description, "log": log}), headers=V3_HEADERS, **kw)
+
+    def test_v3_stores_the_log_and_a_json_record_with_the_description(self):
+        result = handler.handler(self.v3("The map froze"), None)
+        self.assertEqual(result["statusCode"], 200)
+        log_call, record_call = self.s3.put_object.call_args_list
+        self.assertEqual(log_call.kwargs["Body"], GOOD_LOG.encode())
+        self.assertTrue(log_call.kwargs["Key"].endswith(".txt"))
+        self.assertEqual(record_call.kwargs["Key"], log_call.kwargs["Key"][:-4] + ".json")
+        record = json.loads(record_call.kwargs["Body"])
+        self.assertEqual(record["description"], "The map froze")
+        self.assertEqual(record["app_version"], "2026.11.04.006")
+        self.assertEqual(record["device"], "Google Pixel 10 Pro")
+        self.assertEqual(record["log_key"], log_call.kwargs["Key"])
+        self.assertEqual(record["id"], json.loads(result["body"])["id"])
+
+    def test_v2_is_still_accepted_with_an_empty_description(self):
+        handler.handler(event(), None)
+        record = json.loads(self.s3.put_object.call_args_list[1].kwargs["Body"])
+        self.assertEqual(record["description"], "")
+
+    def test_v3_requires_a_description(self):
+        for description in ["", "   ", None, 5]:
+            with self.subTest(description=description):
+                self.assertEqual(handler.handler(self.v3(description), None)["statusCode"], 400)
+        self.s3.put_object.assert_not_called()
+
+    def test_v3_rejects_a_long_description_and_bad_json(self):
+        self.assertEqual(handler.handler(self.v3("x" * 1001), None)["statusCode"], 400)
+        self.assertEqual(handler.handler(self.v3("x" * 1000), None)["statusCode"], 200)
+        self.s3.reset_mock()
+        for body in ["not json", "[]", json.dumps({"description": "d"}), json.dumps({"description": "d", "log": 3})]:
+            with self.subTest(body=body):
+                self.assertEqual(handler.handler(event(body=body, headers=V3_HEADERS), None)["statusCode"], 400)
+        self.s3.put_object.assert_not_called()
+
+    def test_v3_still_requires_the_upload_entry(self):
+        self.assertEqual(handler.handler(self.v3(log="2026-11-03 [app] hello\n"), None)["statusCode"], 400)
+
     def test_accepts_a_base64_body(self):
         result = handler.handler(event("café log\n" + UPLOAD_LINE, encoded=True), None)
         self.assertEqual(result["statusCode"], 200)
-        self.assertEqual(self.s3.put_object.call_args.kwargs["Body"], ("café log\n" + UPLOAD_LINE).encode("utf-8"))
+        self.assertEqual(self.s3.put_object.call_args_list[0].kwargs["Body"], ("café log\n" + UPLOAD_LINE).encode("utf-8"))
 
     def test_a_version_header_with_odd_characters_is_rejected(self):
         headers = {"x-api-version": "2", "x-app-version": "2026.11.04.006 <script>"}
@@ -67,7 +109,7 @@ class FindCacheLogHandlerTests(unittest.TestCase):
 
     def test_requires_the_api_version_header(self):
         self.assertEqual(handler.handler(event(headers={}), None)["statusCode"], 400)
-        self.assertEqual(handler.handler(event(headers={"X-API-Version": "3"}), None)["statusCode"], 400)
+        self.assertEqual(handler.handler(event(headers={"X-API-Version": "4"}), None)["statusCode"], 400)
 
     def test_version_1_is_told_to_update(self):
         result = handler.handler(event(headers={"X-API-Version": "1"}), None)
