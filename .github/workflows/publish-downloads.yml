@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Virtual Church Musician release tag, e.g. v1.0.1-b.7 (blank = newest release). Ignored if deprecate_before is set."
+        description: "Virtual Church Musician release tag, e.g. v1.0.1-b.7 or runner-v1.0.2-a.2 (blank = newest release). Ignored if deprecate_before is set."
         required: false
         default: ""
       macos_notarized:
@@ -17,7 +17,7 @@ on:
         type: boolean
         default: false
       deprecate_before:
-        description: "Mark every listed release older than this tag (e.g. v1.0.1-b.20) as no longer offered for download, instead of publishing a new release. Files stay in the bucket until a later publish's own retention rolls them out -- see publish_release.py's deprecate_matrix."
+        description: "Mark every listed release older than this tag (e.g. v1.0.1-b.20, or runner-v1.0.2-a.2 for one app only) as no longer offered for download, instead of publishing a new release. Files stay in the bucket until a later publish's own retention rolls them out -- see publish_release.py's deprecate_matrix."
         required: false
         default: ""
 

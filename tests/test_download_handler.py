@@ -492,5 +492,52 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertEqual(result["statusCode"], 405)
 
 
+class PerAppReleaseTests(DownloadHandlerTests):
+    __test__ = True
+    """Apps are released independently: per-app tags, per-app current/previous."""
+
+    def app_release(self, tag, channel, app):
+        files = [{"app": app, "platform": "android", "arch": "any", "format": "apk", "default": True,
+                  "key": f"releases/{tag}/x.apk", "filename": "x.apk"}]
+        return release(tag, channel=channel, files=files)
+
+    def test_current_is_decided_per_app(self):
+        self.matrix = {"FormatVersion": 1, "releases": [
+            self.app_release("service-runner-v1.0.3-a.1", "beta", "service-runner"),
+            self.app_release("template-editor-v1.0.2", "stable", "template-editor"),
+            self.app_release("service-runner-v1.0.1", "stable", "service-runner"),
+        ]}
+        # service-runner has a stable release, so its prerelease is not "current"; template-editor's own stable is.
+        self.assertEqual(handler.resolve_release(self.matrix, "current", "service-runner")["version"], "service-runner-v1.0.1")
+        self.assertEqual(handler.resolve_release(self.matrix, "current", "template-editor")["version"], "template-editor-v1.0.2")
+        self.assertIsNone(handler.resolve_release(self.matrix, "current", "admin"))
+        # An exact per-app tag is reachable by anyone who asks for it.
+        self.assertEqual(handler.resolve_release(self.matrix, "service-runner-v1.0.3-a.1", "service-runner")["channel"], "beta")
+
+    def test_status_reports_every_apps_own_current(self):
+        self.matrix = {"FormatVersion": 1, "releases": [
+            self.app_release("template-editor-v1.0.2", "stable", "template-editor"),
+            self.app_release("service-runner-v1.0.1", "stable", "service-runner"),
+        ]}
+        body = json.loads(self.call(status="1")[1]["body"])
+        self.assertEqual(set(body["current"]["available"]), {"template-editor:android", "service-runner:android"})
+
+    def test_update_check_uses_the_apps_own_per_app_releases(self):
+        self.matrix = {"FormatVersion": 1, "releases": [
+            self.app_release("service-runner-v1.0.2-a.2", "beta", "service-runner"),
+            self.app_release("template-editor-v1.0.9", "stable", "template-editor"),
+        ]}
+        status, result = self.call(update="1", app="service-runner", platform="android", channel="any", current="v1.0.2-a.1")
+        body = json.loads(result["body"])
+        self.assertTrue(body["update_available"])
+        self.assertEqual(body["latest"]["version"], "service-runner-v1.0.2-a.2")
+        # ...and the exact per-app tag it returns is accepted by the download endpoint.
+        status, _ = self.call(app="service-runner", platform="android", format="apk", version="service-runner-v1.0.2-a.2", v="1")
+        self.assertEqual(status, 302)
+        self.assertEqual(handler.parse_tag("service-runner-v1.0.2-a.2")[0], (1, 0, 2, 0, 2))
+        status, _ = self.call(update="1", app="template-editor", platform="android", channel="any", current="v1.0.2-a.1")
+        self.assertEqual(status, 200)
+
+
 if __name__ == "__main__":
     unittest.main()
