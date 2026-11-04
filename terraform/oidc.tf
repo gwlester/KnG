@@ -187,7 +187,20 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
       "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
     ]
-    resources = [aws_iam_role.findcache_log.arn]
+    resources = [aws_iam_role.findcache_log.arn, aws_iam_role.findcache_digest.arn]
+  }
+
+  # Daily digest schedule (findcache_logs.tf): the EventBridge rule and its
+  # target, limited to that one rule.
+  statement {
+    sid    = "FindCacheDigestSchedule"
+    effect = "Allow"
+    actions = [
+      "events:PutRule", "events:DeleteRule", "events:DescribeRule", "events:EnableRule",
+      "events:DisableRule", "events:PutTargets", "events:RemoveTargets", "events:ListTargetsByRule",
+      "events:ListTagsForResource", "events:TagResource", "events:UntagResource",
+    ]
+    resources = [aws_cloudwatch_event_rule.findcache_digest.arn]
   }
 
   statement {

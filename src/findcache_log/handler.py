@@ -4,18 +4,23 @@ The app's Settings -> Troubleshooting -> "Send log to KnG" button POSTs the
 log as plain text (text/plain, UTF-8). Nothing is sent unless the user taps
 the button and confirms.
 
-Contract (API version 2): the request must carry "X-API-Version: 2" and
-"X-App-Version"; the body is the log text, at most MAX_LOG_BYTES, whose last
-non-empty line is the app's own "Uploading debug log: FindCache <version>,
-Android <os> (API <n>), <device>" entry, with <version> equal to
-X-App-Version. A log that does not end that way is rejected (400) and nothing
+Contract (API version 3): the request must carry "X-API-Version: 3" and
+"X-App-Version"; the body is JSON {"description": "<what went wrong>",
+"log": "<log text>"}. The description is required (1..MAX_DESCRIPTION_CHARS).
+The log is at most MAX_LOG_BYTES and its last non-empty line is the app's
+own "Uploading debug log: FindCache <version>, Android <os> (API <n>),
+<device>" entry, with <version> equal to X-App-Version. Version 2 (the body
+is the bare log text, no description) is still accepted while older builds
+are in use; its description is recorded as empty. A log that does not end that way is rejected (400) and nothing
 is stored. This keeps stray or hand-made posts out; it is not a security
 control against someone who copies the format. Version 1 (no such line) is no
 longer accepted. On success the response is
 200 {"FormatVersion": 1, "id": "<reference>"}, where the reference is what
-the user quotes when asking for the log to be looked at. Logs are written
-to the private logs bucket and expire after 180 days (bucket lifecycle
-rule, terraform/findcache_logs.tf).
+the user quotes when asking for the log to be looked at. Each upload is written
+to the private logs bucket as <id>.txt plus a small <id>.json beside it
+(id, time, app version, device, description, log key) that the daily digest
+Lambda (src/findcache_digest) emails; both expire after 180 days (bucket
+lifecycle rule, terraform/findcache_logs.tf).
 
 The X-App-Version header (the FindCache version, e.g. 2026.11.04.001) is
 stored as S3 object metadata after sanitising.
@@ -28,7 +33,9 @@ import re
 import secrets
 from datetime import datetime, timezone
 
-API_VERSION = "2"
+API_VERSION = "3"
+LEGACY_API_VERSION = "2"
+MAX_DESCRIPTION_CHARS = 1000
 FORMAT_VERSION = 1
 MAX_LOG_BYTES = 1_000_000
 _VERSION_RE = re.compile(r"[^0-9A-Za-z._-]")
@@ -70,9 +77,22 @@ def handler(event, context):
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
     if headers.get("x-api-version") == "1":
         return _error(400, "Please update FindCache to send logs.")
-    if headers.get("x-api-version") != API_VERSION:
+    api_version = headers.get("x-api-version")
+    if api_version not in (API_VERSION, LEGACY_API_VERSION):
         return _error(400, "Unsupported or missing X-API-Version.")
     data = _body_bytes(event)
+    description = ""
+    if api_version == API_VERSION:
+        try:
+            payload = json.loads(data.decode("utf-8"))
+            description = payload["description"].strip()
+            data = payload["log"].encode("utf-8")
+        except (UnicodeDecodeError, ValueError, KeyError, TypeError, AttributeError):
+            return _error(400, "The request body must be JSON with a description and a log.")
+        if not description:
+            return _error(400, "Please describe the problem.")
+        if len(description) > MAX_DESCRIPTION_CHARS:
+            return _error(400, "The description is too long.")
     if not data.strip():
         return _error(400, "The log is empty.")
     if len(data) > MAX_LOG_BYTES:
@@ -90,11 +110,27 @@ def handler(event, context):
     log_id = f"{now:%Y%m%d-%H%M%S}-{secrets.token_hex(4)}"
     version = _VERSION_RE.sub("", headers.get("x-app-version", ""))[:32]
     extra = {"Metadata": {"app-version": version}} if version else {}
+    bucket = os.environ["LOG_BUCKET"]
+    key = f"findcache/{now:%Y/%m/%d}/{log_id}"
     _s3().put_object(
-        Bucket=os.environ["LOG_BUCKET"],
-        Key=f"findcache/{now:%Y/%m/%d}/{log_id}.txt",
+        Bucket=bucket,
+        Key=f"{key}.txt",
         Body=data,
         ContentType="text/plain; charset=utf-8",
         **extra,
+    )
+    record = {
+        "id": log_id,
+        "received": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "app_version": version,
+        "device": lines[-1].rsplit("), ", 1)[-1].strip(),
+        "description": description,
+        "log_key": f"{key}.txt",
+    }
+    _s3().put_object(
+        Bucket=bucket,
+        Key=f"{key}.json",
+        Body=json.dumps(record).encode("utf-8"),
+        ContentType="application/json",
     )
     return _response(200, {"FormatVersion": FORMAT_VERSION, "id": log_id})
