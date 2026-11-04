@@ -165,6 +165,53 @@ class PublishReleaseTests(unittest.TestCase):
         _, second = pr.deprecate_matrix(matrix, "v1.0.1-b.20")
         self.assertEqual(second, [])
 
+    def test_a_per_app_tag_publishes_only_that_apps_files(self):
+        tag = "runner-v1.0.2-a.2"
+        plain = "v1.0.2-a.2"
+        with tempfile.TemporaryDirectory() as d:
+            assets = make_release_dir(Path(d), tag=plain, pick=0)
+            plan = pr.plan_release(tag, assets, ARTIFACT_MAP, "2026-11-04")
+        files = plan["release"]["files"]
+        self.assertTrue(files)
+        self.assertEqual({f["app"] for f in files}, {"service-runner"})
+        self.assertEqual(plan["release"]["scope"], "runner")
+        self.assertEqual(plan["release"]["version"], tag)
+        self.assertTrue(all(key.startswith(f"releases/{tag}/") for _, key, _ in plan["uploads"]))
+
+    def test_split_tag_and_unknown_app(self):
+        self.assertEqual(pr.split_tag("midi-player-v1.0.2"), ("midi-player", "v1.0.2"))
+        self.assertEqual(pr.split_tag("v1.0.2-a.1"), (None, "v1.0.2-a.1"))
+        with self.assertRaises(pr.PublishError):
+            pr.split_tag("toaster-v1.0.2")
+
+    def test_assets_command_lists_only_the_apps_files(self):
+        entries = [e for e in ARTIFACT_MAP["files"] if pr.in_scope(e, "runner-v1.0.2")]
+        self.assertTrue(entries)
+        self.assertTrue(all(e["app"] == "service-runner" for e in entries))
+        self.assertTrue(all(pr.in_scope(e, "v1.0.2") for e in ARTIFACT_MAP["files"]))
+
+    def test_retention_is_counted_per_app(self):
+        def rel(version, scope=None, channel="beta"):
+            r = {"version": version, "channel": channel, "published": "2026-11-04", "files": [], "documents": []}
+            if scope:
+                r["scope"] = scope
+            return r
+        matrix = {"releases": [rel("runner-v1.0.2-a.1", "runner"), rel("runner-v1.0.2-a.2", "runner"), rel("server-v1.0.2-a.2", "server")]}
+        merged, dropped = pr.merge_matrix(matrix, rel("runner-v1.0.2-a.3", "runner"), keep=2)
+        self.assertEqual(dropped, ["runner-v1.0.2-a.1"])
+        self.assertIn("server-v1.0.2-a.2", [r["version"] for r in merged["releases"]])
+
+    def test_deprecate_with_a_per_app_tag_touches_only_that_app(self):
+        matrix = {"releases": [
+            {"version": "runner-v1.0.2-a.1", "channel": "beta", "scope": "runner"},
+            {"version": "server-v1.0.2-a.1", "channel": "beta", "scope": "server"},
+            {"version": "v1.0.2-a.1", "channel": "beta"},
+        ]}
+        new, gone = pr.deprecate_matrix(matrix, "runner-v1.0.2-a.2")
+        self.assertEqual(gone, ["runner-v1.0.2-a.1"])
+        suite, gone = pr.deprecate_matrix(matrix, "v1.0.2-a.2")
+        self.assertEqual(len(gone), 3)
+
     def test_checksum_parsing_accepts_binary_marker(self):
         digest = "a" * 64
         self.assertEqual(pr.parse_checksums(f"{digest} *dir/file.bin\n"), {"file.bin": digest})

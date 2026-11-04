@@ -39,9 +39,41 @@ class PublishError(Exception):
     pass
 
 
+# Per-app tags ("runner-v1.0.2-a.2") name the app with the Virtual Church Musician repo's own ids; the artifact
+# map uses the older product ids.
+SCOPE_TO_MAP_APP = {
+    "server": "server",
+    "midi-player": "midi-player",
+    "administrator": "admin",
+    "services": "service-builder",
+    "templates": "template-editor",
+    "runner": "service-runner",
+    "security": "security",
+}
+SCOPED_TAG_RE = re.compile(r"^(?:(?P<scope>[a-z][a-z-]*)-)?(?P<plain>v\d.*)$")
+
+
+def split_tag(tag: str) -> tuple:
+    """("runner", "v1.0.2-a.2") for "runner-v1.0.2-a.2"; (None, tag) for a suite tag."""
+    match = SCOPED_TAG_RE.match(tag)
+    if not match:
+        return None, tag
+    scope = match.group("scope")
+    if scope is not None and scope not in SCOPE_TO_MAP_APP:
+        raise PublishError(f"unknown app in tag: {tag}")
+    return scope, match.group("plain")
+
+
 def version_parts(tag: str) -> dict:
-    ver = tag[1:] if tag.startswith("v") else tag
-    return {"tag": tag, "ver": ver, "base": PRERELEASE_RE.sub("", ver)}
+    plain = split_tag(tag)[1]
+    ver = plain[1:] if plain.startswith("v") else plain
+    return {"tag": plain, "ver": ver, "base": PRERELEASE_RE.sub("", ver)}
+
+
+def in_scope(entry: dict, tag: str) -> bool:
+    """A per-app tag publishes only that app's files; a suite tag publishes every app."""
+    scope = split_tag(tag)[0]
+    return scope is None or entry.get("app") == SCOPE_TO_MAP_APP[scope]
 
 
 def channel_for(tag: str) -> str:
@@ -103,7 +135,7 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
     files, documents, uploads, warnings = [], [], [], []
 
     for entry in artifact_map["files"]:
-        if not entry.get("public", True):
+        if not entry.get("public", True) or not in_scope(entry, tag):
             continue
         name, path = find_asset(entry, tag, assets)
         if path is None:
@@ -144,6 +176,9 @@ def plan_release(tag: str, assets: dict, artifact_map: dict, published: str, sig
         "signed": not unsigned, "unsigned_files": unsigned,
         "files": files, "documents": documents,
     }
+    scope = split_tag(tag)[0]
+    if scope:
+        release["scope"] = scope
     return {"release": release, "uploads": uploads, "warnings": warnings}
 
 
@@ -161,14 +196,16 @@ def merge_matrix(matrix: dict, release: dict, keep: int = KEEP_PER_CHANNEL):
     """Insert the release, drop older ones beyond `keep` per retention
     bucket (see _retention_bucket), newest first. Returns (new matrix,
     versions dropped) -- a dropped release's files are deleted from the
-    bucket by the workflow's own retention-prune step, deprecated or not."""
+    bucket by the workflow's own retention-prune step, deprecated or not.
+    Retention is counted per app: each app keeps its own `keep` releases per bucket
+    (suite releases, with no scope, form their own group)."""
     matrix = json.loads(json.dumps(matrix)) if matrix else {}
     matrix.setdefault("FormatVersion", 1)
     releases = [r for r in matrix.get("releases", []) if r["version"] != release["version"]] + [release]
     releases.sort(key=lambda r: (r.get("published", ""), version_key(r["version"])), reverse=True)
     kept, dropped, seen = [], [], {}
     for r in releases:
-        bucket = _retention_bucket(r.get("channel", "beta"))
+        bucket = (r.get("scope"), _retention_bucket(r.get("channel", "beta")))
         seen[bucket] = seen.get(bucket, 0) + 1
         (kept if seen[bucket] <= keep else dropped).append(r)
     matrix["releases"] = kept
@@ -194,9 +231,12 @@ def deprecate_matrix(matrix: dict, before_tag: str) -> tuple:
     matrix = json.loads(json.dumps(matrix)) if matrix else {}
     matrix.setdefault("FormatVersion", 1)
     cutoff = version_key(before_tag)
+    scope = split_tag(before_tag)[0]
     newly_deprecated = []
     for r in matrix.get("releases", []):
         if r.get("channel") == "deprecated":
+            continue
+        if scope and r.get("scope") != scope:
             continue
         if version_key(r["version"]) < cutoff:
             r["channel"] = "deprecated"
@@ -247,7 +287,7 @@ def cmd_deprecate(args) -> int:
 def cmd_assets(args) -> int:
     """Print the release asset names the workflow needs to download."""
     artifact_map = json.loads(Path(args.map).read_text(encoding="utf-8"))
-    names = [n for e in artifact_map["files"] if e.get("public", True) for n in asset_names(e, args.tag)]
+    names = [n for e in artifact_map["files"] if e.get("public", True) and in_scope(e, args.tag) for n in asset_names(e, args.tag)]
     names += [n for d in artifact_map["documents"] if d["asset"] != "release-notes.md" for n in asset_names(d, args.tag)]
     for name in dict.fromkeys(names):
         print(name)

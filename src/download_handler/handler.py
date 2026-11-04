@@ -51,13 +51,13 @@ UPDATE_CHANNELS = {
     "beta": {"stable", "beta"},
     "any": {"stable", "beta", "alpha"},
 }
-TAG_RE = re.compile(r"^v?(\d{1,5})\.(\d{1,5})\.(\d{1,5})(?:-([ab])\.(\d{1,5}))?$")
+TAG_RE = re.compile(r"^(?:[a-z][a-z-]*-)?v?(\d{1,5})\.(\d{1,5})\.(\d{1,5})(?:-([ab])\.(\d{1,5}))?$")
 KIND_RANK = {"a": 0, "b": 1, None: 2}
 KIND_NAME = {"a": "alpha", "b": "beta", None: "stable"}
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
 FORMAT_RE = re.compile(r"^[a-z0-9]{1,10}$")
-VERSION_RE = re.compile(r"^(current|previous|v[0-9A-Za-z.\-]{1,40})$")
+VERSION_RE = re.compile(r"^(current|previous|([a-z][a-z-]{0,20}-)?v[0-9A-Za-z.\-]{1,40})$")
 
 INLINE_TYPES = {"html": "text/html", "txt": "text/plain", "md": "text/plain"}
 ATTACHMENT_TYPES = {"pdf": "application/pdf"}
@@ -172,18 +172,22 @@ def _redirect(url: str) -> dict:
     return {"statusCode": 302, "headers": {"Location": url, "Cache-Control": "no-store"}, "body": ""}
 
 
-def visible_releases(matrix: dict) -> list:
+def visible_releases(matrix: dict, app: str = None) -> list:
     """Stable releases once any exist; until then every release (labelled
     Beta). A "deprecated" release (no longer offered for download -- see
     publish_release.py's deprecate_matrix) is excluded either way, before
-    the stable/beta fallback is even considered."""
+    the stable/beta fallback is even considered. With `app`, only releases
+    that contain that app's files are considered, so each app has its own
+    "current" and "previous" (apps are released independently)."""
     releases = [r for r in matrix.get("releases", []) if r.get("channel") != "deprecated"]
+    if app:
+        releases = [r for r in releases if any(f.get("app") == app for f in r.get("files", []))]
     stable = [r for r in releases if r.get("channel") == "stable"]
     return stable or releases
 
 
-def resolve_release(matrix: dict, version: str):
-    visible = visible_releases(matrix)
+def resolve_release(matrix: dict, version: str, app: str = None):
+    visible = visible_releases(matrix, app)
     if version == "current":
         return visible[0] if visible else None
     if version == "previous":
@@ -226,12 +230,26 @@ def _log(**fields) -> None:
     print(json.dumps({"event": "download", **fields}))
 
 
+def _per_app(matrix: dict, which: str) -> list:
+    """Each app's own current/previous release, de-duplicated (releases that cover every app resolve to one)."""
+    apps = {f["app"] for r in matrix.get("releases", []) for f in r.get("files", [])}
+    found = {}
+    for app in sorted(apps):
+        release = resolve_release(matrix, which, app)
+        if release is not None:
+            found[release["version"]] = release
+    return list(found.values())
+
+
 def _status(matrix: dict) -> dict:
-    def summarize(release):
-        if release is None:
+    def summarize(releases):
+        releases = [r for r in releases if r is not None]
+        if not releases:
             return None
+        releases.sort(key=lambda r: (r.get("published", ""), parse_tag(r.get("version", "")) or ()), reverse=True)
+        release = releases[0]
         files = {}
-        for f in release.get("files", []):
+        for f in (f for r in releases for f in r.get("files", [])):
             # A paid app's file is always reported available, on every
             # channel: it's always order-gated now (purchase or, on a
             # non-stable channel, an approved beta tester's Test Drive
@@ -241,7 +259,7 @@ def _status(matrix: dict) -> dict:
         for link_key, link in matrix.get("links", {}).items():
             files.setdefault(link_key, set()).add(link["type"])
         docs = {}
-        for d in release.get("documents", []):
+        for d in (d for r in releases for d in r.get("documents", [])):
             docs.setdefault(d["kind"], set()).add(d["format"])
         return {
             "version": release["version"],
@@ -256,8 +274,8 @@ def _status(matrix: dict) -> dict:
         200,
         {
             "FormatVersion": FORMAT_VERSION,
-            "current": summarize(resolve_release(matrix, "current")),
-            "previous": summarize(resolve_release(matrix, "previous")),
+            "current": summarize(_per_app(matrix, "current")),
+            "previous": summarize(_per_app(matrix, "previous")),
         },
         cache=f"public, max-age={CACHE_SECONDS}",
     )
@@ -389,7 +407,7 @@ def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
         _log(app=app, platform=platform, version="link", type=link.get("type"))
         return _redirect(link["url"])
 
-    release = resolve_release(matrix, version)
+    release = resolve_release(matrix, version, app)
     if release is None:
         return _error(404, "That version is not available.")
 
