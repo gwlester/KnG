@@ -17,10 +17,15 @@ handler = _load("findcache_log_handler_module", "src/findcache_log/handler.py")
 REAL_S3 = handler._s3
 
 
-def event(body="2026-11-03 [app] hello\n", method="POST", headers=None, encoded=False):
+UPLOAD_LINE = "2026-11-04 10:30:00.123 [app] Uploading debug log: FindCache 2026.11.04.006, Android 17 (API 37), Google Pixel 10 Pro"
+GOOD_LOG = "2026-11-03 [app] hello\n" + UPLOAD_LINE + "\n"
+GOOD_HEADERS = {"X-API-Version": "2", "X-App-Version": "2026.11.04.006"}
+
+
+def event(body=GOOD_LOG, method="POST", headers=None, encoded=False):
     return {
         "requestContext": {"http": {"method": method}},
-        "headers": {"X-API-Version": "1"} if headers is None else headers,
+        "headers": GOOD_HEADERS if headers is None else headers,
         "body": base64.b64encode(body.encode()).decode() if encoded else body,
         "isBase64Encoded": encoded,
     }
@@ -44,25 +49,58 @@ class FindCacheLogHandlerTests(unittest.TestCase):
         kwargs = self.s3.put_object.call_args.kwargs
         self.assertEqual(kwargs["Bucket"], "logs-bucket")
         self.assertRegex(kwargs["Key"], r"^findcache/\d{4}/\d{2}/\d{2}/" + body["id"] + r"\.txt$")
-        self.assertEqual(kwargs["Body"], b"2026-11-03 [app] hello\n")
-        self.assertNotIn("Metadata", kwargs)
+        self.assertEqual(kwargs["Body"], GOOD_LOG.encode())
+        self.assertEqual(kwargs["Metadata"], {"app-version": "2026.11.04.006"})
 
     def test_accepts_a_base64_body(self):
-        result = handler.handler(event("café log", encoded=True), None)
+        result = handler.handler(event("café log\n" + UPLOAD_LINE, encoded=True), None)
         self.assertEqual(result["statusCode"], 200)
-        self.assertEqual(self.s3.put_object.call_args.kwargs["Body"], "café log".encode("utf-8"))
+        self.assertEqual(self.s3.put_object.call_args.kwargs["Body"], ("café log\n" + UPLOAD_LINE).encode("utf-8"))
 
-    def test_records_a_sanitised_app_version(self):
-        headers = {"x-api-version": "1", "x-app-version": "2026.11.04.001 <script>"}
-        handler.handler(event(headers=headers), None)
-        self.assertEqual(self.s3.put_object.call_args.kwargs["Metadata"], {"app-version": "2026.11.04.001script"})
+    def test_a_version_header_with_odd_characters_is_rejected(self):
+        headers = {"x-api-version": "2", "x-app-version": "2026.11.04.006 <script>"}
+        self.assertEqual(handler.handler(event(headers=headers), None)["statusCode"], 400)
+        self.s3.put_object.assert_not_called()
 
     def test_rejects_other_methods(self):
         self.assertEqual(handler.handler(event(method="GET"), None)["statusCode"], 405)
 
     def test_requires_the_api_version_header(self):
         self.assertEqual(handler.handler(event(headers={}), None)["statusCode"], 400)
+        self.assertEqual(handler.handler(event(headers={"X-API-Version": "3"}), None)["statusCode"], 400)
+
+    def test_version_1_is_told_to_update(self):
+        result = handler.handler(event(headers={"X-API-Version": "1"}), None)
+        self.assertEqual(result["statusCode"], 400)
+        self.assertIn("update FindCache", result["body"])
+        self.s3.put_object.assert_not_called()
+
+    def test_rejects_a_log_that_does_not_end_with_the_upload_entry(self):
+        bad = [
+            "2026-11-03 [app] hello\n",
+            GOOD_LOG + "2026-11-04 10:30:01.000 [gps] later line\n",
+            UPLOAD_LINE + "\n2026-11-04 10:30:01.000 [gps] later line\n",
+            "x\n" + UPLOAD_LINE.replace("[app]", "[gps]"),
+            "x\n" + UPLOAD_LINE.replace("Uploading", "Sending"),
+            "x\n" + UPLOAD_LINE + " and more\n" + "y" * 100,
+        ]
+        for body in bad:
+            with self.subTest(body=body[-60:]):
+                result = handler.handler(event(body=body), None)
+                self.assertEqual(result["statusCode"], 400)
+        self.s3.put_object.assert_not_called()
+
+    def test_the_upload_entry_must_match_the_app_version_header(self):
+        headers = {"X-API-Version": "2", "X-App-Version": "2026.11.04.005"}
+        self.assertEqual(handler.handler(event(headers=headers), None)["statusCode"], 400)
         self.assertEqual(handler.handler(event(headers={"X-API-Version": "2"}), None)["statusCode"], 400)
+
+    def test_trailing_blank_lines_after_the_upload_entry_are_fine(self):
+        self.assertEqual(handler.handler(event(body=GOOD_LOG + "\n\n"), None)["statusCode"], 200)
+
+    def test_rejects_bytes_that_are_not_text(self):
+        bad = {**event(), "body": base64.b64encode(b"\xff\xfe\x00").decode(), "isBase64Encoded": True}
+        self.assertEqual(handler.handler(bad, None)["statusCode"], 400)
 
     def test_rejects_an_empty_log(self):
         self.assertEqual(handler.handler(event(body="  \n"), None)["statusCode"], 400)

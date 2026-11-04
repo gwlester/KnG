@@ -92,6 +92,8 @@ resource "aws_lambda_function" "findcache_log" {
   source_code_hash = data.archive_file.findcache_log_handler.output_base64sha256
   timeout          = 10
   memory_size      = 128
+  # Caps how many uploads can run at once, so a flood of junk posts cannot run up cost.
+  reserved_concurrent_executions = 5
 
   environment {
     variables = {
