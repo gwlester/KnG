@@ -136,7 +136,7 @@ test("an unsigned release is labelled as such", () => {
   assert.equal(signed.current, "Current release (v1.1.0)");
 });
 
-test("a paid app becomes gated once a real file is published on a non-stable release", () => {
+test("a paid app is a plain download once a real file is published on a non-stable release", () => {
   const betaStatus = {
     FormatVersion: 1,
     current: { version: "v1.0.1-b.7", channel: "beta", available: { "server:linux": ["deb"] }, documents: {} },
@@ -144,13 +144,13 @@ test("a paid app becomes gated once a real file is published on a non-stable rel
   };
   const o = P.applyStatus(options, betaStatus, "current");
   const plat = P.findPlatform(P.findApp(o, "server"), "linux");
-  assert.equal(plat.type, "gated");
+  assert.equal(plat.type, "download");
   assert.equal(plat.available, true);
   assert.equal(P.describe(plat).label, "Download");
   assert.equal(P.describe(plat).enabled, true);
 });
 
-test("a paid app stays gated (now purchase-only) once the release is stable", () => {
+test("a paid app is a plain download once the release is stable too", () => {
   const stableStatus = {
     FormatVersion: 1,
     current: { version: "v1.1.0", channel: "stable", available: { "server:linux": ["deb"] }, documents: {} },
@@ -158,10 +158,11 @@ test("a paid app stays gated (now purchase-only) once the release is stable", ()
   };
   const o = P.applyStatus(options, stableStatus, "current");
   const plat = P.findPlatform(P.findApp(o, "server"), "linux");
-  assert.equal(plat.type, "gated");
+  assert.equal(plat.type, "download");
+  assert.equal(P.describe(plat).note, "");
 });
 
-test("a free app is never gated, even on a non-stable release", () => {
+test("a free app is a plain download, even on a non-stable release", () => {
   const o = P.applyStatus(options, status, "current");
   const plat = P.findPlatform(P.findApp(o, "template-editor"), "windows");
   assert.equal(plat.type, "download");
@@ -187,27 +188,6 @@ test("fastspringProductPathFor maps the two paid apps and nothing else", () => {
   assert.equal(P.fastspringProductPathFor("unknown"), null);
 });
 
-test("parseAccessCode splits a reference:short_key credential", () => {
-  assert.deepEqual(P.parseAccessCode("KNGCONSULTING1-1:AAAA-BBBB-CCCC-DDDD"),
-    { reference: "KNGCONSULTING1-1", short_key: "AAAA-BBBB-CCCC-DDDD" });
-});
-
-test("parseAccessCode treats a plain value as the legacy password", () => {
-  assert.deepEqual(P.parseAccessCode("abc123"), { password: "abc123" });
-});
-
-test("parseAccessCode trims whitespace around both halves and the whole value", () => {
-  assert.deepEqual(P.parseAccessCode("  trial-abc : AAAA-BBBB-CCCC-DDDD  "),
-    { reference: "trial-abc", short_key: "AAAA-BBBB-CCCC-DDDD" });
-});
-
-test("parseAccessCode returns null for an empty or whitespace-only value", () => {
-  assert.equal(P.parseAccessCode(""), null);
-  assert.equal(P.parseAccessCode("   "), null);
-  assert.equal(P.parseAccessCode(undefined), null);
-});
-
-test("parseAccessCode treats a leading or trailing colon as a literal password, not a credential", () => {
-  assert.deepEqual(P.parseAccessCode(":onlykey"), { password: ":onlykey" });
-  assert.deepEqual(P.parseAccessCode("onlyref:"), { password: "onlyref:" });
+test("there is no access-code step in the picker", () => {
+  assert.equal(P.parseAccessCode, undefined);
 });

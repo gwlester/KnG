@@ -61,9 +61,6 @@
     if (!platform.available) return { enabled: false, label: "Coming soon", note: "This download is not available yet." };
     if (platform.type === "store") return { enabled: true, label: "Get it on Google Play", note: "" };
     if (platform.type === "purchase") return { enabled: true, label: "Buy", note: "" };
-    if (platform.type === "gated") {
-      return { enabled: true, label: "Download", note: "Enter the access code you were given, then click Download." };
-    }
     return { enabled: true, label: "Download", note: "" };
   }
 
@@ -105,12 +102,9 @@
         if (!p.available) return;
         if (formats.indexOf("store") >= 0) { p.type = "store"; return; }
         if (formats.indexOf("purchase") >= 0) { p.type = "purchase"; return; }
-        // A real file is published for a paid app, on any channel: the
-        // Access code field (a purchase or an approved beta tester's
-        // Test Drive credential) is the only way to get it, never a
-        // plain download -- the backend enforces which credential kind
-        // is accepted on which channel.
-        p.type = (app.tier === "paid") ? "gated" : "download";
+        // Every published file is a plain download, paid apps included: the
+        // apps themselves check for a license when they run.
+        p.type = "download";
         if (p.formats) {
           p.formats = p.formats.filter(function (f) { return formats.indexOf(f) >= 0; });
           if (p.formats.indexOf(p.default_format) < 0) p.default_format = p.formats[0];
@@ -161,22 +155,6 @@
     return withChannel(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "status=1&v=1", channel);
   }
 
-  // The Access code field doubles as a purchase/Test Drive credential: a
-  // "reference:short_key" pair (what onFSPopupClosed/the Test Drive
-  // hand-off pre-fills it with) instead of the legacy beta-tester
-  // password. A bare colon with nothing on one side is treated as a
-  // literal password, not a malformed credential -- passwords are never
-  // expected to contain one, so this only matters for a copy/paste slip.
-  function parseAccessCode(raw) {
-    var value = (raw || "").trim();
-    if (!value) return null;
-    var idx = value.indexOf(":");
-    if (idx > 0 && idx < value.length - 1) {
-      return { reference: value.slice(0, idx).trim(), short_key: value.slice(idx + 1).trim() };
-    }
-    return { password: value };
-  }
-
   var api = {
     ORDER: ORDER,
     applyStatus: applyStatus,
@@ -192,8 +170,7 @@
     describe: describe,
     buildUrl: buildUrl,
     otherFormat: otherFormat,
-    fastspringProductPathFor: fastspringProductPathFor,
-    parseAccessCode: parseAccessCode
+    fastspringProductPathFor: fastspringProductPathFor
   };
 
   if (typeof module !== "undefined" && module.exports) {
@@ -217,8 +194,6 @@
     var note = document.getElementById("pick-note");
     var go = document.getElementById("pick-go");
     var alt = document.getElementById("pick-alt");
-    var passwordWrap = document.getElementById("pick-password-wrap");
-    var passwordInput = document.getElementById("pick-password");
     var detected = detectPlatform(root.navigator);
     var selected = null;
 
@@ -287,7 +262,6 @@
       }
       note.textContent = text;
       note.classList.remove("is-error");
-      if (passwordWrap) passwordWrap.hidden = !(platform && platform.type === "gated");
       var other = otherFormat(platform);
       if (other && info.enabled) {
         alt.hidden = false;
@@ -315,59 +289,16 @@
         .catch(function () { /* keep the built-in "coming soon" state */ });
     }
 
-    // Never sent as a query string: that would land in browser history and
-    // any request logging. The picker POSTs it in a JSON body instead, and
-    // never computes or checks the checksum itself -- only the Lambda does.
-    function requestGatedDownload(platform) {
-      var raw = passwordInput && passwordInput.value ? passwordInput.value : "";
-      var body = parseAccessCode(raw);
-      if (!body) {
-        note.textContent = "Enter the access code you were given.";
-        note.classList.add("is-error");
-        return;
-      }
-      var priorLabel = go.textContent;
-      go.disabled = true;
-      go.textContent = "Checking...";
-      root.fetch(buildUrl(endpoint, platform, { version: versionSelect.value, channel: channel() }), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      })
-        .then(function (r) {
-          return r.json().catch(function () { return {}; }).then(function (json) {
-            return { ok: r.ok, json: json };
-          });
-        })
-        .then(function (result) {
-          go.disabled = false;
-          go.textContent = priorLabel;
-          if (result.ok && result.json && result.json.ok && result.json.url) {
-            root.location.assign(result.json.url);
-          } else {
-            note.textContent = (result.json && result.json.error) || "That access code didn't work.";
-            note.classList.add("is-error");
-          }
-        })
-        .catch(function () {
-          go.disabled = false;
-          go.textContent = priorLabel;
-          note.textContent = "Could not reach the download service. Try again.";
-          note.classList.add("is-error");
-        });
-    }
-
     var fulfillmentEndpoint = form.getAttribute("data-order-fulfillment-endpoint") || "";
     var purchaseResult = document.getElementById("purchase-result");
 
-    // Pre-fills the Access code field (and selects the purchased/trialed
-    // app, when known) after a purchase or a Test Drive hand-off --
-    // "reuse the main picker" means the buyer never has to type or paste
-    // the reference:short_key pair in by hand.
+    // Selects the purchased/trialed app, when known, after a purchase or a
+    // Test Drive hand-off so the Download button is right there. (The
+    // reference and key are shown in the result box, for activating the
+    // license; downloading needs neither.)
     function applyAccessCode(appId, reference, shortKey) {
       if (!reference || !shortKey) return;
       if (appId && findApp(baseOptions, appId)) appSelect.value = appId;
-      if (passwordInput) passwordInput.value = reference + ":" + shortKey;
       render();
       // The buyer/tester lands on this page already scrolled past the
       // "Choose your download" picker (hero, beta callout, Test Drive
@@ -425,10 +356,6 @@
     go.addEventListener("click", function () {
       var platform = currentPlatform();
       if (!platform || !describe(platform).enabled) return;
-      if (platform.type === "gated") {
-        requestGatedDownload(platform);
-        return;
-      }
       if (platform.type === "purchase") {
         startFastSpringCheckout(platform);
         return;

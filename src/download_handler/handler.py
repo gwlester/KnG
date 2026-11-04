@@ -1,11 +1,8 @@
 """Download Lambda: resolves a request against the private matrix and redirects.
 
 GET  ?app=&platform=&version=&format=&arch=&v=1                   -> 302 to a 5-minute signed URL
-POST ?app=&platform=&version=&format=&arch=&v=1 {reference,
-                                                   short_key}       -> 200 {"ok": true, "url": ...}
-                                                                       for a PASSWORD_REQUIRED_APPS
-                                                                       app, checked against
-                                                                       kng-license-issuance
+POST ?app=&platform=&version=&format=&arch=&v=1                   -> 200 {"ok": true, "url": ...} (only for older cached
+                                                                       copies of the page, which POST; the body is ignored)
 GET  ?doc=&format=&version=&v=1                                   -> 302 to a signed URL for a guide
 GET  ?status=1&channel=&v=1                                       -> JSON of availability (no file keys); channel
                                                                        stable (default) | beta | any also offers
@@ -19,35 +16,20 @@ publish-downloads workflow and never leaves the server: callers only ever get
 a redirect, a presigned-URL JSON body, or the status summary. Only keys found
 in the matrix are signed.
 
-PASSWORD_REQUIRED_APPS (server, midi-player) are the two paid apps: every
-download, on every channel, requires a POST body of {reference, short_key}
--- a purchase (src/order_fulfillment) or an approved beta tester's Test
-Drive (src/trial_request) credential, pasted (or pre-filled by
-www/picker.js) into the picker's "Access code" field, checked against the
-kng-license-issuance DynamoDB table (decided 2026-10-12; the earlier raw
-file-hash "password" mechanism is retired). A Test Drive credential only
-works on a non-stable release; once an app's release is "stable"
-(production), only a purchase-sourced credential works there -- see
-_order_gated_download.
+Downloads need no access code: the free apps are free and the paid apps (server,
+midi-player) are protected by their license files, which the apps check when
+they run (decided 2026-11-04; this replaces the 2026-10-12 order-gated download).
 """
 
-import hashlib
 import json
 import os
 import re
 import time
-from datetime import datetime, timezone
 
 FORMAT_VERSION = 1
 PRESIGN_SECONDS = int(os.environ.get("PRESIGN_SECONDS", "300"))
 MATRIX_KEY = os.environ.get("MATRIX_KEY", "matrix.json")
 CACHE_SECONDS = 60
-# The two paid apps -- every download requires an order-gated access code
-# on every channel (see module docstring).
-_password_required_env = os.environ.get("PASSWORD_REQUIRED_APPS", "server,midi-player")
-PASSWORD_REQUIRED_APPS = {a for a in _password_required_env.split(",") if a}
-RATE_LIMIT_PER_MINUTE = int(os.environ.get("RATE_LIMIT_PER_MINUTE", "2"))
-
 UPDATE_CHANNELS = {
     # Which kinds of release each update channel may be offered.
     "stable": {"stable"},
@@ -82,68 +64,6 @@ def _s3():
 
 def _bucket() -> str:
     return os.environ["DOWNLOADS_BUCKET"]
-
-
-_dynamodb_client = None
-
-
-def _dynamodb():
-    global _dynamodb_client
-    if _dynamodb_client is None:
-        import boto3  # bundled in the Lambda runtime; imported lazily so tests need no boto3
-
-        _dynamodb_client = boto3.client("dynamodb")
-    return _dynamodb_client
-
-
-def _issuance_table() -> str:
-    return os.environ["LICENSE_ISSUANCE_TABLE"]
-
-
-def _rate_limit_table() -> str:
-    return os.environ["RATE_LIMIT_TABLE"]
-
-
-def _client_ip(event: dict) -> str:
-    return event.get("requestContext", {}).get("http", {}).get("sourceIp", "unknown")
-
-
-def _rate_limited(ip: str) -> bool:
-    """True if `ip` already made RATE_LIMIT_PER_MINUTE order-gated download
-    attempts in the current 60-second window. One atomic conditional
-    update, checked before any DynamoDB lookup of the access code itself.
-
-    Duck-types the error instead of importing botocore.exceptions.ClientError:
-    boto3's real client raises exactly this shape (a `.response` dict with
-    `Error.Code`), and this way the module has no hard botocore dependency for
-    tests to work around."""
-    window = int(time.time() // 60)
-    try:
-        _dynamodb().update_item(
-            TableName=_rate_limit_table(),
-            Key={"pk": {"S": f"{ip}#{window}"}},
-            UpdateExpression="SET #ttl = :ttl ADD #attempts :one",
-            ConditionExpression="attribute_not_exists(#attempts) OR #attempts < :limit",
-            ExpressionAttributeNames={"#ttl": "ttl", "#attempts": "attempts"},
-            ExpressionAttributeValues={
-                ":one": {"N": "1"},
-                ":limit": {"N": str(RATE_LIMIT_PER_MINUTE)},
-                ":ttl": {"N": str(window * 60 + 120)},
-            },
-        )
-        return False
-    except Exception as exc:  # noqa: BLE001 -- see docstring
-        code = getattr(exc, "response", {}).get("Error", {}).get("Code")
-        if code == "ConditionalCheckFailedException":
-            return True
-        raise
-
-
-def _hash_short_key(short_key: str) -> str:
-    # Duplicated from src/license_signing/handler.py rather than imported:
-    # each Lambda here deploys as its own standalone zip, so a
-    # cross-directory import would only work at test time.
-    return hashlib.sha256(short_key.strip().upper().encode("utf-8")).hexdigest()
 
 
 def _load_matrix() -> dict:
@@ -345,69 +265,13 @@ def _update(matrix: dict, qs: dict) -> dict:
             "FormatVersion": FORMAT_VERSION,
             "update_available": bool(best and best[0] > current[0]),
             "latest": latest,
-            "requires_access_code": app in PASSWORD_REQUIRED_APPS,
+            "requires_access_code": False,  # kept (always false) so existing clients still parse the reply
         },
         cache=f"public, max-age={CACHE_SECONDS}",
     )
 
 
-def _order_gated_download(chosen: dict, body: dict, channel: str, ip: str) -> dict:
-    """chosen's access is governed by a kng-license-issuance row -- the
-    reference+short_key pair a purchase or an approved beta tester's
-    Test Drive response gave them, pasted (or pre-filled by picker.js)
-    into the picker's Access code field. This is the only gated-download
-    path for server/midi-player now (decided 2026-10-12) -- the old raw
-    file-hash "password" mechanism is retired, but the same per-IP rate
-    limit that guarded it still applies here, checked before the
-    DynamoDB lookup so a guessing attempt never costs that read.
-
-    channel is the specific release being requested, not "whether any
-    stable release exists at all" -- an approved beta tester's Test
-    Drive credential keeps working against a beta release even after
-    some other release has gone stable, as long as that beta release's
-    own files are still resolvable (see resolve_release). Only a
-    purchase-sourced row works once the release being requested is
-    itself stable, matching "production must be purchased on the
-    download page." A Test Drive credential also stops working outright
-    once it's past its own valid_to -- same 90-day window as the
-    license file itself, not just a one-time cutoff on requesting it.
-    """
-    reference = str(body.get("reference") or "").strip() if isinstance(body, dict) else ""
-    short_key = str(body.get("short_key") or "").strip() if isinstance(body, dict) else ""
-    if not reference or not short_key:
-        return _error(401, "A valid access code is required for this download.")
-
-    if _rate_limited(ip):
-        return _error(429, "Too many attempts from this address. Try again in a minute.")
-
-    item = _dynamodb().get_item(
-        TableName=_issuance_table(), Key={"reference": {"S": reference}}
-    ).get("Item")
-    if item is None or item.get("short_key_hash", {}).get("S") != _hash_short_key(short_key):
-        _log(app=chosen["app"], platform=chosen["platform"], order_check="failed")
-        return _error(403, "That access code doesn't match an order.")
-
-    kinds = item.get("kinds", {}).get("SS", [])
-    if chosen["app"] not in kinds:
-        return _error(403, "That access code doesn't cover this product.")
-
-    valid_to = item.get("valid_to", {}).get("S")
-    if valid_to and datetime.fromisoformat(valid_to) <= datetime.now(timezone.utc):
-        return _error(403, "This Test Drive access code has expired.")
-
-    if channel == "stable" and item.get("source", {}).get("S") != "purchase":
-        return _error(403, "This release requires a purchase -- Test Drive access doesn't cover it.")
-
-    try:
-        url = _presign(chosen["key"], chosen["filename"], chosen["format"])
-    except ValueError:
-        return _error(404, "That download is not available yet.")
-    _log(app=chosen["app"], platform=chosen["platform"], format=chosen["format"],
-         order_check=True)
-    return _json(200, {"ok": True, "url": url, "filename": chosen["filename"]})
-
-
-def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
+def _download(matrix: dict, qs: dict, post: bool = False) -> dict:
     app, platform = qs.get("app", ""), qs.get("platform", "")
     fmt, arch = qs.get("format", ""), qs.get("arch", "")
     version = qs.get("version", "current")
@@ -430,8 +294,6 @@ def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
     if release is None:
         return _error(404, "That version is not available.")
 
-    order_gated = app in PASSWORD_REQUIRED_APPS
-
     candidates = [f for f in release.get("files", []) if f["app"] == app and f["platform"] == platform]
     if arch:
         candidates = [f for f in candidates if f.get("arch") == arch]
@@ -441,14 +303,14 @@ def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
         return _error(404, "That download is not available yet.")
     chosen = next((f for f in candidates if f.get("default")), candidates[0])
 
-    if order_gated:
-        return _order_gated_download(chosen, body if isinstance(body, dict) else {}, release.get("channel"), ip)
-
     try:
         url = _presign(chosen["key"], chosen["filename"], chosen["format"])
     except ValueError:
         return _error(404, "That download is not available yet.")
     _log(app=app, platform=platform, version=release["version"], format=chosen["format"])
+    # A POST comes from an older cached copy of the page, which expects the address in JSON.
+    if post:
+        return _json(200, {"ok": True, "url": url, "filename": chosen["filename"]})
     return _redirect(url)
 
 
@@ -479,28 +341,9 @@ def _document(matrix: dict, qs: dict) -> dict:
     return _redirect(url)
 
 
-def _parse_json_body(event: dict) -> dict:
-    """POST body for the password-gated flow only; empty/unparsable is fine
-    everywhere else since only _password_gated_download ever looks at it."""
-    raw = event.get("body") or ""
-    if event.get("isBase64Encoded"):
-        import base64
-
-        raw = base64.b64decode(raw).decode("utf-8", "replace")
-    if not raw:
-        return {}
-    try:
-        parsed = json.loads(raw)
-    except (TypeError, ValueError):
-        return {}
-    return parsed if isinstance(parsed, dict) else {}
-
-
 def handler(event, context):
     method = event.get("requestContext", {}).get("http", {}).get("method", "")
-    # POST exists only to carry a password to _download without it landing in
-    # a query string (browser history, request logs); every other verb/path
-    # ignores the body entirely.
+    # POST is accepted only for older cached copies of the download page; the body is ignored.
     if method not in ("GET", "HEAD", "POST"):
         return _error(405, "Method not allowed.")
     qs = event.get("queryStringParameters") or {}
@@ -517,6 +360,5 @@ def handler(event, context):
     if qs.get("doc"):
         return _document(matrix, qs)
     if qs.get("app"):
-        body = _parse_json_body(event) if method == "POST" else {}
-        return _download(matrix, qs, body, _client_ip(event))
+        return _download(matrix, qs, post=method == "POST")
     return _error(400, "Nothing requested.")

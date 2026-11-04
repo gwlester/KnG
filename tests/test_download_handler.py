@@ -1,5 +1,3 @@
-import hashlib
-import io
 import json
 import os
 import sys
@@ -53,19 +51,6 @@ def event(method="GET", body=None, source_ip="203.0.113.5", **qs):
     return ev
 
 
-class _ConditionalCheckFailed(Exception):
-    """Stands in for botocore's ClientError shape without needing botocore
-    installed -- handler._rate_limited() duck-types on `.response`."""
-
-    def __init__(self):
-        super().__init__("conditional check failed")
-        self.response = {"Error": {"Code": "ConditionalCheckFailedException"}}
-
-
-SERVER_FILE_BYTES = b"pretend-server-installer-bytes"
-SERVER_FILE_SHA256 = hashlib.sha256(SERVER_FILE_BYTES).hexdigest()
-
-
 class DownloadHandlerTests(unittest.TestCase):
     def setUp(self):
         patcher = mock.patch.dict(
@@ -85,11 +70,6 @@ class DownloadHandlerTests(unittest.TestCase):
         client = mock.patch.object(handler, "_s3", return_value=self.s3)
         client.start()
         self.addCleanup(client.stop)
-        self.dynamo = mock.Mock()
-        self.dynamo.update_item.return_value = {}
-        dynamo_client = mock.patch.object(handler, "_dynamodb", return_value=self.dynamo)
-        dynamo_client.start()
-        self.addCleanup(dynamo_client.stop)
         self.matrix = {"FormatVersion": 1, "releases": [release("v1.0.1-b.7"), release("v1.0.1-b.6")]}
         loader = mock.patch.object(handler, "_load_matrix", side_effect=lambda: self.matrix)
         loader.start()
@@ -103,26 +83,6 @@ class DownloadHandlerTests(unittest.TestCase):
         result = handler.handler(event(method="POST", body={}, **qs), None)
         return result["statusCode"], result
 
-    def post_order(self, reference=None, short_key=None, **qs):
-        body = {}
-        if reference is not None:
-            body["reference"] = reference
-        if short_key is not None:
-            body["short_key"] = short_key
-        result = handler.handler(event(method="POST", body=body, **qs), None)
-        return result["statusCode"], result
-
-    def issuance_item(self, kinds, short_key, source=None, valid_to=None):
-        item = {
-            "kinds": {"SS": kinds},
-            "short_key_hash": {"S": hashlib.sha256(short_key.strip().upper().encode("utf-8")).hexdigest()},
-        }
-        if source is not None:
-            item["source"] = {"S": source}
-        if valid_to is not None:
-            item["valid_to"] = {"S": valid_to}
-        return item
-
     def add_server_file(self, release_index=0, sha256=None):
         rel = self.matrix["releases"][release_index]
         entry = {
@@ -132,9 +92,6 @@ class DownloadHandlerTests(unittest.TestCase):
         if sha256 is not None:
             entry["sha256"] = sha256
         rel["files"].append(entry)
-
-    def mock_server_file_body(self):
-        self.s3.get_object.return_value = {"Body": io.BytesIO(SERVER_FILE_BYTES)}
 
     def test_download_redirects_to_a_five_minute_signed_url(self):
         status, result = self.call(app="template-editor", platform="windows", v="1")
@@ -207,146 +164,34 @@ class DownloadHandlerTests(unittest.TestCase):
         _, result = self.call(app="template-editor", platform="android")
         self.assertIn("releases/v1.0.1-b.7/TemplateEditor.apk", result["headers"]["Location"])
 
-    def test_paid_app_on_a_stable_release_requires_a_purchase_code_not_a_trial_one(self):
+    def test_paid_apps_download_like_any_other_with_no_access_code(self):
+        # Decided 2026-11-04: the free apps are free and the paid apps are protected by their license files.
         self.matrix["releases"].insert(0, release("v1.1.0", channel="stable"))
         self.add_server_file(release_index=0)
-        self.mock_server_file_body()
-        # Available in status now -- "sold elsewhere, not here" no longer
-        # hides it; purchasers must be able to redownload it.
         body = json.loads(self.call(status="1")[1]["body"])
         self.assertEqual(body["current"]["available"]["server:linux"], ["deb"])
-
-        self.dynamo.get_item.return_value = {
-            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial")
-        }
-        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.s3.get_object.assert_not_called()
-
-        self.dynamo.get_item.return_value = {
-            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="purchase")
-        }
-        status, result = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
-                                          app="server", platform="linux")
-        self.assertEqual(status, 200)
-        self.assertIn("releases/v1.1.0/server.deb", json.loads(result["body"])["url"])
+        for app, platform in (("server", "linux"), ("template-editor", "windows")):
+            with self.subTest(app=app):
+                status, result = self.call(app=app, platform=platform)
+                self.assertEqual(status, 302)
+        status, result = self.call(app="server", platform="linux")
+        self.assertIn("releases/v1.1.0/server.deb", result["headers"]["Location"])
 
     def test_paid_app_appears_in_status_once_a_file_exists_on_a_beta_release(self):
         self.add_server_file()
         body = json.loads(self.call(status="1")[1]["body"])
         self.assertEqual(body["current"]["available"]["server:linux"], ["deb"])
 
-    def test_paid_app_download_without_an_access_code_is_rejected_before_touching_dynamo(self):
+    def test_a_post_from_an_older_cached_page_gets_the_address_as_json_and_the_body_is_ignored(self):
         self.add_server_file()
-        status, _ = self.call(app="server", platform="linux")  # GET: no body at all
-        self.assertEqual(status, 401)
-        self.dynamo.get_item.assert_not_called()
-
-    def test_paid_app_rate_limits_before_touching_dynamo(self):
-        self.add_server_file()
-        self.dynamo.update_item.side_effect = _ConditionalCheckFailed()
-        status, _ = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 429)
-        self.dynamo.get_item.assert_not_called()
-
-    def test_expired_trial_order_code_is_rejected(self):
-        self.add_server_file()
-        past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
-        self.dynamo.get_item.return_value = {
-            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial", valid_to=past)
-        }
-        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.s3.get_object.assert_not_called()
-
-    def test_a_trial_order_code_still_within_its_window_works(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
-        self.dynamo.get_item.return_value = {
-            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="trial", valid_to=future)
-        }
-        status, _ = self.post_order(reference="trial-abc", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 200)
-
-    def test_a_purchase_order_code_has_no_expiry(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        # Purchase rows never carry a valid_to attribute at all.
-        self.dynamo.get_item.return_value = {
-            "Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD", source="purchase")
-        }
-        status, _ = self.post_order(reference="order-123", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 200)
-
-    def test_paid_app_order_code_unknown_reference_is_rejected(self):
-        self.add_server_file()
-        self.dynamo.get_item.return_value = {}
-        status, _ = self.post_order(reference="no-such-order", short_key="AAAA-AAAA-AAAA-AAAA",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.s3.get_object.assert_not_called()
-
-    def test_paid_app_order_code_wrong_short_key_is_rejected(self):
-        self.add_server_file()
-        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "RIGHT-KEY1-AAAA-AAAA")}
-        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="WRONG-KEY1-AAAA-AAAA",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.s3.get_object.assert_not_called()
-
-    def test_paid_app_order_code_not_covering_this_app_is_rejected(self):
-        self.add_server_file()
-        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["midi-player"], "AAAA-BBBB-CCCC-DDDD")}
-        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 403)
-        self.s3.get_object.assert_not_called()
-
-    def test_paid_app_order_code_success_returns_json_not_a_redirect(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
-        status, result = self.post_order(reference="KNGCONSULTING1-1", short_key="AAAA-BBBB-CCCC-DDDD",
-                                          app="server", platform="linux")
+        status, result = self.post(app="server", platform="linux")
         self.assertEqual(status, 200)
         body = json.loads(result["body"])
         self.assertTrue(body["ok"])
         self.assertIn("releases/v1.0.1-b.7/server.deb", body["url"])
-
-    def test_paid_app_order_code_is_case_and_whitespace_insensitive(self):
-        self.add_server_file()
-        self.mock_server_file_body()
-        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
-        status, _ = self.post_order(reference="KNGCONSULTING1-1", short_key="  aaaa-bbbb-cccc-dddd  ",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 200)
-
-    def test_paid_app_order_code_for_a_trial_reference_works_the_same_way(self):
-        # Trial rows (source: "trial") share the same table/shape as
-        # purchase rows -- this is what closes the "how do I download"
-        # gap for the Test Drive flow.
-        self.add_server_file()
-        self.mock_server_file_body()
-        self.dynamo.get_item.return_value = {"Item": self.issuance_item(["server"], "AAAA-BBBB-CCCC-DDDD")}
-        status, _ = self.post_order(reference="trial-f14c889e89d42925", short_key="AAAA-BBBB-CCCC-DDDD",
-                                     app="server", platform="linux")
-        self.assertEqual(status, 200)
-
-    def test_paid_app_order_code_missing_short_key_is_rejected_before_touching_dynamo(self):
-        self.add_server_file()
-        status, _ = self.post_order(reference="KNGCONSULTING1-1", app="server", platform="linux")
-        self.assertEqual(status, 401)
-        self.dynamo.get_item.assert_not_called()
-
-    def test_free_apps_are_unaffected_by_the_password_flow(self):
-        self.assertEqual(self.call(app="template-editor", platform="windows")[0], 302)
-        self.dynamo.update_item.assert_not_called()
+        self.assertEqual(body["filename"], "server.deb")
+        result = handler.handler(event(method="POST", body={"reference": "x", "short_key": "y"}, app="server", platform="linux"), None)
+        self.assertEqual(result["statusCode"], 200)
 
     def test_documents(self):
         _, html = self.call(doc="user-manual", format="html")
@@ -453,10 +298,10 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertFalse(body["update_available"])
         self.assertIsNone(body["latest"])
 
-    def test_update_flags_apps_that_need_an_access_code(self):
+    def test_update_never_asks_for_an_access_code(self):
         self.releases(("v1.0.2", "stable"))
         self.assertFalse(self.update(current="v1.0.1")[1]["requires_access_code"])
-        self.assertTrue(self.update(current="v1.0.1", app="server")[1]["requires_access_code"])
+        self.assertFalse(self.update(current="v1.0.1", app="server")[1]["requires_access_code"])
 
     def test_update_rejects_bad_requests(self):
         self.releases(("v1.0.2", "stable"))
@@ -479,11 +324,12 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertEqual(self.call(app="template-editor", platform="windows")[0], 404)
 
     def test_post_is_allowed_but_other_verbs_are_not(self):
-        # POST exists only to carry a password (see the module docstring); a
+        # POST exists only for older cached copies of the page (see the module docstring); a
         # bare POST with nothing requested behaves like a bare GET.
         self.assertEqual(self.call(app="template-editor", platform="windows")[0], 302)
-        status, _ = self.post(app="template-editor", platform="windows")
-        self.assertEqual(status, 302)  # free apps ignore the body entirely
+        status, result = self.post(app="template-editor", platform="windows")
+        self.assertEqual(status, 200)
+        self.assertTrue(json.loads(result["body"])["ok"])
         result = handler.handler(event(method="POST"), None)
         self.assertEqual(result["statusCode"], 400)
         result = handler.handler(event(method="PUT"), None)
