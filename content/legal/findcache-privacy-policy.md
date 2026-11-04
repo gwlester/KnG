@@ -3,11 +3,12 @@ title: FindCache Privacy Policy
 slug: findcache-privacy
 description: The FindCache privacy policy: no account, no ads, no analytics, and your places stay on your phone.
 ---
-**Effective:** October 29, 2026
+**Effective:** November 3, 2026
 
 **The short version:** FindCache has no account, no ads and no analytics. The places you save
 stay on your phone. FindCache does not send them, your location or anything else about you to
-the developer.
+the developer unless you tap a button that says so (see "What leaves your phone, and only when
+you ask").
 
 ## Who we are
 
@@ -27,6 +28,19 @@ FindCache is developed by Gerald Lester, an individual. Contact: inquiries@kng-c
   sent over Bluetooth Low Energy to a nearby phone running FindCache that connects to you. While
   the Share screen is open your sharing name is visible to nearby devices. FindCache keeps a local
   history of who received places from you.
+- **Debug log.** In Settings, Troubleshooting, you can turn on a debug log. It stays on your phone
+  and records what the app is doing (for example Bluetooth activity, whether GPS or network
+  location is in use, how accurate fixes are, and satellite counts). It can include nearby
+  Bluetooth device names and the names you use for sharing. It does not include your saved
+  places or coordinates. If you tap **Send log to KnG** and confirm, the log is uploaded over
+  HTTPS to a private store run by KnG Consulting. It is used only to diagnose problems, is
+  not shared, and is deleted automatically after 6 months. Nothing is uploaded unless you tap
+  the button. Email inquiries@kng-consulting.com to ask for an uploaded log to be deleted
+  sooner; quote the reference shown after sending.
+- **Update check.** In the sideloaded (not Google Play) version of the app, **Check for updates**
+  contacts GitHub (`api.github.com`) to find the newest release, and, if you choose to update,
+  downloads the app file from GitHub. GitHub sees your IP address and has its own privacy
+  practices. Nothing is checked unless you tap the button.
 - **Export.** Files you export (GPX or GeoJSON) go wherever you send them.
 - **Maps.** When you open a map, or the compass shows the street map or satellite imagery,
   FindCache downloads map tiles over HTTPS from OpenFreeMap (`tiles.openfreemap.org`, OpenStreetMap
@@ -43,7 +57,8 @@ identifiers, analytics or crash-reporting services in the app.
 ## Permissions
 
 Location (to show distance and direction), Bluetooth and "Nearby devices" (to share with other
-phones), and network access (to download map tiles).
+phones), and network access (to download map tiles, send a debug log if you choose, and check for updates in the sideloaded
+version).
 
 ## Children
 
