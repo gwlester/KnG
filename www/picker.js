@@ -77,6 +77,7 @@
     ];
     if (extra.format) q.push("format=" + encodeURIComponent(extra.format));
     if (extra.arch) q.push("arch=" + encodeURIComponent(extra.arch));
+    if (extra.channel && extra.channel !== "stable") q.push("channel=" + encodeURIComponent(extra.channel));
     return endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + q.join("&");
   }
 
@@ -139,10 +140,25 @@
     };
   }
 
-  function docUrl(endpoint, kind, format, version) {
-    return endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") +
+  function withChannel(url, channel) {
+    return channel && channel !== "stable" ? url + "&channel=" + encodeURIComponent(channel) : url;
+  }
+
+  function docUrl(endpoint, kind, format, version, channel) {
+    return withChannel(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") +
       "doc=" + encodeURIComponent(kind) + "&format=" + encodeURIComponent(format) +
-      "&version=" + encodeURIComponent(version || "current") + "&v=1";
+      "&version=" + encodeURIComponent(version || "current") + "&v=1", channel);
+  }
+
+  // The release channels the page offers, from most to least cautious.
+  var CHANNELS = [
+    { id: "stable", label: "Stable releases only" },
+    { id: "beta", label: "Stable and beta releases" },
+    { id: "any", label: "Stable, beta and alpha releases" }
+  ];
+
+  function statusUrl(endpoint, channel) {
+    return withChannel(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "status=1&v=1", channel);
   }
 
   // The Access code field doubles as a purchase/Test Drive credential: a
@@ -167,6 +183,8 @@
     docFormats: docFormats,
     versionLabels: versionLabels,
     docUrl: docUrl,
+    statusUrl: statusUrl,
+    CHANNELS: CHANNELS,
     detectPlatform: detectPlatform,
     findApp: findApp,
     findPlatform: findPlatform,
@@ -194,6 +212,7 @@
     var endpoint = form.getAttribute("data-endpoint") || "";
     var appSelect = document.getElementById("pick-app");
     var versionSelect = document.getElementById("pick-version");
+    var channelSelect = document.getElementById("pick-channel");
     var group = document.getElementById("pick-platforms");
     var note = document.getElementById("pick-note");
     var go = document.getElementById("pick-go");
@@ -202,6 +221,10 @@
     var passwordInput = document.getElementById("pick-password");
     var detected = detectPlatform(root.navigator);
     var selected = null;
+
+    function channel() {
+      return channelSelect ? channelSelect.value : "stable";
+    }
 
     function currentPlatform() {
       return findPlatform(findApp(options, appSelect.value), selected);
@@ -215,7 +238,7 @@
         var label = a.getAttribute("data-label") || "";
         var span = a.querySelector(".doc-label") || a;
         if (endpoint && formats.indexOf(format) >= 0) {
-          a.href = docUrl(endpoint, a.getAttribute("data-doc-kind"), format, versionSelect.value);
+          a.href = docUrl(endpoint, a.getAttribute("data-doc-kind"), format, versionSelect.value, channel());
           a.removeAttribute("aria-disabled");
           a.removeAttribute("role");
           span.textContent = label;
@@ -269,7 +292,7 @@
       if (other && info.enabled) {
         alt.hidden = false;
         alt.textContent = "Get the ." + other + " installer instead";
-        alt.href = buildUrl(endpoint, platform, { version: versionSelect.value, format: other });
+        alt.href = buildUrl(endpoint, platform, { version: versionSelect.value, format: other, channel: channel() });
       } else {
         alt.hidden = true;
       }
@@ -278,7 +301,7 @@
 
     function loadStatus() {
       if (!endpoint || typeof root.fetch !== "function") return;
-      root.fetch(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "status=1&v=1")
+      root.fetch(statusUrl(endpoint, channel()))
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (body) {
           if (!body || body.FormatVersion !== 1) return;
@@ -306,7 +329,7 @@
       var priorLabel = go.textContent;
       go.disabled = true;
       go.textContent = "Checking...";
-      root.fetch(buildUrl(endpoint, platform, { version: versionSelect.value }), {
+      root.fetch(buildUrl(endpoint, platform, { version: versionSelect.value, channel: channel() }), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -395,6 +418,10 @@
 
     appSelect.addEventListener("change", render);
     versionSelect.addEventListener("change", render);
+    if (channelSelect) channelSelect.addEventListener("change", function () {
+      versionSelect.value = "current";
+      loadStatus();
+    });
     go.addEventListener("click", function () {
       var platform = currentPlatform();
       if (!platform || !describe(platform).enabled) return;
@@ -407,7 +434,7 @@
         return;
       }
       if (!endpoint) return;
-      root.location.assign(buildUrl(endpoint, platform, { version: versionSelect.value }));
+      root.location.assign(buildUrl(endpoint, platform, { version: versionSelect.value, channel: channel() }));
     });
     render();
     loadStatus();

@@ -492,6 +492,70 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertEqual(result["statusCode"], 405)
 
 
+class ChannelSelectorTests(DownloadHandlerTests):
+    __test__ = True
+    """The download page's Stable / Beta / Alpha selector: status, download and documents take a channel."""
+
+    def load(self):
+        def rel(tag, channel):
+            return release(tag, channel=channel, published="2026-11-0" + ("4" if "a." in tag or "b." in tag else "1"))
+        self.matrix = {"FormatVersion": 1, "releases": [
+            rel("template-editor-v1.0.2-a.2", "beta"),
+            rel("template-editor-v1.0.2-b.1", "beta"),
+            rel("v1.0.1", "stable"),
+        ]}
+
+    def status(self, **qs):
+        status, result = self.call(status="1", **qs)
+        return status, json.loads(result["body"])
+
+    def test_default_is_stable_only(self):
+        self.load()
+        self.assertEqual(self.status()[1]["current"]["version"], "v1.0.1")
+        self.assertEqual(self.status(channel="stable")[1]["current"]["version"], "v1.0.1")
+        self.assertIsNone(self.status(channel="stable")[1]["previous"])
+
+    def test_beta_adds_betas_but_not_alphas(self):
+        self.load()
+        body = self.status(channel="beta")[1]
+        self.assertEqual(body["current"]["version"], "template-editor-v1.0.2-b.1")
+        self.assertEqual(body["previous"]["version"], "v1.0.1")
+
+    def test_any_adds_alphas_newest_first(self):
+        self.load()
+        body = self.status(channel="any")[1]
+        self.assertEqual(body["current"]["version"], "template-editor-v1.0.2-b.1")
+        self.assertEqual(body["previous"]["version"], "template-editor-v1.0.2-a.2")
+        self.matrix["releases"].pop(1)
+        self.assertEqual(self.status(channel="any")[1]["current"]["version"], "template-editor-v1.0.2-a.2")
+
+    def test_a_channel_with_nothing_newer_falls_back_to_the_stable_rule(self):
+        self.matrix = {"FormatVersion": 1, "releases": [release("v1.0.1", channel="stable")]}
+        self.assertEqual(self.status(channel="any")[1]["current"]["version"], "v1.0.1")
+        self.matrix = {"FormatVersion": 1, "releases": [release("v0.9.0-a.1", channel="beta")]}
+        self.assertEqual(self.status(channel="any")[1]["current"]["version"], "v0.9.0-a.1")
+
+    def test_download_and_documents_resolve_current_on_the_same_channel(self):
+        self.load()
+        def where(**qs):
+            status, result = self.call(**qs)
+            self.assertEqual(status, 302)
+            return result["headers"]["Location"]
+
+        file_qs = {"app": "template-editor", "platform": "windows", "format": "exe", "version": "current"}
+        self.assertIn("template-editor-v1.0.2-b.1", where(channel="any", **file_qs))
+        self.assertIn("releases/v1.0.1/", where(**file_qs))
+        doc_qs = {"doc": "user-manual", "format": "pdf"}
+        self.assertIn("template-editor-v1.0.2-b.1", where(version="current", channel="any", **doc_qs))
+        self.assertIn("releases/v1.0.1/", where(version="previous", channel="beta", **doc_qs))
+
+    def test_an_unknown_channel_is_rejected_everywhere(self):
+        self.load()
+        for qs in ({"status": "1"}, {"app": "template-editor", "platform": "windows"}, {"doc": "user-manual"}):
+            with self.subTest(qs=qs):
+                self.assertEqual(self.call(channel="nightly", **qs)[0], 400)
+
+
 class PerAppReleaseTests(DownloadHandlerTests):
     __test__ = True
     """Apps are released independently: per-app tags, per-app current/previous."""

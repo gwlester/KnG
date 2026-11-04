@@ -31,6 +31,14 @@ class DownloadPageGeneratorTests(unittest.TestCase):
             "extras": [],
         }
 
+    def test_render_picker_has_a_release_channel_selector_defaulting_to_stable(self):
+        html = self.b.render_picker(self.options)
+        self.assertIn('<select id="pick-channel">', html)
+        self.assertIn('<option value="stable" selected>', html)
+        self.assertIn('<option value="beta">', html)
+        self.assertIn('<option value="any">', html)
+        self.assertLess(html.index('id="pick-channel"'), html.index('id="pick-version"'))
+
     def test_render_picker_includes_the_order_fulfillment_endpoint(self):
         html = self.b.render_picker(self.options)
         self.assertIn('data-order-fulfillment-endpoint="https://fulfillment.example/"', html)

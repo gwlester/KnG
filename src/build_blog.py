@@ -780,6 +780,14 @@ def render_picker(options: dict) -> str:
               <div id="pick-platforms" class="radio-row"></div>
             </fieldset>
             <div class="field">
+              <label for="pick-channel">Release channel</label>
+              <select id="pick-channel">
+                <option value="stable" selected>Stable releases only</option>
+                <option value="beta">Stable and beta releases</option>
+                <option value="any">Stable, beta and alpha releases</option>
+              </select>
+            </div>
+            <div class="field">
               <label for="pick-version">Version</label>
               <select id="pick-version">
                 <option value="current">{_esc(current)}</option>
