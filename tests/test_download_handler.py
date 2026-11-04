@@ -368,6 +368,110 @@ class DownloadHandlerTests(unittest.TestCase):
         self.assertNotIn("key", result["body"])
         self.assertIn("max-age=60", result["headers"]["Cache-Control"])
 
+    # --- update check: GET ?update=1&app=&platform=&channel=&current=&v=1 ---------------------------
+
+    def update(self, current="v1.0.1", channel=None, app="template-editor", platform="android", **extra):
+        qs = {"update": "1", "app": app, "platform": platform, "current": current}
+        if channel is not None:
+            qs["channel"] = channel
+        qs.update(extra)
+        status, result = self.call(**qs)
+        return status, json.loads(result["body"]), result
+
+    def releases(self, *specs):
+        # spec: (tag, channel_field) -- the matrix marks every prerelease "beta", alpha and beta alike.
+        self.matrix = {"FormatVersion": 1, "releases": [release(tag, channel=ch) for tag, ch in specs]}
+
+    def test_update_stable_channel_only_offers_stable_releases(self):
+        self.releases(("v1.0.3-b.1", "beta"), ("v1.0.2-a.1", "beta"), ("v1.0.2", "stable"), ("v1.0.1", "stable"))
+        status, body, result = self.update(current="v1.0.1")
+        self.assertEqual(status, 200)
+        self.assertTrue(body["update_available"])
+        self.assertEqual(body["latest"]["version"], "v1.0.2")
+        self.assertEqual(body["latest"]["kind"], "stable")
+        self.assertEqual(body["FormatVersion"], 1)
+        self.assertIn("max-age=60", result["headers"]["Cache-Control"])
+
+    def test_update_default_channel_is_stable(self):
+        self.releases(("v1.0.2-a.1", "beta"), ("v1.0.1", "stable"))
+        self.assertFalse(self.update(current="v1.0.1")[1]["update_available"])
+
+    def test_update_beta_channel_offers_stable_and_beta_but_not_alpha(self):
+        self.releases(("v1.0.3-a.1", "beta"), ("v1.0.2-b.2", "beta"), ("v1.0.1", "stable"))
+        body = self.update(current="v1.0.1", channel="beta")[1]
+        self.assertEqual(body["latest"]["version"], "v1.0.2-b.2")
+        self.assertEqual(body["latest"]["kind"], "beta")
+        self.assertTrue(body["update_available"])
+
+    def test_update_any_channel_offers_alphas_too(self):
+        self.releases(("v1.0.3-a.1", "beta"), ("v1.0.2-b.2", "beta"), ("v1.0.1", "stable"))
+        body = self.update(current="v1.0.1", channel="any")[1]
+        self.assertEqual(body["latest"]["version"], "v1.0.3-a.1")
+        self.assertEqual(body["latest"]["kind"], "alpha")
+
+    def test_update_orders_alpha_below_beta_below_stable_within_a_version(self):
+        self.releases(("v1.0.2-a.9", "beta"), ("v1.0.2-b.1", "beta"), ("v1.0.2", "stable"))
+        self.assertTrue(self.update(current="v1.0.2-a.1", channel="any")[1]["update_available"])
+        self.assertEqual(self.update(current="v1.0.2-a.1", channel="any")[1]["latest"]["version"], "v1.0.2")
+        self.assertTrue(self.update(current="v1.0.2-a.9", channel="beta")[1]["update_available"])
+        self.assertFalse(self.update(current="v1.0.2", channel="any")[1]["update_available"])
+        self.assertTrue(self.update(current="v1.0.2-b.1", channel="beta")[1]["update_available"])
+
+    def test_update_compares_numbers_not_text(self):
+        self.releases(("v1.0.10", "stable"), ("v1.0.9", "stable"))
+        self.assertEqual(self.update(current="v1.0.9")[1]["latest"]["version"], "v1.0.10")
+        self.assertTrue(self.update(current="v1.0.9")[1]["update_available"])
+        self.assertFalse(self.update(current="v1.0.10")[1]["update_available"])
+
+    def test_update_up_to_date_still_reports_the_latest(self):
+        self.releases(("v1.0.2", "stable"))
+        body = self.update(current="v1.0.2")[1]
+        self.assertFalse(body["update_available"])
+        self.assertEqual(body["latest"]["version"], "v1.0.2")
+
+    def test_update_accepts_a_current_version_without_the_v(self):
+        self.releases(("v1.0.2", "stable"))
+        self.assertFalse(self.update(current="1.0.2")[1]["update_available"])
+
+    def test_update_only_considers_releases_that_contain_the_app_and_platform(self):
+        self.matrix = {"FormatVersion": 1, "releases": [
+            release("v1.0.3", channel="stable", files=[
+                {"app": "server", "platform": "linux", "arch": "amd64", "format": "deb", "default": True,
+                 "key": "releases/v1.0.3/s.deb", "filename": "s.deb"}]),
+            release("v1.0.2", channel="stable"),
+        ]}
+        body = self.update(current="v1.0.1")[1]
+        self.assertEqual(body["latest"]["version"], "v1.0.2")
+
+    def test_update_skips_deprecated_releases(self):
+        self.releases(("v1.0.3", "deprecated"), ("v1.0.2", "stable"))
+        self.assertEqual(self.update(current="v1.0.1")[1]["latest"]["version"], "v1.0.2")
+
+    def test_update_with_nothing_published_for_the_app(self):
+        self.matrix = {"FormatVersion": 1, "releases": []}
+        body = self.update(current="v1.0.1")[1]
+        self.assertFalse(body["update_available"])
+        self.assertIsNone(body["latest"])
+
+    def test_update_flags_apps_that_need_an_access_code(self):
+        self.releases(("v1.0.2", "stable"))
+        self.assertFalse(self.update(current="v1.0.1")[1]["requires_access_code"])
+        self.assertTrue(self.update(current="v1.0.1", app="server")[1]["requires_access_code"])
+
+    def test_update_rejects_bad_requests(self):
+        self.releases(("v1.0.2", "stable"))
+        self.assertEqual(self.update(current="not-a-version")[0], 400)
+        self.assertEqual(self.update(current="")[0], 400)
+        self.assertEqual(self.update(channel="nightly")[0], 400)
+        self.assertEqual(self.update(app="Bad App")[0], 400)
+        self.assertEqual(self.update(platform="")[0], 400)
+
+    def test_update_never_exposes_file_keys(self):
+        self.releases(("v1.0.2", "stable"))
+        raw = self.update(current="v1.0.1")[2]["body"]
+        self.assertNotIn("releases/", raw)
+        self.assertNotIn("filename", raw)
+
     def test_status_with_an_empty_matrix(self):
         self.matrix = {"FormatVersion": 1, "releases": []}
         body = json.loads(self.call(status="1")[1]["body"])

@@ -8,6 +8,8 @@ POST ?app=&platform=&version=&format=&arch=&v=1 {reference,
                                                                        kng-license-issuance
 GET  ?doc=&format=&version=&v=1                                   -> 302 to a signed URL for a guide
 GET  ?status=1&v=1                                                -> JSON of availability (no file keys)
+GET  ?update=1&app=&platform=&channel=&current=&v=1               -> JSON {update_available, latest} for the app's newest
+                                                                       release on that channel (see _update)
 
 The matrix (matrix.json in the private downloads bucket) is written by the
 publish-downloads workflow and never leaves the server: callers only ever get
@@ -42,6 +44,16 @@ CACHE_SECONDS = 60
 _password_required_env = os.environ.get("PASSWORD_REQUIRED_APPS", "server,midi-player")
 PASSWORD_REQUIRED_APPS = {a for a in _password_required_env.split(",") if a}
 RATE_LIMIT_PER_MINUTE = int(os.environ.get("RATE_LIMIT_PER_MINUTE", "2"))
+
+UPDATE_CHANNELS = {
+    # Which kinds of release each update channel may be offered.
+    "stable": {"stable"},
+    "beta": {"stable", "beta"},
+    "any": {"stable", "beta", "alpha"},
+}
+TAG_RE = re.compile(r"^v?(\d{1,5})\.(\d{1,5})\.(\d{1,5})(?:-([ab])\.(\d{1,5}))?$")
+KIND_RANK = {"a": 0, "b": 1, None: 2}
+KIND_NAME = {"a": "alpha", "b": "beta", None: "stable"}
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
 FORMAT_RE = re.compile(r"^[a-z0-9]{1,10}$")
@@ -251,6 +263,60 @@ def _status(matrix: dict) -> dict:
     )
 
 
+def parse_tag(tag: str):
+    """(sort key, kind) for a release tag like v1.0.2-a.1, v1.0.2-b.3 or v1.0.2, or None if it isn't one.
+    Within a base version, alpha < beta < stable; attempt numbers compare as numbers."""
+    match = TAG_RE.match(tag or "")
+    if not match:
+        return None
+    major, minor, patch, kind, attempt = match.groups()
+    return (int(major), int(minor), int(patch), KIND_RANK[kind], int(attempt or 0)), KIND_NAME[kind]
+
+
+def _update(matrix: dict, qs: dict) -> dict:
+    """The update check the apps call. Finds the newest release that contains `app` on `platform`, limited
+    to the kinds of release the `channel` allows (stable | beta | any; default stable), and says whether it is
+    newer than `current`. Answers with the release's version only: the caller then asks for the file with the
+    ordinary ?app=&platform=&version=<exact tag> download. Per-app release versions will not change this: it
+    already means "newest release containing this app"."""
+    app, platform = qs.get("app", ""), qs.get("platform", "")
+    channel = qs.get("channel", "stable")
+    if not NAME_RE.match(app) or not NAME_RE.match(platform):
+        return _error(400, "Unknown app or platform.")
+    if channel not in UPDATE_CHANNELS:
+        return _error(400, "Unknown channel.")
+    current = parse_tag(qs.get("current", ""))
+    if current is None:
+        return _error(400, "Invalid current version.")
+    allowed = UPDATE_CHANNELS[channel]
+    best = None
+    for release in matrix.get("releases", []):
+        if release.get("channel") == "deprecated":
+            continue
+        parsed = parse_tag(release.get("version", ""))
+        if parsed is None or parsed[1] not in allowed:
+            continue
+        if not any(f["app"] == app and f["platform"] == platform for f in release.get("files", [])):
+            continue
+        if best is None or parsed[0] > best[0]:
+            best = (parsed[0], parsed[1], release)
+    latest = None
+    if best:
+        release = best[2]
+        latest = {"version": release["version"], "kind": best[1], "published": release.get("published", "")}
+    return _json(
+        200,
+        {
+            "ok": True,
+            "FormatVersion": FORMAT_VERSION,
+            "update_available": bool(best and best[0] > current[0]),
+            "latest": latest,
+            "requires_access_code": app in PASSWORD_REQUIRED_APPS,
+        },
+        cache=f"public, max-age={CACHE_SECONDS}",
+    )
+
+
 def _order_gated_download(chosen: dict, body: dict, channel: str, ip: str) -> dict:
     """chosen's access is governed by a kng-license-issuance row -- the
     reference+short_key pair a purchase or an approved beta tester's
@@ -403,6 +469,8 @@ def handler(event, context):
     matrix = _load_matrix()
     if qs.get("status"):
         return _status(matrix)
+    if qs.get("update"):
+        return _update(matrix, qs)
     if qs.get("doc"):
         return _document(matrix, qs)
     if qs.get("app"):
