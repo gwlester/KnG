@@ -165,6 +165,31 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_iam_role.order_fulfillment.arn]
   }
 
+  # FindCache log uploads (findcache_logs.tf): the logs bucket and the
+  # Lambda's execution role. The Lambda itself and its log group are covered
+  # by the broad lambda:*/logs:* statement above.
+  statement {
+    sid    = "FindCacheLogsBucket"
+    effect = "Allow"
+    actions = [
+      "s3:CreateBucket", "s3:DeleteBucket", "s3:Get*", "s3:List*",
+      "s3:PutBucketPublicAccessBlock", "s3:PutEncryptionConfiguration",
+      "s3:PutLifecycleConfiguration", "s3:PutBucketTagging",
+    ]
+    resources = [aws_s3_bucket.findcache_logs.arn]
+  }
+
+  statement {
+    sid    = "FindCacheLogRole"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:GetRolePolicy",
+      "iam:PutRolePolicy", "iam:DeleteRolePolicy", "iam:TagRole", "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy", "iam:PassRole", "iam:List*",
+    ]
+    resources = [aws_iam_role.findcache_log.arn]
+  }
+
   statement {
     sid       = "DownloadsBucket"
     effect    = "Allow"

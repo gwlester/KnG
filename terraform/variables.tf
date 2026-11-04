@@ -92,6 +92,12 @@ variable "downloads_bucket_name" {
   default     = "kng-consulting-downloads"
 }
 
+variable "findcache_logs_bucket_name" {
+  description = "Private S3 bucket holding FindCache debug logs that users chose to send. Objects expire after 180 days. Must be globally unique."
+  type        = string
+  default     = "kng-consulting-findcache-logs"
+}
+
 variable "media_bucket_name" {
   description = "Private S3 bucket holding the training and demo videos (served by their own CloudFront distribution). Must be globally unique."
   type        = string

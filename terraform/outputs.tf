@@ -104,3 +104,8 @@ output "order_fulfillment_function_url" {
   description = "FastSpring order.completed webhook target (?webhook=1) and the thank-you page's fulfillment call (?fulfill=1&order=<reference>)."
   value       = aws_lambda_function_url.order_fulfillment.function_url
 }
+
+output "findcache_log_upload_url" {
+  description = "The FindCache app's log-upload endpoint (hard-coded in the app's source)."
+  value       = aws_lambda_function_url.findcache_log.function_url
+}
