@@ -41,8 +41,8 @@
     if (result.valid_to) field("Valid until", result.valid_to);
 
     var instructions = doc.createElement("p");
-    instructions.textContent = "The picker above is filled in with these details -- choose your platform and click Download. " +
-      "Keep this reference and key: you'll also enter them in the Admin app on first connection to license your Server/MIDI Player.";
+    instructions.textContent = "Choose your platform in the picker above and click Download. " +
+      "Keep this reference and key: you'll enter them in the Admin app on first connection to license your Server/MIDI Player.";
     box.appendChild(instructions);
 
     return box;

@@ -39,6 +39,11 @@ class DownloadPageGeneratorTests(unittest.TestCase):
         self.assertIn('<option value="any">', html)
         self.assertLess(html.index('id="pick-channel"'), html.index('id="pick-version"'))
 
+    def test_render_picker_has_no_access_code_field(self):
+        html = self.b.render_picker(self.options)
+        self.assertNotIn("pick-password", html)
+        self.assertNotIn("Access code", html)
+
     def test_render_picker_includes_the_order_fulfillment_endpoint(self):
         html = self.b.render_picker(self.options)
         self.assertIn('data-order-fulfillment-endpoint="https://fulfillment.example/"', html)
