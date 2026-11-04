@@ -7,7 +7,10 @@ POST ?app=&platform=&version=&format=&arch=&v=1 {reference,
                                                                        app, checked against
                                                                        kng-license-issuance
 GET  ?doc=&format=&version=&v=1                                   -> 302 to a signed URL for a guide
-GET  ?status=1&v=1                                                -> JSON of availability (no file keys)
+GET  ?status=1&channel=&v=1                                       -> JSON of availability (no file keys); channel
+                                                                       stable (default) | beta | any also offers
+                                                                       betas / alphas, and the same `channel` on a
+                                                                       download or doc call resolves "current" alike
 GET  ?update=1&app=&platform=&channel=&current=&v=1               -> JSON {update_available, latest} for the app's newest
                                                                        release on that channel (see _update)
 
@@ -172,9 +175,16 @@ def _redirect(url: str) -> dict:
     return {"statusCode": 302, "headers": {"Location": url, "Cache-Control": "no-store"}, "body": ""}
 
 
-def visible_releases(matrix: dict, app: str = None) -> list:
+def _channel(qs: dict):
+    """The release channel the page selector asks for (stable | beta | any; default stable), or None if unknown."""
+    channel = qs.get("channel", "stable")
+    return channel if channel in UPDATE_CHANNELS else None
+
+
+def visible_releases(matrix: dict, app: str = None, channel: str = "stable") -> list:
     """Stable releases once any exist; until then every release (labelled
-    Beta). A "deprecated" release (no longer offered for download -- see
+    Beta). With a `channel` of beta or any, the newest releases (by tag) of the kinds that
+    channel allows come first, so a tester can reach betas and alphas. A "deprecated" release (no longer offered for download -- see
     publish_release.py's deprecate_matrix) is excluded either way, before
     the stable/beta fallback is even considered. With `app`, only releases
     that contain that app's files are considered, so each app has its own
@@ -182,12 +192,18 @@ def visible_releases(matrix: dict, app: str = None) -> list:
     releases = [r for r in matrix.get("releases", []) if r.get("channel") != "deprecated"]
     if app:
         releases = [r for r in releases if any(f.get("app") == app for f in r.get("files", []))]
+    if channel != "stable":
+        allowed = UPDATE_CHANNELS[channel]
+        wanted = [r for r in releases if (parse_tag(r.get("version", "")) or (None, None))[1] in allowed]
+        wanted.sort(key=lambda r: parse_tag(r["version"])[0], reverse=True)
+        if wanted:
+            return wanted
     stable = [r for r in releases if r.get("channel") == "stable"]
     return stable or releases
 
 
-def resolve_release(matrix: dict, version: str, app: str = None):
-    visible = visible_releases(matrix, app)
+def resolve_release(matrix: dict, version: str, app: str = None, channel: str = "stable"):
+    visible = visible_releases(matrix, app, channel)
     if version == "current":
         return visible[0] if visible else None
     if version == "previous":
@@ -230,18 +246,18 @@ def _log(**fields) -> None:
     print(json.dumps({"event": "download", **fields}))
 
 
-def _per_app(matrix: dict, which: str) -> list:
+def _per_app(matrix: dict, which: str, channel: str = "stable") -> list:
     """Each app's own current/previous release, de-duplicated (releases that cover every app resolve to one)."""
     apps = {f["app"] for r in matrix.get("releases", []) for f in r.get("files", [])}
     found = {}
     for app in sorted(apps):
-        release = resolve_release(matrix, which, app)
+        release = resolve_release(matrix, which, app, channel)
         if release is not None:
             found[release["version"]] = release
     return list(found.values())
 
 
-def _status(matrix: dict) -> dict:
+def _status(matrix: dict, channel: str = "stable") -> dict:
     def summarize(releases):
         releases = [r for r in releases if r is not None]
         if not releases:
@@ -274,8 +290,8 @@ def _status(matrix: dict) -> dict:
         200,
         {
             "FormatVersion": FORMAT_VERSION,
-            "current": summarize(_per_app(matrix, "current")),
-            "previous": summarize(_per_app(matrix, "previous")),
+            "current": summarize(_per_app(matrix, "current", channel)),
+            "previous": summarize(_per_app(matrix, "previous", channel)),
         },
         cache=f"public, max-age={CACHE_SECONDS}",
     )
@@ -407,7 +423,10 @@ def _download(matrix: dict, qs: dict, body: dict, ip: str) -> dict:
         _log(app=app, platform=platform, version="link", type=link.get("type"))
         return _redirect(link["url"])
 
-    release = resolve_release(matrix, version, app)
+    channel = _channel(qs)
+    if channel is None:
+        return _error(400, "Unknown channel.")
+    release = resolve_release(matrix, version, app, channel)
     if release is None:
         return _error(404, "That version is not available.")
 
@@ -440,7 +459,10 @@ def _document(matrix: dict, qs: dict) -> dict:
         return _error(400, "Unknown document.")
     if not VERSION_RE.match(version):
         return _error(400, "Invalid version.")
-    release = resolve_release(matrix, version)
+    channel = _channel(qs)
+    if channel is None:
+        return _error(400, "Unknown channel.")
+    release = resolve_release(matrix, version, None, channel)
     if release is None:
         return _error(404, "That version is not available.")
     candidates = [d for d in release.get("documents", []) if d["kind"] == kind]
@@ -486,7 +508,10 @@ def handler(event, context):
         return _error(400, "Unsupported API version.")
     matrix = _load_matrix()
     if qs.get("status"):
-        return _status(matrix)
+        channel = _channel(qs)
+        if channel is None:
+            return _error(400, "Unknown channel.")
+        return _status(matrix, channel)
     if qs.get("update"):
         return _update(matrix, qs)
     if qs.get("doc"):

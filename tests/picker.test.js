@@ -53,6 +53,20 @@ test("download URLs encode parameters and never carry a target", () => {
   assert.ok(P.buildUrl("https://x.example/?a=1", p).includes("&app=template-editor"));
 });
 
+test("a channel other than stable is passed to downloads, documents and status", () => {
+  const p = { id: "windows", matrix_app: "template-editor" };
+  assert.ok(P.buildUrl("https://x.example/", p, { channel: "any" }).endsWith("&v=1&channel=any"));
+  assert.ok(!P.buildUrl("https://x.example/", p, { channel: "stable" }).includes("channel"));
+  assert.ok(!P.buildUrl("https://x.example/", p).includes("channel"));
+  assert.equal(P.docUrl("https://x.example/", "user-manual", "pdf", "current", "beta"),
+    "https://x.example/?doc=user-manual&format=pdf&version=current&v=1&channel=beta");
+  assert.equal(P.docUrl("https://x.example/", "user-manual", "pdf", "current", "stable"),
+    "https://x.example/?doc=user-manual&format=pdf&version=current&v=1");
+  assert.equal(P.statusUrl("https://x.example/", "any"), "https://x.example/?status=1&v=1&channel=any");
+  assert.equal(P.statusUrl("https://x.example/?a=1", "stable"), "https://x.example/?a=1&status=1&v=1");
+  assert.deepEqual(P.CHANNELS.map((c) => c.id), ["stable", "beta", "any"]);
+});
+
 test("an alternative installer format is offered only when there is one", () => {
   assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "template-editor"), "windows")), "msi");
   assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "server"), "windows")), "exe");
