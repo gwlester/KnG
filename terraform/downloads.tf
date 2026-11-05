@@ -3,11 +3,9 @@
 # src/download_handler/handler.py. The publish-downloads workflow fills the
 # bucket and writes matrix.json.
 #
-# Server and MIDI Player require a {reference, short_key} order-gated
-# access code (a purchase or an approved beta tester's Test Drive
-# credential, checked against kng-license-issuance) on every channel --
-# see the handler's docstring. The downloads_rate_limit table below caps
-# guessing attempts per-IP before a lookup happens.
+# Downloads need no access code: the free apps are free, and the paid apps
+# (Server, MIDI Player) are protected by license files they check when they
+# run -- see the handler's docstring.
 
 locals {
   downloads_allowed_origins = [
@@ -67,25 +65,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "downloads" {
   depends_on = [aws_s3_bucket_versioning.downloads]
 }
 
-# Per-IP counter for order-gated download attempts (server/midi-player).
-# Fixed 60-second buckets keyed by "{ip}#{minute}"; the TTL attribute just
-# cleans up old buckets, it isn't load-bearing for correctness.
-resource "aws_dynamodb_table" "downloads_rate_limit" {
-  name         = "kng-downloads-ratelimit"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "pk"
-
-  attribute {
-    name = "pk"
-    type = "S"
-  }
-
-  ttl {
-    attribute_name = "ttl"
-    enabled        = true
-  }
-}
-
 data "archive_file" "downloads_handler" {
   type        = "zip"
   source_dir  = "${path.module}/../src/download_handler"
@@ -130,23 +109,6 @@ data "aws_iam_policy_document" "downloads" {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["${aws_cloudwatch_log_group.downloads.arn}:*"]
   }
-
-  # The order-gated-download rate limiter's atomic conditional counter.
-  statement {
-    sid       = "RateLimitCounter"
-    effect    = "Allow"
-    actions   = ["dynamodb:UpdateItem"]
-    resources = [aws_dynamodb_table.downloads_rate_limit.arn]
-  }
-
-  # Looks up a reference+short_key access code against the same table
-  # order_fulfillment.tf and trial_request.tf write into -- read-only here.
-  statement {
-    sid       = "ReadLicenseIssuance"
-    effect    = "Allow"
-    actions   = ["dynamodb:GetItem"]
-    resources = [aws_dynamodb_table.license_issuance.arn]
-  }
 }
 
 resource "aws_iam_role_policy" "downloads" {
@@ -167,12 +129,8 @@ resource "aws_lambda_function" "downloads" {
 
   environment {
     variables = {
-      DOWNLOADS_BUCKET       = aws_s3_bucket.downloads.bucket
-      PRESIGN_SECONDS        = "300"
-      PASSWORD_REQUIRED_APPS = "server,midi-player"
-      RATE_LIMIT_TABLE       = aws_dynamodb_table.downloads_rate_limit.name
-      RATE_LIMIT_PER_MINUTE  = "2"
-      LICENSE_ISSUANCE_TABLE = aws_dynamodb_table.license_issuance.name
+      DOWNLOADS_BUCKET = aws_s3_bucket.downloads.bucket
+      PRESIGN_SECONDS  = "300"
     }
   }
 

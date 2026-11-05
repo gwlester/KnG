@@ -10,6 +10,8 @@ per-tag release notes once releases begin.
 
 ### Changed
 
+- Downloads infrastructure: removed the retired access-code rate-limit DynamoDB table, the download Lambda's unused settings (`PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*`, `LICENSE_ISSUANCE_TABLE`) and its DynamoDB permissions. The deploy role keeps one literal-ARN permission to delete the table; a follow-up removes it.
+
 - Download picker: the "Current release" and "Previous release" labels now show the selected app's own releases (the status call takes an optional `app`), so they match what the Download button serves (#6).
 
 - Downloads no longer need an access code: VCM Server and MIDI Player download like every other app, on every channel, and the license files are what protect them (decided 2026-11-04). The download Lambda drops the purchase / Test Drive code check and its per-IP rate limit; a POST from an older cached page is answered with the address as JSON and its body ignored. The update-check reply keeps `requires_access_code` (now always false) so existing clients still parse it. The page loses the Access code field; the order and Test Drive result boxes still show the reference and activation key, which are for activating the license in the Admin app. No FormatVersion change. The now-unused `PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*` and `LICENSE_ISSUANCE_TABLE` settings in `terraform/downloads.tf` can be removed in a later cleanup.

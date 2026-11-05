@@ -210,9 +210,9 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_s3_bucket.downloads.arn, "${aws_s3_bucket.downloads.arn}/*"]
   }
 
-  # Lets `terraform apply` itself manage the password-attempt rate-limit
-  # table (create/describe/update/tag/delete). Separate from the Lambda
-  # execution role's runtime-only UpdateItem grant in downloads.tf.
+  # Kept for one apply so `terraform apply` can delete the retired
+  # password-attempt rate-limit table (a literal ARN, since the resource is
+  # gone); remove this statement afterwards.
   statement {
     sid    = "DownloadsRateLimitTable"
     effect = "Allow"
@@ -225,7 +225,7 @@ data "aws_iam_policy_document" "github_actions_deploy" {
       "dynamodb:DescribeContinuousBackups", "dynamodb:UpdateContinuousBackups",
       "dynamodb:DescribeKinesisStreamingDestination",
     ]
-    resources = [aws_dynamodb_table.downloads_rate_limit.arn]
+    resources = ["arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/kng-downloads-ratelimit"]
   }
 
   statement {
