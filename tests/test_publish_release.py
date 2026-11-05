@@ -73,10 +73,8 @@ class PublishReleaseTests(unittest.TestCase):
         self.assertEqual(pr.channel_for("v1.0.1"), "stable")
 
     def test_plan_publishes_every_public_app_including_server_and_midi_player(self):
-        # server/midi-player are "public" (uploaded and hashed into the matrix)
-        # so alpha/beta testers can reach them through download_handler's
-        # password gate; the Lambda still blocks them once a release is
-        # "stable", not the publish step -- see PASSWORD_REQUIRED_APPS.
+        # server/midi-player are "public" too: every app is uploaded and
+        # hashed into the matrix, and the licenses protect the paid ones.
         with tempfile.TemporaryDirectory() as d:
             plan = pr.plan_release(TAG, make_release_dir(Path(d)), ARTIFACT_MAP, "2026-09-11")
         apps = {f["app"] for f in plan["release"]["files"]}

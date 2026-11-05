@@ -57,8 +57,6 @@ class DownloadHandlerTests(unittest.TestCase):
             os.environ,
             {
                 "DOWNLOADS_BUCKET": "test-bucket",
-                "RATE_LIMIT_TABLE": "test-ratelimit",
-                "LICENSE_ISSUANCE_TABLE": "test-issuance",
             },
         )
         patcher.start()
