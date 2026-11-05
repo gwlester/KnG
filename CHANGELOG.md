@@ -10,6 +10,7 @@ per-tag release notes once releases begin.
 
 ### Changed
 
+- Order Information box (after a purchase or Test Drive request): links to the offline license page, which was not linked from anywhere.
 - Download page: the VCM Server and VCM MIDI Player have a "Buy a license" button that opens the FastSpring checkout. Downloads stay open to everyone; the license a purchase issues is what unlocks the paid apps.
 
 - Downloads infrastructure: removed the retired access-code rate-limit DynamoDB table, the download Lambda's unused settings (`PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*`, `LICENSE_ISSUANCE_TABLE`) and its DynamoDB permissions.
