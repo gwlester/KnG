@@ -797,6 +797,7 @@ def render_picker(options: dict) -> str:
             <p class="picker-note" id="pick-note" role="status" aria-live="polite">Choose an app and a platform.</p>
             <div class="picker-actions">
               <button class="button button-primary" type="button" id="pick-go" disabled>Download</button>
+              <button class="button button-secondary" type="button" id="pick-buy" hidden>Buy a license</button>
               <a id="pick-alt" href="#" hidden></a>
             </div>
             <p class="license-note">By downloading you agree to the <a href="license.html">License Agreement</a>.</p>
