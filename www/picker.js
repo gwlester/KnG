@@ -151,8 +151,9 @@
     { id: "any", label: "Stable, beta and alpha releases" }
   ];
 
-  function statusUrl(endpoint, channel) {
-    return withChannel(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "status=1&v=1", channel);
+  function statusUrl(endpoint, channel, matrixApps) {
+    var app = matrixApps && matrixApps.length ? "&app=" + encodeURIComponent(matrixApps.join(",")) : "";
+    return withChannel(endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "status=1" + app + "&v=1", channel);
   }
 
   var api = {
@@ -273,9 +274,16 @@
       docLinks();
     }
 
+    function matrixAppsOf(appId) {
+      var app = findApp(baseOptions, appId);
+      var ids = [];
+      (app ? app.platforms : []).forEach(function (p) { if (ids.indexOf(p.matrix_app) < 0) ids.push(p.matrix_app); });
+      return ids;
+    }
+
     function loadStatus() {
       if (!endpoint || typeof root.fetch !== "function") return;
-      root.fetch(statusUrl(endpoint, channel()))
+      root.fetch(statusUrl(endpoint, channel(), matrixAppsOf(appSelect.value)))
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (body) {
           if (!body || body.FormatVersion !== 1) return;
@@ -347,7 +355,10 @@
         });
     };
 
-    appSelect.addEventListener("change", render);
+    appSelect.addEventListener("change", function () {
+      versionSelect.value = "current";
+      loadStatus();
+    });
     versionSelect.addEventListener("change", render);
     if (channelSelect) channelSelect.addEventListener("change", function () {
       versionSelect.value = "current";

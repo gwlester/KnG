@@ -4,7 +4,8 @@ GET  ?app=&platform=&version=&format=&arch=&v=1                   -> 302 to a 5-
 POST ?app=&platform=&version=&format=&arch=&v=1                   -> 200 {"ok": true, "url": ...} (only for older cached
                                                                        copies of the page, which POST; the body is ignored)
 GET  ?doc=&format=&version=&v=1                                   -> 302 to a signed URL for a guide
-GET  ?status=1&channel=&v=1                                       -> JSON of availability (no file keys); channel
+GET  ?status=1&app=&channel=&v=1                                  -> JSON of availability (no file keys); app (optional,
+                                                                       comma-separated) limits current/previous to those apps; channel
                                                                        stable (default) | beta | any also offers
                                                                        betas / alphas, and the same `channel` on a
                                                                        download or doc call resolves "current" alike
@@ -166,9 +167,12 @@ def _log(**fields) -> None:
     print(json.dumps({"event": "download", **fields}))
 
 
-def _per_app(matrix: dict, which: str, channel: str = "stable") -> list:
-    """Each app's own current/previous release, de-duplicated (releases that cover every app resolve to one)."""
+def _per_app(matrix: dict, which: str, channel: str = "stable", only: set = None) -> list:
+    """Each app's own current/previous release, de-duplicated (releases that cover every app resolve to one).
+    `only` limits it to those apps."""
     apps = {f["app"] for r in matrix.get("releases", []) for f in r.get("files", [])}
+    if only is not None:
+        apps &= only
     found = {}
     for app in sorted(apps):
         release = resolve_release(matrix, which, app, channel)
@@ -177,7 +181,7 @@ def _per_app(matrix: dict, which: str, channel: str = "stable") -> list:
     return list(found.values())
 
 
-def _status(matrix: dict, channel: str = "stable") -> dict:
+def _status(matrix: dict, channel: str = "stable", only: set = None) -> dict:
     def summarize(releases):
         releases = [r for r in releases if r is not None]
         if not releases:
@@ -210,8 +214,8 @@ def _status(matrix: dict, channel: str = "stable") -> dict:
         200,
         {
             "FormatVersion": FORMAT_VERSION,
-            "current": summarize(_per_app(matrix, "current", channel)),
-            "previous": summarize(_per_app(matrix, "previous", channel)),
+            "current": summarize(_per_app(matrix, "current", channel, only)),
+            "previous": summarize(_per_app(matrix, "previous", channel, only)),
         },
         cache=f"public, max-age={CACHE_SECONDS}",
     )
@@ -354,7 +358,12 @@ def handler(event, context):
         channel = _channel(qs)
         if channel is None:
             return _error(400, "Unknown channel.")
-        return _status(matrix, channel)
+        only = None
+        if qs.get("app"):
+            only = set(qs["app"].split(","))
+            if not all(NAME_RE.match(a) for a in only):
+                return _error(400, "Unknown app.")
+        return _status(matrix, channel, only)
     if qs.get("update"):
         return _update(matrix, qs)
     if qs.get("doc"):
