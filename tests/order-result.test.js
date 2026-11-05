@@ -13,3 +13,19 @@ test("platformLabel maps known platform ids to display names", () => {
 test("platformLabel falls back to the raw id for an unknown platform", () => {
   assert.equal(R.platformLabel("unknown-platform"), "unknown-platform");
 });
+
+test("the order box links to the offline license page", () => {
+  const made = [];
+  const doc = {
+    createElement: (tag) => {
+      const el = { tag, children: [], className: "", textContent: "", appendChild(c) { this.children.push(c); } };
+      made.push(el);
+      return el;
+    },
+    createTextNode: (text) => ({ text })
+  };
+  R.buildOrderResultBox(doc, { reference: "R1", short_key: "K1" });
+  const link = made.find((el) => el.tag === "a");
+  assert.ok(link);
+  assert.equal(link.href, "activate.html");
+});

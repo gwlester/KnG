@@ -45,6 +45,17 @@
       "Keep this reference and key: you'll enter them in the Admin app on first connection to license your Server/MIDI Player.";
     box.appendChild(instructions);
 
+    // The air-gapped path: a license file to carry to a Server or MIDI Player
+    // that cannot reach the internet itself.
+    var offline = doc.createElement("p");
+    offline.appendChild(doc.createTextNode("Is the Server or MIDI Player not connected to the internet? "));
+    var link = doc.createElement("a");
+    link.href = "activate.html";
+    link.textContent = "Get a license file to carry over by USB drive";
+    offline.appendChild(link);
+    offline.appendChild(doc.createTextNode("."));
+    box.appendChild(offline);
+
     return box;
   }
 
