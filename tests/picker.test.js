@@ -45,6 +45,18 @@ test("button state and label follow the entry", () => {
   assert.equal(P.describe({ available: true, type: "download" }).enabled, true);
 });
 
+test("only the paid apps offer a purchase, and it is separate from the download", () => {
+  assert.equal(P.buyProductPath(P.findApp(options, "server")), "virtual-church-musician-server");
+  assert.equal(P.buyProductPath(P.findApp(options, "midi-player")), "virtual-church-musician-midi-player");
+  assert.equal(P.buyProductPath(P.findApp(options, "service-runner")), null);
+  assert.equal(P.buyProductPath(P.findApp(options, "admin-security")), null);
+  assert.equal(P.buyProductPath(null), null);
+  // Downloads stay open: a published paid-app file is a plain download, not a purchase.
+  const o = P.applyStatus(options, { FormatVersion: 1, current: { available: { "server:linux": ["deb"] } } }, "current");
+  assert.equal(P.findPlatform(P.findApp(o, "server"), "linux").type, "download");
+  assert.equal(P.buyProductPath(P.findApp(o, "server")), "virtual-church-musician-server");
+});
+
 test("download URLs encode parameters and never carry a target", () => {
   const p = { id: "windows", matrix_app: "template-editor" };
   const url = P.buildUrl("https://x.example/", p, { version: "previous", format: "msi" });

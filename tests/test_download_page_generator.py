@@ -54,6 +54,10 @@ class DownloadPageGeneratorTests(unittest.TestCase):
         self.assertIn('data-storefront="example.test.onfastspring.com/popup-test"', html)
         self.assertIn('data-popup-closed="onFSPopupClosed"', html)
 
+    def test_render_picker_includes_the_hidden_buy_button(self):
+        html = self.b.render_picker(self.options)
+        self.assertIn('id="pick-buy"', html)
+
     def test_render_picker_includes_the_purchase_result_container(self):
         html = self.b.render_picker(self.options)
         self.assertIn('id="purchase-result"', html)

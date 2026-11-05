@@ -10,6 +10,8 @@ per-tag release notes once releases begin.
 
 ### Changed
 
+- Download page: the VCM Server and VCM MIDI Player have a "Buy a license" button that opens the FastSpring checkout. Downloads stay open to everyone; the license a purchase issues is what unlocks the paid apps.
+
 - Downloads infrastructure: removed the retired access-code rate-limit DynamoDB table, the download Lambda's unused settings (`PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*`, `LICENSE_ISSUANCE_TABLE`) and its DynamoDB permissions.
 
 - Download picker: the "Current release" and "Previous release" labels now show the selected app's own releases (the status call takes an optional `app`), so they match what the Download button serves (#6).

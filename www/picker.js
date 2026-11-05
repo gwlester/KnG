@@ -20,6 +20,14 @@
     return FASTSPRING_PRODUCT_PATHS[matrixAppId] || null;
   }
 
+  // The FastSpring product for a paid app, or null for a free one. Buying is
+  // separate from downloading: every app downloads openly and the license a
+  // purchase issues is what unlocks the paid ones.
+  function buyProductPath(app) {
+    if (!app || app.tier !== "paid" || !app.platforms || !app.platforms.length) return null;
+    return fastspringProductPathFor(app.platforms[0].matrix_app);
+  }
+
   function detectPlatform(nav) {
     if (!nav) return null;
     var hint = (nav.userAgentData && nav.userAgentData.platform) || "";
@@ -171,7 +179,8 @@
     describe: describe,
     buildUrl: buildUrl,
     otherFormat: otherFormat,
-    fastspringProductPathFor: fastspringProductPathFor
+    fastspringProductPathFor: fastspringProductPathFor,
+    buyProductPath: buyProductPath
   };
 
   if (typeof module !== "undefined" && module.exports) {
@@ -195,6 +204,7 @@
     var note = document.getElementById("pick-note");
     var go = document.getElementById("pick-go");
     var alt = document.getElementById("pick-alt");
+    var buy = document.getElementById("pick-buy");
     var detected = detectPlatform(root.navigator);
     var selected = null;
 
@@ -271,6 +281,7 @@
       } else {
         alt.hidden = true;
       }
+      if (buy) buy.hidden = !buyProductPath(app);
       docLinks();
     }
 
@@ -316,8 +327,7 @@
       if (heading && heading.scrollIntoView) heading.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    function startFastSpringCheckout(platform) {
-      var productPath = fastspringProductPathFor(platform.matrix_app);
+    function startFastSpringCheckout(productPath) {
       if (!productPath || !root.fastspring || !root.fastspring.builder) {
         note.textContent = "Purchasing is not available right now. Please try again shortly.";
         note.classList.add("is-error");
@@ -364,11 +374,14 @@
       versionSelect.value = "current";
       loadStatus();
     });
+    if (buy) buy.addEventListener("click", function () {
+      startFastSpringCheckout(buyProductPath(findApp(options, appSelect.value)));
+    });
     go.addEventListener("click", function () {
       var platform = currentPlatform();
       if (!platform || !describe(platform).enabled) return;
       if (platform.type === "purchase") {
-        startFastSpringCheckout(platform);
+        startFastSpringCheckout(fastspringProductPathFor(platform.matrix_app));
         return;
       }
       if (!endpoint) return;
