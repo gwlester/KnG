@@ -64,6 +64,10 @@ test("a channel other than stable is passed to downloads, documents and status",
     "https://x.example/?doc=user-manual&format=pdf&version=current&v=1");
   assert.equal(P.statusUrl("https://x.example/", "any"), "https://x.example/?status=1&v=1&channel=any");
   assert.equal(P.statusUrl("https://x.example/?a=1", "stable"), "https://x.example/?a=1&status=1&v=1");
+  assert.equal(P.statusUrl("https://x.example/", "stable", ["service-runner"]), "https://x.example/?status=1&app=service-runner&v=1");
+  assert.equal(P.statusUrl("https://x.example/", "any", ["administrator", "security"]),
+    "https://x.example/?status=1&app=administrator%2Csecurity&v=1&channel=any");
+  assert.equal(P.statusUrl("https://x.example/", "stable", []), "https://x.example/?status=1&v=1");
   assert.deepEqual(P.CHANNELS.map((c) => c.id), ["stable", "beta", "any"]);
 });
 

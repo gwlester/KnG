@@ -432,6 +432,21 @@ class PerAppReleaseTests(DownloadHandlerTests):
         body = json.loads(self.call(status="1")[1]["body"])
         self.assertEqual(set(body["current"]["available"]), {"template-editor:android", "service-runner:android"})
 
+    def test_status_can_be_limited_to_the_selected_apps(self):
+        self.matrix = {"FormatVersion": 1, "releases": [
+            self.app_release("midi-player-v1.0.2-a.2", "beta", "midi-player"),
+            self.app_release("v1.0.2-a.1", "beta", "service-runner"),
+        ]}
+        everything = json.loads(self.call(status="1", channel="any")[1]["body"])
+        self.assertEqual(everything["current"]["version"], "midi-player-v1.0.2-a.2")
+        runner = json.loads(self.call(status="1", channel="any", app="service-runner")[1]["body"])
+        self.assertEqual(runner["current"]["version"], "v1.0.2-a.1")
+        self.assertEqual(set(runner["current"]["available"]), {"service-runner:android"})
+        self.assertIsNone(runner["previous"])
+        both = json.loads(self.call(status="1", channel="any", app="service-runner,midi-player")[1]["body"])
+        self.assertEqual(set(both["current"]["available"]), {"service-runner:android", "midi-player:android"})
+        self.assertEqual(self.call(status="1", app="bad app!")[0], 400)
+
     def test_update_check_uses_the_apps_own_per_app_releases(self):
         self.matrix = {"FormatVersion": 1, "releases": [
             self.app_release("service-runner-v1.0.2-a.2", "beta", "service-runner"),
