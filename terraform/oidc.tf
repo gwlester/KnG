@@ -210,24 +210,6 @@ data "aws_iam_policy_document" "github_actions_deploy" {
     resources = [aws_s3_bucket.downloads.arn, "${aws_s3_bucket.downloads.arn}/*"]
   }
 
-  # Kept for one apply so `terraform apply` can delete the retired
-  # password-attempt rate-limit table (a literal ARN, since the resource is
-  # gone); remove this statement afterwards.
-  statement {
-    sid    = "DownloadsRateLimitTable"
-    effect = "Allow"
-    actions = [
-      "dynamodb:CreateTable", "dynamodb:DeleteTable", "dynamodb:DescribeTable",
-      "dynamodb:UpdateTable", "dynamodb:DescribeTimeToLive", "dynamodb:UpdateTimeToLive",
-      "dynamodb:TagResource", "dynamodb:UntagResource", "dynamodb:ListTagsOfResource",
-      # The provider's read also checks PITR and Kinesis streaming-destination
-      # status on every plan/apply, even though this table uses neither.
-      "dynamodb:DescribeContinuousBackups", "dynamodb:UpdateContinuousBackups",
-      "dynamodb:DescribeKinesisStreamingDestination",
-    ]
-    resources = ["arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/kng-downloads-ratelimit"]
-  }
-
   statement {
     sid       = "MediaBucket"
     effect    = "Allow"
