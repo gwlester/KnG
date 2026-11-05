@@ -22,7 +22,7 @@ FindCache is not on Google Play yet, so for now you install the app file directl
 4. **Tap Install.** If Google Play Protect says the app is unrecognised or blocked, choose **More details**, then **Install anyway**. FindCache is small, free and open source, and it just has not been through Google Play yet.
 5. Tap **Open** to start FindCache. You can switch **Allow from this source** off again afterwards.
 
-Your phone needs Android 7 or later and a 64-bit processor, which covers nearly every phone made since 2017.
+Your phone needs Android 7 or later and an ARM processor (64-bit or 32-bit), which covers nearly every Android phone.
 
 **Updating:** to update, download and open the newer **findcache.apk** the same way. It installs over the old version and keeps your places.
 
