@@ -10,7 +10,7 @@ per-tag release notes once releases begin.
 
 ### Changed
 
-- Downloads infrastructure: removed the retired access-code rate-limit DynamoDB table, the download Lambda's unused settings (`PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*`, `LICENSE_ISSUANCE_TABLE`) and its DynamoDB permissions. The deploy role keeps one literal-ARN permission to delete the table; a follow-up removes it.
+- Downloads infrastructure: removed the retired access-code rate-limit DynamoDB table, the download Lambda's unused settings (`PASSWORD_REQUIRED_APPS`, `RATE_LIMIT_*`, `LICENSE_ISSUANCE_TABLE`) and its DynamoDB permissions.
 
 - Download picker: the "Current release" and "Previous release" labels now show the selected app's own releases (the status call takes an optional `app`), so they match what the Download button serves (#6).
 
