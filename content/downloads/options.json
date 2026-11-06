@@ -75,10 +75,10 @@
           "type": "download",
           "available": false,
           "formats": [
-            "exe",
-            "msi"
+            "msi",
+            "exe"
           ],
-          "default_format": "exe"
+          "default_format": "msi"
         },
         {
           "id": "mac",
@@ -126,10 +126,10 @@
           "type": "download",
           "available": false,
           "formats": [
-            "exe",
-            "msi"
+            "msi",
+            "exe"
           ],
-          "default_format": "exe"
+          "default_format": "msi"
         },
         {
           "id": "mac",
@@ -177,10 +177,10 @@
           "type": "download",
           "available": false,
           "formats": [
-            "exe",
-            "msi"
+            "msi",
+            "exe"
           ],
-          "default_format": "exe"
+          "default_format": "msi"
         },
         {
           "id": "mac",
@@ -228,10 +228,10 @@
           "type": "download",
           "available": false,
           "formats": [
-            "exe",
-            "msi"
+            "msi",
+            "exe"
           ],
-          "default_format": "exe"
+          "default_format": "msi"
         },
         {
           "id": "mac",
