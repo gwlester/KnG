@@ -84,7 +84,7 @@ test("a channel other than stable is passed to downloads, documents and status",
 });
 
 test("an alternative installer format is offered only when there is one", () => {
-  assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "template-editor"), "windows")), "msi");
+  assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "template-editor"), "windows")), "exe");
   assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "server"), "windows")), "exe");
   assert.equal(P.otherFormat(P.findPlatform(P.findApp(options, "template-editor"), "mac")), null);
 });
