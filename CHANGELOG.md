@@ -10,6 +10,7 @@ per-tag release notes once releases begin.
 
 ### Changed
 
+- FastSpring: the download page's Buy a license button now opens the live storefront (`kngconsulting.onfastspring.com`) instead of the test one, so real card payments are accepted.
 - Order Information box (after a purchase or Test Drive request): links to the offline license page, which was not linked from anywhere.
 - Download page: the VCM Server and VCM MIDI Player have a "Buy a license" button that opens the FastSpring checkout. Downloads stay open to everyone; the license a purchase issues is what unlocks the paid apps.
 
